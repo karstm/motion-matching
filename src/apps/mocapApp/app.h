@@ -10,6 +10,8 @@
 #include "mocap/PlotUtils.h"
 #include "mocap/TimelineUtils.h"
 
+#define CRL_MOCAP_DATA_FOLDER "data/mocap/"
+
 namespace mocapApp {
 
 class App : public crl::gui::ShadowApplication {
@@ -330,7 +332,7 @@ private:
             return;
 
         footSteps.clear();
-        footMarkerNames = {"LeftHand", "LeftFoot", "RightHand", "RightFoot"};
+        footMarkerNames = {"LeftHand", "LeftToe", "RightHand", "RightToe"};
         linkNames = {};
         virtualLinkNames = {};
 
