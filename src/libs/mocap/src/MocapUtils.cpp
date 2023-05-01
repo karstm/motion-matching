@@ -76,8 +76,8 @@ std::string vec3tos(const glm::vec3 &vector) {
 Transform_t getTransformFromMotionData(double zRot, double xRot, double yRot) {
     // Create rotation quaternion from Euler angles
     Eigen::Quaternion q = crl::getRotationQuaternion(RAD(zRot), crl::V3D(0, 0, 1)) *  //
-                          crl::getRotationQuaternion(RAD(xRot), crl::V3D(1, 0, 0)) *  //
-                          crl::getRotationQuaternion(RAD(yRot), crl::V3D(0, 1, 0));
+                          crl::getRotationQuaternion(RAD(yRot), crl::V3D(0, 1, 0)) *  //
+                          crl::getRotationQuaternion(RAD(xRot), crl::V3D(1, 0, 0));
     // Create transform
     Transform_t t(q);
 
