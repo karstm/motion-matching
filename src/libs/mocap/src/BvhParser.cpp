@@ -172,7 +172,8 @@ int BvhParser::parseJoint(std::ifstream &file, std::shared_ptr<BvhJoint> parent,
             return -1;
         }
 
-        joint->setOffset(x, y, z);
+        // joint->setOffset(x, y, z);
+        joint->setOffset(x/100.0, y/100.0, z/100.0);
 
 #if VERBOSE
         std::cout << "Offset x: " << x << ", y: " << y << ", z: " << z << std::endl;
