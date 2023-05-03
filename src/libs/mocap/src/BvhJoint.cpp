@@ -18,8 +18,16 @@ void BvhJoint::addFrameMotionData(const std::vector<float> &data) {
         return;
     }
 
+    std::vector<float> scaled_data(data);
+
+    if (parent_ == nullptr) {
+        scaled_data[0] *= 0.01;
+        scaled_data[1] *= 0.01;
+        scaled_data[2] *= 0.01;
+    }
+
     // Add motion data
-    channel_data_.push_back(data);
+    channel_data_.push_back(scaled_data);
 
     // Add local to world transformation object
     if (parent_ == nullptr) {
@@ -29,8 +37,8 @@ void BvhJoint::addFrameMotionData(const std::vector<float> &data) {
         Transform_t ltw;
 
         // Create local to parent (initial pose?) transform from channel data
-        Transform_t ltp = getTransformFromMotionData(data[0], data[1], data[2],
-                                                     data[3], data[4], data[5]);
+        Transform_t ltp = getTransformFromMotionData(scaled_data[0], scaled_data[1], scaled_data[2],
+                                                     scaled_data[3], scaled_data[5], scaled_data[4]);
 
         // Now chain offset translation and ltp to obtain ltw
         ltw = Eigen::Translation3d(offset_) * ltp;
@@ -53,7 +61,7 @@ void BvhJoint::addFrameMotionData(const std::vector<float> &data) {
         offsetTransl = Eigen::Translation3d(offset_);
 
         // Build local to parent transform from channel data
-        Transform_t ltp = getTransformFromMotionData(data[0], data[1], data[2]);
+        Transform_t ltp = getTransformFromMotionData(data[0], data[2], data[1]);
 
         // Save ltp transform
         ltpTransforms_.push_back(ltp);

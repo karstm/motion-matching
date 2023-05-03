@@ -10,6 +10,11 @@
 #include "mocap/PlotUtils.h"
 #include "mocap/TimelineUtils.h"
 
+//TODO: This is a variable that should be set in cmake somehow
+//     It is used to find the data folder
+//     Here it is overwritten so its not too time consuming to set the folder everytime
+#define CRL_MOCAP_DATA_FOLDER "data/mocap/"
+
 namespace mocapApp {
 
 class App : public crl::gui::ShadowApplication {
@@ -330,7 +335,7 @@ private:
             return;
 
         footSteps.clear();
-        footMarkerNames = {"LeftHand", "LeftFoot", "RightHand", "RightFoot"};
+        footMarkerNames = {"LeftHand", "LeftToe", "RightHand", "RightToe"};
         linkNames = {};
         virtualLinkNames = {};
 
