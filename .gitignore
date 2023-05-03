@@ -11,6 +11,7 @@ data/out
 cmake-build-*/
 
 # vscode
+.vs
 .vscode
 .devcontainer
 
