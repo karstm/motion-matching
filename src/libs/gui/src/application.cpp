@@ -527,6 +527,8 @@ ShadowApplication::ShadowApplication(const char *title, int width, int height, s
     }
 
     GLCall(glEnable(GL_DEPTH_TEST));
+
+    controller = &Controller::Controller(window);
 }
 
 ShadowApplication::ShadowApplication(const char *title, std::string iconPath) : Application(title, iconPath) {
@@ -543,26 +545,37 @@ ShadowApplication::ShadowApplication(const char *title, std::string iconPath) : 
     }
 
     GLCall(glEnable(GL_DEPTH_TEST));
+
+    controller = &Controller::Controller(window);
 }
 
 void ShadowApplication::gamepadInput() {
-    for(int i = 0; i < GLFW_JOYSTICK_LAST; i++)
-    if (glfwJoystickIsGamepad(i))
-    {
-        int count;
-        const float *axes = glfwGetJoystickAxes(i, &count);
-        std::cout<< "Gamepad axis: " << i << std::endl;
-        std::cout<< "Joystick value: " << axes[0] << ", " << 
-                                            axes[1] <<  ", " <<
-                                            axes[2] <<  ", " <<
-                                            axes[3] <<  ", " <<
-                                            axes[4] <<  ", " <<
-                                            axes[5] << std::endl;
-        if(abs(axes[0]) > 0.1)
-            camera.rotAboutUpAxis += axes[0] * 0.02;
-        if(abs(axes[1]) > 0.1)
-            camera.rotAboutRightAxis -= axes[1] * 0.02;
-    }
+    controller->getInputDirection();
+    // bool found_controller = false;
+    // for(int i = 0; i < GLFW_JOYSTICK_LAST; i++)
+    // if (glfwJoystickIsGamepad(i))
+    // {
+    //     int count;
+    //     const float *axes = glfwGetJoystickAxes(i, &count);
+    //     crl::Logger::consolePrint("Gamepad axis: %d \n", i);
+    //     crl::Logger::consolePrint("Joystick value: %d, %d, %d, %d, %d, %d\n", axes[0], axes[1], axes[2], axes[3], axes[4], axes[5]);
+    //     // std::cout<< "Joystick value: " << axes[0] << ", " << 
+    //     //                                     axes[1] <<  ", " <<
+    //     //                                     axes[2] <<  ", " <<
+    //     //                                     axes[3] <<  ", " <<
+    //     //                                     axes[4] <<  ", " <<
+    //     //                                     axes[5] << std::endl;
+    //     if(abs(axes[0]) > 0.1)
+    //         camera.rotAboutUpAxis += axes[0] * 0.02;
+    //     if(abs(axes[1]) > 0.1)
+    //         camera.rotAboutRightAxis -= axes[1] * 0.02;
+        
+    //     found_controller = true;
+    // }
+
+    // if(!found_controller){
+    //     crl::Logger::consolePrint("No Controller: \n");
+    // }
 }
 
 void ShadowApplication::draw() {
