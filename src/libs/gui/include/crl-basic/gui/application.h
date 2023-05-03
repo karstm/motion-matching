@@ -59,6 +59,7 @@ public:
     virtual bool drop(int count, const char **filenames);
     virtual void resizeWindow(int width, int height);
     virtual void resizeBuffer(int width, int height);
+    virtual void gamepadInput();
 
     /**
      * Adjust UI scale based on the framebuffer / window size ratio and window scale factor.
@@ -128,6 +129,7 @@ public:
     virtual void resizeBuffer(int width, int height) override;
     virtual bool mouseMove(double xpos, double ypos) override;
     virtual bool scrollWheel(double xoffset, double yoffset) override;
+    virtual void gamepadInput() override;
 
     //--- App settings
     virtual void printCurrentAppSettings() const;
