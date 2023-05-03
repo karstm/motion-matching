@@ -26,24 +26,22 @@ class Controller {
 
 public:
     // Constructor
-    Controller::Controller(GLFWwindow *window);
+    Controller();
+    Controller(KeyboardState *keyboardState);
     
     // Methods
-    
-    V3D getInputDirection();
+    void update();
 
 private:
     // Members
-    GLFWwindow *window;
-    bool wasdVector[4];
+    float speed = 0.1f;
+    V3D position;
+    V3D direction;
+    KeyboardState *keyboardState;
 
     // Methods
-    void Controller::init();
-    void Controller::setCallbacks();
-
-    //--- Interaction
-    virtual bool keyPressed(int key, int mods);
-    virtual bool keyReleased(int key, int mods);
+    void init();
+    void setInputDirection();
 };
 
 }  // namespace gui

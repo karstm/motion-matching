@@ -123,6 +123,13 @@ void Application::init(const char *title, int width, int height, std::string ico
 
     // set UI scale
     rescaleUI();
+
+    // initialize keyboard state
+    for (int i = 0; i < GLFW_KEY_LAST; i++)
+        keyboardState.insert(std::pair<int, bool>(i, false));
+
+    //initialize controller
+    controller = Controller(&keyboardState);
 }
 
 void Application::setCallbacks() {
@@ -237,7 +244,8 @@ void Application::run() {
     glfwSwapInterval(0);  //Disable waiting for framerate of glfw window
 
     while (!glfwWindowShouldClose(window)) {
-        gamepadInput();
+        controller.update();
+        crl::Logger::consolePrint("Keystate: %d, %d, %d, %d\n", keyboardState[GLFW_KEY_W], keyboardState[GLFW_KEY_A], keyboardState[GLFW_KEY_S], keyboardState[GLFW_KEY_D]);
         if (FPSDisplayTimer.timeEllapsed() > 0.33) {
             FPSDisplayTimer.restart();
             if (runningAverageStepCount > 0) {
@@ -430,10 +438,6 @@ void Application::resizeBuffer(int width, int height) {
     GLCall(glViewport(0, 0, width, height));
 }
 
-void Application::gamepadInput() { 
-    return;
-}
-
 void Application::rescaleUI() {
     // get window content scale factor
     float xscale = 1.0f;
@@ -477,10 +481,12 @@ bool Application::keyPressed(int key, int mods) {
         if (!processIsRunning)
             process();
     }
+    keyboardState[key] = true;
     return false;
 }
 
 bool Application::keyReleased(int key, int mods) {
+    keyboardState[key] = false;
     return false;
 }
 
@@ -527,8 +533,6 @@ ShadowApplication::ShadowApplication(const char *title, int width, int height, s
     }
 
     GLCall(glEnable(GL_DEPTH_TEST));
-
-    controller = &Controller::Controller(window);
 }
 
 ShadowApplication::ShadowApplication(const char *title, std::string iconPath) : Application(title, iconPath) {
@@ -545,37 +549,6 @@ ShadowApplication::ShadowApplication(const char *title, std::string iconPath) : 
     }
 
     GLCall(glEnable(GL_DEPTH_TEST));
-
-    controller = &Controller::Controller(window);
-}
-
-void ShadowApplication::gamepadInput() {
-    controller->getInputDirection();
-    // bool found_controller = false;
-    // for(int i = 0; i < GLFW_JOYSTICK_LAST; i++)
-    // if (glfwJoystickIsGamepad(i))
-    // {
-    //     int count;
-    //     const float *axes = glfwGetJoystickAxes(i, &count);
-    //     crl::Logger::consolePrint("Gamepad axis: %d \n", i);
-    //     crl::Logger::consolePrint("Joystick value: %d, %d, %d, %d, %d, %d\n", axes[0], axes[1], axes[2], axes[3], axes[4], axes[5]);
-    //     // std::cout<< "Joystick value: " << axes[0] << ", " << 
-    //     //                                     axes[1] <<  ", " <<
-    //     //                                     axes[2] <<  ", " <<
-    //     //                                     axes[3] <<  ", " <<
-    //     //                                     axes[4] <<  ", " <<
-    //     //                                     axes[5] << std::endl;
-    //     if(abs(axes[0]) > 0.1)
-    //         camera.rotAboutUpAxis += axes[0] * 0.02;
-    //     if(abs(axes[1]) > 0.1)
-    //         camera.rotAboutRightAxis -= axes[1] * 0.02;
-        
-    //     found_controller = true;
-    // }
-
-    // if(!found_controller){
-    //     crl::Logger::consolePrint("No Controller: \n");
-    // }
 }
 
 void ShadowApplication::draw() {
