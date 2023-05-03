@@ -237,6 +237,7 @@ void Application::run() {
     glfwSwapInterval(0);  //Disable waiting for framerate of glfw window
 
     while (!glfwWindowShouldClose(window)) {
+        gamepadInput();
         if (FPSDisplayTimer.timeEllapsed() > 0.33) {
             FPSDisplayTimer.restart();
             if (runningAverageStepCount > 0) {
@@ -429,6 +430,10 @@ void Application::resizeBuffer(int width, int height) {
     GLCall(glViewport(0, 0, width, height));
 }
 
+void Application::gamepadInput() { 
+    return;
+}
+
 void Application::rescaleUI() {
     // get window content scale factor
     float xscale = 1.0f;
@@ -538,6 +543,26 @@ ShadowApplication::ShadowApplication(const char *title, std::string iconPath) : 
     }
 
     GLCall(glEnable(GL_DEPTH_TEST));
+}
+
+void ShadowApplication::gamepadInput() {
+    for(int i = 0; i < GLFW_JOYSTICK_LAST; i++)
+    if (glfwJoystickIsGamepad(i))
+    {
+        int count;
+        const float *axes = glfwGetJoystickAxes(i, &count);
+        std::cout<< "Gamepad axis: " << i << std::endl;
+        std::cout<< "Joystick value: " << axes[0] << ", " << 
+                                            axes[1] <<  ", " <<
+                                            axes[2] <<  ", " <<
+                                            axes[3] <<  ", " <<
+                                            axes[4] <<  ", " <<
+                                            axes[5] << std::endl;
+        if(abs(axes[0]) > 0.1)
+            camera.rotAboutUpAxis += axes[0] * 0.02;
+        if(abs(axes[1]) > 0.1)
+            camera.rotAboutRightAxis -= axes[1] * 0.02;
+    }
 }
 
 void ShadowApplication::draw() {
