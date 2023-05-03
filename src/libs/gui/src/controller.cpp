@@ -17,8 +17,7 @@ void Controller::init(){
 void Controller::update(){
     setInputDirection();
     position += direction * speed;
-    crl::Logger::consolePrint("Character position: %d, %d, %d\n", position[0], position[1], position[2]);
-    std::cout << "Position: " << position[0] << ", " << position[1] << ", " <<  position[2] << std::endl;
+    crl::Logger::consolePrint("Character position: %f, %f, %f\n", position[0], position[1], position[2]);
 
 }
 
@@ -49,8 +48,7 @@ void Controller::setInputDirection(){
         else
             direction = V3D(0, 0, 0);
     }
-    std::cout << "Direction: " << direction[0] << ", " << direction[1] << ", " <<  direction[2] << std::endl;
-    crl::Logger::consolePrint("Character direction: %d, %d, %d\n", direction[0], direction[1], direction[2]);
+    crl::Logger::consolePrint("Character direction: %f, %f, %f\n", direction[0], direction[1], direction[2]);
 }
 
 

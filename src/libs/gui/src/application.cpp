@@ -245,7 +245,6 @@ void Application::run() {
 
     while (!glfwWindowShouldClose(window)) {
         controller.update();
-        crl::Logger::consolePrint("Keystate: %d, %d, %d, %d\n", keyboardState[GLFW_KEY_W], keyboardState[GLFW_KEY_A], keyboardState[GLFW_KEY_S], keyboardState[GLFW_KEY_D]);
         if (FPSDisplayTimer.timeEllapsed() > 0.33) {
             FPSDisplayTimer.restart();
             if (runningAverageStepCount > 0) {
