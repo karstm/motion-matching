@@ -82,7 +82,8 @@ public:
         if (ms.lButtonPressed && ks[GLFW_KEY_LEFT_ALT] == false)
             processLeftMouseMovement((float)ms.mouseMoveX, (float)ms.mouseMoveY);
         if (ms.rButtonPressed || (ms.lButtonPressed && ks[GLFW_KEY_LEFT_ALT] == true))
-            processRightMouseMovement((float)ms.mouseMoveX, (float)ms.mouseMoveY);
+            return;
+            //processRightMouseMovement((float)ms.mouseMoveX, (float)ms.mouseMoveY);
     }
 
     glm::mat4 getProjectionMatrix() {

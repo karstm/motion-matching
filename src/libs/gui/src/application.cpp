@@ -244,7 +244,6 @@ void Application::run() {
     glfwSwapInterval(0);  //Disable waiting for framerate of glfw window
 
     while (!glfwWindowShouldClose(window)) {
-        controller.update();
         if (FPSDisplayTimer.timeEllapsed() > 0.33) {
             FPSDisplayTimer.restart();
             if (runningAverageStepCount > 0) {
@@ -551,6 +550,8 @@ ShadowApplication::ShadowApplication(const char *title, std::string iconPath) : 
 }
 
 void ShadowApplication::draw() {
+    controller.update(camera);
+    
     //Clear
     GLCall(glClearColor(clearColor[0], clearColor[1], clearColor[2], 1.f));
     GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
@@ -559,6 +560,7 @@ void ShadowApplication::draw() {
     prepareToDraw();
     shadowPass();
     renderPass();
+    drawTrajectory(shadowShader);
 
     //ImGui
     ImGui_ImplOpenGL3_NewFrame();
@@ -620,6 +622,11 @@ void ShadowApplication::renderPass() {
 
     drawObjectsWithShadows(shadowShader);
     drawObjectsWithoutShadows(basicShader);
+}
+
+void ShadowApplication::drawTrajectory(const Shader &shader) {
+    crl::gui::drawSphere(controller.getPos(), 0.05, shader, V3D(0, 0, 0), 1.0);
+    crl::gui::drawArrow3d(controller.getPos(), controller.getDir(), world_frame_radius, shader, V3D(0, 0, 0), 1.0);
 }
 
 void ShadowApplication::drawObjectsWithShadows(const Shader &shader) {

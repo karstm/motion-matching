@@ -30,18 +30,22 @@ public:
     Controller(KeyboardState *keyboardState);
     
     // Methods
-    void update();
+    void update(TrackingCamera &camera);
+    P3D getPos();
+    V3D getDir();
 
 private:
     // Members
     float speed = 0.1f;
-    V3D position;
+    P3D position;
     V3D direction;
     KeyboardState *keyboardState;
 
     // Methods
     void init();
-    void setInputDirection();
+    void setInputDirection(TrackingCamera &camera);
+    V3D vec3toV3D(vec3 v);
+    vec3 V3Dtovec3(V3D v);
 };
 
 }  // namespace gui
