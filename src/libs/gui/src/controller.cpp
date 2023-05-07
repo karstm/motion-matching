@@ -1,4 +1,5 @@
 #include "crl-basic/gui/controller.h"
+#include "crl-basic/gui/mxm_utils.h"
 
 namespace crl {
 namespace gui {
@@ -55,8 +56,9 @@ void Controller::update(TrackingCamera &camera) {
             }
         }
     }
-    camera.target = V3Dtovec3(V3D(pos[0]));
-    //crl::Logger::consolePrint("Character position: %f, %f, %f\n", pos[0][0], pos[0][1], pos[0][2]);
+
+    camera.target =  MxMUtils::V3Dtovec3(V3D(pos[0]));
+    crl::Logger::consolePrint("Character position: %f, %f, %f\n", pos[0][0], pos[0][1], pos[0][2]);
 }
 
 std::vector<P3D> Controller::getPos() {
@@ -76,53 +78,38 @@ std::vector<P3D> Controller::getPosHist() {
 
 void Controller::setInputDirection(TrackingCamera &camera){
     bool found_controller = false;
-    //for(int i = 0; i < GLFW_JOYSTICK_LAST; i++) {
-    //    if (glfwJoystickIsGamepad(i))
-    //    {
-    //        int count;
-    //        const float *axis = glfwGetJoystickAxes(i, &count);
-    //        V3D temp(axis[0], 0, axis[1]);
-    //        if(temp.norm() > 0.1) {   
-    //            found_controller = true;
-    //        }
-    //    }
-    //}
+    float verticalDir = 0, horizontalDir = 0;
+
+    for(int i = 0; i < GLFW_JOYSTICK_LAST; i++) {
+       if (glfwJoystickIsGamepad(i))
+       {
+           int count;
+           const float *axis = glfwGetJoystickAxes(i, &count);
+           V3D temp(axis[0], 0, axis[1]);
+           if(temp.norm() > 0.1) {   
+               found_controller = true;
+                horizontalDir = axis[0]; 
+                verticalDir = -axis[1]; 
+           }
+       }
+    }
 
     if(!found_controller){
-        float verticalDir, horizontalDir;
         verticalDir = keyboardState->at(GLFW_KEY_W); 
         verticalDir -= keyboardState->at(GLFW_KEY_S);
         horizontalDir = keyboardState->at(GLFW_KEY_D);
         horizontalDir -= keyboardState->at(GLFW_KEY_A);
+    }
 
-        if (verticalDir != 0 || horizontalDir != 0) {
-            V3D cameraDir = vec3toV3D(camera.target - camera.position());
-            cameraDir.y() = 0;
-            cameraDir = cameraDir.unit();
-            velDesired = (cameraDir * verticalDir + cameraDir.cross(V3D(0, 1, 0)) * horizontalDir).unit() * 1.5; // desired velocity magnitude of 1.5 m s^-1
-        } else {
-            velDesired = V3D(0, 0, 0);
-        }
+    if (verticalDir != 0 || horizontalDir != 0) {
+        V3D cameraDir = MxMUtils::vec3toV3D(camera.target - camera.position());
+        cameraDir.y() = 0;
+        cameraDir = cameraDir.unit();
+        velDesired = (cameraDir * verticalDir + cameraDir.cross(V3D(0, 1, 0)) * horizontalDir).unit() * 1.5; // desired velocity magnitude of 1.5 m s^-1
+    } else {
+        velDesired = V3D(0, 0, 0);
     }
     //crl::Logger::consolePrint("Character velocity: %f\n", sqrt(pow(vel[0],2)+pow(vel[1],2)+pow(vel[2],2)));
-}
-
-// function to convert vec3 to V3D for convenience
-V3D Controller::vec3toV3D(vec3 v) {
-    V3D vec;
-    vec.x() = v.x;
-    vec.y() = v.y;
-    vec.z() = v.z;
-    return vec;
-}
-
-// function to convert V3D to vec3 for convenience
-vec3 Controller::V3Dtovec3(V3D v) {
-    vec3 vec;
-    vec.x = v.x();
-    vec.y = v.y();
-    vec.z = v.z();
-    return vec;
 }
 
 }  // namespace gui

@@ -25,6 +25,9 @@
 namespace crl {
 namespace gui {
 
+// This class controls the behaviour of the player character,
+// given an user-input via keyboard&mouse or gamepad (ps4).
+
 class Controller {
 
 public:
@@ -53,8 +56,6 @@ private:
     // Methods
     void init();
     void setInputDirection(TrackingCamera &camera);
-    V3D vec3toV3D(vec3 v);
-    vec3 V3Dtovec3(V3D v);
 };
 
 }  // namespace gui
