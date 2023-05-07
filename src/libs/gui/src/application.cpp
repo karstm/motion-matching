@@ -625,8 +625,11 @@ void ShadowApplication::renderPass() {
 }
 
 void ShadowApplication::drawTrajectory(const Shader &shader) {
-    crl::gui::drawSphere(controller.getPos(), 0.05, shader, V3D(0, 0, 0), 1.0);
-    crl::gui::drawArrow3d(controller.getPos(), controller.getDir(), world_frame_radius, shader, V3D(0, 0, 0), 1.0);
+    std::vector<P3D> pos = controller.getPos();
+    crl::gui::drawSphere(pos[0], 0.05, shader, V3D(0, 0, 0), 1.0);
+    for (int i = 0; i < pos.size() - 1; i++) {
+        crl::gui::drawArrow3d(pos[i], V3D(pos[i], pos[i + 1]), world_frame_radius, shader, V3D(0, 0, 0), 1.0);
+    }
 }
 
 void ShadowApplication::drawObjectsWithShadows(const Shader &shader) {

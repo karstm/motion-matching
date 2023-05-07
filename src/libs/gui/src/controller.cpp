@@ -9,42 +9,72 @@ Controller::Controller(KeyboardState *keyboardState) {
     init();
 }
 
-void Controller::init(){
-    position = P3D(0, 0, 0);
-    direction = V3D(0, 0, 0);
+void Controller::init() {
+    for (int i = 0; i < 10; i++) {
+        pos.push_back(P3D(0, 0, 0));
+    }
+    for (int i = 0; i < 2; i++) {
+        vel.push_back(V3D(0, 0, 0));
+    }
+    acc = V3D(0, 0, 0);
+    prevTime = std::chrono::steady_clock::now();
 }
 
-void Controller::update(TrackingCamera &camera){
+void Controller::update(TrackingCamera &camera) {
     setInputDirection(camera);
-    position = position + direction * speed;
-    camera.target = V3Dtovec3(V3D(position));
-    crl::Logger::consolePrint("Character position: %f, %f, %f\n", position[0], position[1], position[2]);
+    P3D posPrev = pos[0];
+    V3D velPrev = vel[vel.size() - 1];
+    V3D accPrev = acc;
+    
+    currTime = std::chrono::steady_clock::now();
+    float dt = (std::chrono::duration_cast<std::chrono::milliseconds> (currTime - prevTime)).count();
+    prevTime = currTime;
+    float T;
+    
+    for (int t = 0; t < pos.size(); t++) { // for each timestep
+        if (t == 0) {
+            T = dt / 1000.0; // take into account the speed at which the loop runs to calculate the actual position in the next frame
+            vel.pop_front();
+            vel.push_back(V3D(0, 0, 0));
+        } else {
+            T = 0.2 * t; // predict future positions at intervals of 0.2 s
+        }
+        
+        float expLambdaT = exp(-lambda * T);
+        
+        for (int x = 0; x < 3; x += 1) { // for the x and z coordinates
+            float j0 = velPrev[x] - velDesired[x];
+            float j1 = accPrev[x] + j0 * lambda;
+            pos[t][x] = expLambdaT * (((-j1) / (lambda * lambda)) + ((-j0 - j1 * T) / lambda)) + (j1 / (lambda * lambda)) + j0 / lambda + velDesired[x] * T +
+                       posPrev[x];
+            if (t == 0) {
+                vel[vel.size() - 1][x] = expLambdaT * (j0 + j1 * T) + velDesired[x];
+                acc[x] = expLambdaT * (accPrev[x] - j1 * lambda * T);
+            }
+        }
+    }
+
+    camera.target = V3Dtovec3(V3D(pos[0]));
+    crl::Logger::consolePrint("Character position: %f, %f, %f\n", pos[0][0], pos[0][1], pos[0][2]);
 }
 
-P3D Controller::getPos() {
-    return position;
-}
-
-// returns direction vector with its length normalised
-V3D Controller::getDir() {
-    vec3 dirVec = glm::normalize(glm::vec3(direction.x(), direction.y(), direction.z()));
-    return V3D(dirVec.x, dirVec.y, dirVec.z);
+std::vector<P3D> Controller::getPos() {
+    return pos;
 }
 
 void Controller::setInputDirection(TrackingCamera &camera){
     bool found_controller = false;
-    for(int i = 0; i < GLFW_JOYSTICK_LAST; i++) {
-        if (glfwJoystickIsGamepad(i))
-        {
-            int count;
-            const float *axis = glfwGetJoystickAxes(i, &count);
-            V3D temp(axis[0], 0, axis[1]);
-            if(temp.norm() > 0.1) {
-                direction = V3D(axis[0], 0, axis[1]);        
-                found_controller = true;
-            }
-        }
-    }
+    //for(int i = 0; i < GLFW_JOYSTICK_LAST; i++) {
+    //    if (glfwJoystickIsGamepad(i))
+    //    {
+    //        int count;
+    //        const float *axis = glfwGetJoystickAxes(i, &count);
+    //        V3D temp(axis[0], 0, axis[1]);
+    //        if(temp.norm() > 0.1) {   
+    //            found_controller = true;
+    //        }
+    //    }
+    //}
 
     if(!found_controller){
         float verticalDir, horizontalDir;
@@ -59,12 +89,17 @@ void Controller::setInputDirection(TrackingCamera &camera){
             cameraDir = cameraDir.unit();
 
 
-            direction = (cameraDir * verticalDir + cameraDir.cross(V3D(0, 1, 0)) * horizontalDir).unit();
+            velDesired = (cameraDir * verticalDir + cameraDir.cross(V3D(0, 1, 0)) * horizontalDir).unit();
+            for (int i = 0; i < vel.size() - 1; i++) {
+                velDesired += vel[i] * 0.5; // smooth our desired velocity vector with historical velocities
+            }
+            velDesired = (velDesired / (vel.size() + 1)).unit() * 1.5; // desired velocity magnitude of 1.5 m s^-1
+
         } else {
-            direction = V3D(0, 0, 0);
+            velDesired = V3D(0, 0, 0);
         }
     }
-    crl::Logger::consolePrint("Character direction: %f, %f, %f\n", direction[0], direction[1], direction[2]);
+    crl::Logger::consolePrint("Character velocity: %f\n", sqrt(pow(vel[0][0],2)+pow(vel[0][1],2)+pow(vel[0][2],2)));
 }
 
 // function to convert vec3 to V3D for convenience

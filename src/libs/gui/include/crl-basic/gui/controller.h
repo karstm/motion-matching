@@ -18,6 +18,9 @@
 #include <imgui_widgets/implot.h>
 
 #include <thread>
+#include <deque>
+#include <math.h>
+#include <chrono>
 
 namespace crl {
 namespace gui {
@@ -31,15 +34,19 @@ public:
     
     // Methods
     void update(TrackingCamera &camera);
-    P3D getPos();
-    V3D getDir();
+    std::vector<P3D> getPos(); 
 
 private:
     // Members
-    float speed = 0.1f;
-    P3D position;
-    V3D direction;
+    std::vector<P3D> pos; // future positions arranged in chronological order (i.e. "future-r" positions at the back)
+    std::deque<V3D> vel; // historical velocities arranged in chronological order (i.e. "past-er" positions at the front)
+    V3D acc; // current acceleration
+    V3D velDesired;
+    float lambda = 10.0f;
+    float dt = 0.0f;
     KeyboardState *keyboardState;
+    std::chrono::steady_clock::time_point prevTime;
+    std::chrono::steady_clock::time_point currTime;
 
     // Methods
     void init();
