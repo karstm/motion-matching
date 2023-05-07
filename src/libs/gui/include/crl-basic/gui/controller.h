@@ -34,16 +34,18 @@ public:
     
     // Methods
     void update(TrackingCamera &camera);
-    std::vector<P3D> getPos(); 
+    std::vector<P3D> getPos();
+    std::vector<P3D> Controller::getPosHist();
 
 private:
     // Members
     std::vector<P3D> pos; // future positions arranged in chronological order (i.e. "future-r" positions at the back)
-    std::deque<V3D> vel; // historical velocities arranged in chronological order (i.e. "past-er" positions at the front)
-    V3D acc; // current acceleration
+    std::deque<P3D> posHist; // historical positions arranged in chronological order (i.e. "past-er" positions at the front)
+    V3D vel;
+    V3D acc;
     V3D velDesired;
-    float lambda = 10.0f;
-    float dt = 0.0f;
+    float lambda = 4.0f;
+    float dt;
     KeyboardState *keyboardState;
     std::chrono::steady_clock::time_point prevTime;
     std::chrono::steady_clock::time_point currTime;
