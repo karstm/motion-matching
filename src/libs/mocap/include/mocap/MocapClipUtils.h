@@ -31,28 +31,28 @@ std::vector<std::pair<double, bool>> extractFootContactStateFromBVHClip(crl::moc
     return contactYN;
 }
 
-std::vector<std::pair<double, double>> convertFootSwingSequenceFromFootContactStates(const std::vector<std::pair<double, bool>> &contactInfos) {
-    std::vector<std::pair<double, double>> swings;
+std::vector<std::pair<double, double>> convertFootContactsSequenceFromFootContactStates(const std::vector<std::pair<double, bool>> &contactInfos) {
+    std::vector<std::pair<double, double>> contacts;
 
-    double tSwingStart = 0;
-    bool isCollectingSwing = false;
+    double tContactStart = 0;
+    bool isCollectingContact = false;
     for (const auto isContactAtT : contactInfos) {
         if (isContactAtT.second) {
             // at T, it's contact
-            if (isCollectingSwing) {
-                swings.emplace_back(tSwingStart, isContactAtT.first);
-                isCollectingSwing = false;
+            if (!isCollectingContact) {
+                isCollectingContact = true;
+                tContactStart = isContactAtT.first;
             }
         } else {
-            // at T, it's swing
-            if (!isCollectingSwing) {
-                isCollectingSwing = true;
-                tSwingStart = isContactAtT.first;
+            // at T, it's contact
+            if (isCollectingContact) {
+                contacts.emplace_back(tContactStart, isContactAtT.first);
+                isCollectingContact = false;
             }
         }
     }
 
-    return swings;
+    return contacts;
 }
 
 crl::Trajectory3D extractMarkerPositionTrajectoryFromBVHClip(crl::mocap::BVHClip *clip, const std::string &jointName) {
