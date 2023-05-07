@@ -16,6 +16,7 @@
 #include <imgui_widgets/imGuIZMOquat.h>
 #include <imgui_widgets/imgui_add.h>
 #include <imgui_widgets/implot.h>
+#include "crl-basic/gui/controller.h"
 
 #include <thread>
 
@@ -68,6 +69,9 @@ public:
     //--- Screenshot
     virtual bool screenshot(const char *filename) const;
 
+    // // Our Implementations Stuff
+    // Controller *controller;
+
 public:
     //--- Window
     GLFWwindow *window;
@@ -78,6 +82,7 @@ public:
     //--- Interaction
     MouseState mouseState;
     KeyboardState keyboardState;
+    Controller controller;
 
     //--- Framerate
     bool limitFramerate = true;
@@ -157,6 +162,7 @@ public:
     Shader shadowShader = Shader(CRL_SHADER_FOLDER "/basic_lighting.vert", CRL_SHADER_FOLDER "/basic_shadow_lighting.frag");
     Shader shadowMapRenderer = Shader(CRL_SHADER_FOLDER "/basic_lighting.vert", CRL_SHADER_FOLDER "/render_shadow.frag");
     Shader basicShader = Shader(CRL_SHADER_FOLDER "/basic_lighting.vert", CRL_SHADER_FOLDER "/basic_lighting.frag");
+
 };
 
 }  // namespace gui

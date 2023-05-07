@@ -123,6 +123,13 @@ void Application::init(const char *title, int width, int height, std::string ico
 
     // set UI scale
     rescaleUI();
+
+    // initialize keyboard state
+    for (int i = 0; i < GLFW_KEY_LAST; i++)
+        keyboardState.insert(std::pair<int, bool>(i, false));
+
+    //initialize controller
+    controller = Controller(&keyboardState);
 }
 
 void Application::setCallbacks() {
@@ -237,6 +244,7 @@ void Application::run() {
     glfwSwapInterval(0);  //Disable waiting for framerate of glfw window
 
     while (!glfwWindowShouldClose(window)) {
+        controller.update();
         if (FPSDisplayTimer.timeEllapsed() > 0.33) {
             FPSDisplayTimer.restart();
             if (runningAverageStepCount > 0) {
@@ -472,10 +480,12 @@ bool Application::keyPressed(int key, int mods) {
         if (!processIsRunning)
             process();
     }
+    keyboardState[key] = true;
     return false;
 }
 
 bool Application::keyReleased(int key, int mods) {
+    keyboardState[key] = false;
     return false;
 }
 
