@@ -10,6 +10,8 @@
 #include "mocap/PlotUtils.h"
 #include "mocap/TimelineUtils.h"
 
+#include "mocap/Database.h"
+
 namespace mocapApp {
 
 class App : public crl::gui::ShadowApplication {
@@ -309,6 +311,8 @@ public:
         frameIdx = 0;
 
         crl::Logger::consolePrint("Imported %d clips.\n", cnt);
+
+        database = Database(&bvhClips);
     }
 
 private:
@@ -566,6 +570,8 @@ private:
     }
 
 private:
+    Database database;
+
     ImGui::FileBrowser fileDialog;
     std::vector<std::unique_ptr<crl::mocap::BVHClip>> bvhClips;
     std::vector<std::unique_ptr<crl::mocap::C3DClip>> c3dClips;
