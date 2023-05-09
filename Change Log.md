@@ -1,5 +1,17 @@
-## Change log
-# Trajectory (historical and future) visualisation
+# Change log
+## Orientation trajectory visualisation
+
+- Orientation trajectory visualisation implemented. 'rot', 'rotHist', 'angVel', 'rotDesired', 'lambdaRot' attributes and 'getRot' method added to 'Controller' class. 'rotHist' currently not used yet as historical orientation visualisation not yet implemented. Angles are defined off the z-axis and positive angles are anti-clockwise off the z-axis with the x-axis pointed up on the x-z plane.
+
+- 'Controller::setInputDirection' now updates 'rotDesired'.
+
+- 'ShadowApplication::drawTrajectory' receives 'rot' data via 'getRot' method and renders the vectors accordingly.
+
+- Added 'angleBetweenVectors', 'minusPiToPi' and 'angleToVector' methods to 'mxm_utils.h' for convenience. Exercise caution when using 'angleBetweenVectors' as it works well for vectors on the x-z plane but will likely give erroneous results if instead used on vectors that are coplanar with the y-basis vector.
+
+- The for (int x = 0; x < 3; x += 1) loop in 'Controller::update' has been amended to for (int x = 0; x < 3; x += 2) as the y-component plays no role in the trajectory currently and can be skipped.
+
+## Trajectory (historical and future) visualisation
 
 - 'posHist' deque added to the 'Controller' class.
 
@@ -7,7 +19,7 @@
 
 - 'Controller::setInputDirection' no longer takes into account historical velocities. All this should be done via adjustment of the damping ratio 'lambda' in 'Controller.h'. 'lambda' has been retuned for smooth results.
 
-# Spring-based trajectory generation and visualisation
+## Spring-based trajectory generation and visualisation
 
 - Added position vector for future positions and velocity deque for historical velocities in 'controller.h'.
 
@@ -19,7 +31,7 @@
 
 - Gamepad controls currently not supported.
 
-# Basic camera-based control and single step trajectory visualisation in 8 directions
+## Basic camera-based control and single step trajectory visualisation in 8 directions
 
 - Right mouse button no longer has any strafing effect on the camera in 'camera.h'. Camera follows controller position and can still be rotated around controller position.
 

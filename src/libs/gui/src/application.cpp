@@ -626,11 +626,13 @@ void ShadowApplication::renderPass() {
 
 void ShadowApplication::drawTrajectory(const Shader &shader) {
     std::vector<P3D> pos = controller.getPos();
+    std::vector<float> rot = controller.getRot();
     std::vector<P3D> posHist = controller.getPosHist();
 
     crl::gui::drawSphere(pos[0], 0.05, shader, V3D(1, 0.5, 0), 1.0);
     for (int i = 0; i < pos.size() - 1; i++) {
         crl::gui::drawArrow3d(pos[i], V3D(pos[i], pos[i + 1]), world_frame_radius, shader, V3D(1, 0.5, 0), 1.0);
+        crl::gui::drawArrow3d(pos[i], V3D(pos[i], pos[i] + MxMUtils::angleToVector(rot[i]) * 0.2), world_frame_radius / 2, shader, V3D(1, 0, 1), 1.0);
     }
 
     for (int i = 0; i < posHist.size(); i++) {

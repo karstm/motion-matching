@@ -1,5 +1,4 @@
 #include "crl-basic/gui/controller.h"
-#include "crl-basic/gui/mxm_utils.h"
 
 namespace crl {
 namespace gui {
@@ -13,9 +12,11 @@ Controller::Controller(KeyboardState *keyboardState) {
 void Controller::init() {
     for (int i = 0; i < 6; i++) {
         pos.push_back(P3D(0, 0, 0));
+        rot.push_back(0.0);
     }
     vel = V3D(0, 0, 0);
     acc = V3D(0, 0, 0);
+    angVel = 0.0;
 
     prevTime = std::chrono::steady_clock::now();
 }
@@ -25,6 +26,8 @@ void Controller::update(TrackingCamera &camera) {
     P3D posPrev = pos[0];
     V3D velPrev = vel;
     V3D accPrev = acc;
+    float rotPrev = rot[0];
+    float angVelPrev = angVel;
     
     if (posHist.size() >= 60) {
         posHist.pop_front();
@@ -43,9 +46,9 @@ void Controller::update(TrackingCamera &camera) {
             T = 0.2 * t; // predict future positions at intervals of 0.2 s
         }
         
+        // translation
         float expLambdaT = exp(-lambda * T);
-        
-        for (int x = 0; x < 3; x += 1) { // for the x and z coordinates
+        for (int x = 0; x < 3; x += 2) { // for the x and z coordinates
             float j0 = velPrev[x] - velDesired[x];
             float j1 = accPrev[x] + j0 * lambda;
             pos[t][x] = expLambdaT * (((-j1) / (lambda * lambda)) + ((-j0 - j1 * T) / lambda)) + (j1 / (lambda * lambda)) + j0 / lambda + velDesired[x] * T +
@@ -55,16 +58,28 @@ void Controller::update(TrackingCamera &camera) {
                 acc[x] = expLambdaT * (accPrev[x] - j1 * lambda * T);
             }
         }
+
+        // rotation
+        float expLambdaRotT = exp(-lambdaRot * T);
+        float j0Rot = MxMUtils::minusPiToPi(rotPrev - rotDesired);
+        float j1Rot = angVelPrev + j0Rot * lambdaRot;
+
+        rot[t] = expLambdaRotT * (j0Rot + j1Rot * T) + rotDesired;
+        if (t == 0) {
+            angVel = expLambdaRotT * (angVelPrev - j1Rot * lambdaRot * T);
+        }
     }
 
     camera.target =  MxMUtils::V3Dtovec3(V3D(pos[0]));
-    crl::Logger::consolePrint("Character position: %f, %f, %f\n", pos[0][0], pos[0][1], pos[0][2]);
+    //crl::Logger::consolePrint("Character position: %f, %f, %f\n", pos[0][0], pos[0][1], pos[0][2]);
 }
 
+// returns a vector of future positions arranged in chronological order
 std::vector<P3D> Controller::getPos() {
     return pos;
 }
 
+// returns a vector of historical positions arranged in chronological order
 std::vector<P3D> Controller::getPosHist() {
     std::vector<P3D> posHistInterval;
     int n = 10;  // 0.2 / (dt / 1000.0); hard-coded this number because using the actual dt tends to be very jittery
@@ -76,6 +91,12 @@ std::vector<P3D> Controller::getPosHist() {
     return posHistInterval;
 }
 
+// returns a vector of future rotations arranged in chronological order
+std::vector<float> Controller::getRot() {
+    return rot;
+}
+
+// updates the desired velocity and rotation
 void Controller::setInputDirection(TrackingCamera &camera){
     bool found_controller = false;
     float verticalDir = 0, horizontalDir = 0;
@@ -106,10 +127,13 @@ void Controller::setInputDirection(TrackingCamera &camera){
         cameraDir.y() = 0;
         cameraDir = cameraDir.unit();
         velDesired = (cameraDir * verticalDir + cameraDir.cross(V3D(0, 1, 0)) * horizontalDir).unit() * 1.5; // desired velocity magnitude of 1.5 m s^-1
+        rotDesired = MxMUtils::angleBetweenVectors(V3D(0, 0, 1), velDesired);
     } else {
         velDesired = V3D(0, 0, 0);
+        rotDesired = rot[0];
     }
     //crl::Logger::consolePrint("Character velocity: %f\n", sqrt(pow(vel[0],2)+pow(vel[1],2)+pow(vel[2],2)));
+    //crl::Logger::consolePrint("Angle desired: %f\n", rotDesired);
 }
 
 }  // namespace gui
