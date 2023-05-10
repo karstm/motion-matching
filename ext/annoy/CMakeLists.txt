@@ -1,5 +1,2 @@
 add_library(annoy INTERFACE)
 target_include_directories(annoy INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
-
-add_compile_definitions(ANNOYLIB_MULTITHREADED_BUILD)
-# ANNOYLIB_MULTITHREADED_BUILD
