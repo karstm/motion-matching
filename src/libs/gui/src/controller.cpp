@@ -31,8 +31,10 @@ void Controller::update(TrackingCamera &camera) {
     
     if (posHist.size() >= 60) {
         posHist.pop_front();
+        rotHist.pop_front();
     }
     posHist.push_back(posPrev);
+    rotHist.push_back(rotPrev);
 
     currTime = std::chrono::steady_clock::now();
     dt = (std::chrono::duration_cast<std::chrono::milliseconds> (currTime - prevTime)).count();
@@ -94,6 +96,18 @@ std::vector<P3D> Controller::getPosHist() {
 // returns a vector of future rotations arranged in chronological order
 std::vector<float> Controller::getRot() {
     return rot;
+}
+
+// returns a vector of historical rotations arranged in chronological order
+std::vector<float> Controller::getRotHist() {
+    std::vector<float> rotHistInterval;
+    int n = 10;
+    if (n != 0 && rotHist.size() >= n) {
+        for (int i = std::min(int(rotHist.size() / n), 4); i > 0; i--) {
+            rotHistInterval.push_back(rotHist[rotHist.size() - n * i]);
+        }
+    }
+    return rotHistInterval;
 }
 
 // updates the desired velocity and rotation

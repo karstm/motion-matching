@@ -1,4 +1,8 @@
 # Change log
+## Orientation trajectory (historical and future) visualisation
+
+- Historical orientation visualisation implemented.
+
 ## Orientation trajectory visualisation
 
 - Orientation trajectory visualisation implemented. `rot`, `rotHist`, `angVel`, `rotDesired`, `lambdaRot` attributes and `getRot` method added to `Controller` class. `rotHist` currently not used yet as historical orientation visualisation not yet implemented. Angles are defined off the z-axis and positive angles are anti-clockwise off the z-axis with the x-axis pointed up on the x-z plane.

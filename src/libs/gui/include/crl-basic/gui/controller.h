@@ -41,6 +41,7 @@ public:
     std::vector<P3D> getPos();
     std::vector<P3D> getPosHist();
     std::vector<float> getRot();
+    std::vector<float> getRotHist();
 
 private:
     // Members
