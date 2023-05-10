@@ -21,8 +21,6 @@ public:
     // in sec
     double timeWindow = 3;
 
-    // options
-    mutable bool drawLabels = true;
     // window size options in pixels
     double timelineWidth = 1300;
     double labelWidth = 100;
@@ -40,7 +38,6 @@ public:
         ImGui::SetNextWindowBgAlpha(1.0);
         ImGui::Begin("Contact Schedule Visualizer");
         ImGuizmo::BeginFrame();
-        ImGui::Checkbox("draw labels", &drawLabels);
 
         // this is where the window screen starts...
         ImVec2 p = ImGui::GetCursorScreenPos();

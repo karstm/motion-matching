@@ -24,7 +24,7 @@ public:
           feetHeightPlot("Feet Height", "[sec]", "[m]"),
           feetVelocityPlot("Feet Velocity", "[sec]", "[m/s]"),
           feetAccelerationPlot("Feet Acceleration", "[sec]", "[m/s/s]"),
-          swingTimeline(footSteps) {
+          contactsTimeline(footSteps) {
         fileDialog.SetPwd(fs::path(CRL_MOCAP_DATA_FOLDER));
         fileDialog.SetTitle("Mocap Directory");
     }
@@ -177,7 +177,7 @@ public:
         feetVelocityPlot.draw(t);
         feetAccelerationPlot.draw(t);
         ImGui::End();
-        swingTimeline.draw(t);
+        contactsTimeline.draw(t);
     }
 
     void drawImGui() override {
@@ -417,7 +417,7 @@ private:
         for (const auto &name : footMarkerNames) {
             auto contactInfos = crl::mocap::extractFootContactStateFromBVHClip(  //
                 bvhClips[selectedBvhClipIdx].get(), name, footHeightThreshold, footVelocityThreshold);
-            footSteps[name] = crl::mocap::convertFootSwingSequenceFromFootContactStates(contactInfos);
+            footSteps[name] = crl::mocap::convertFootContactsSequenceFromFootContactStates(contactInfos);
         }
     }
 
@@ -565,7 +565,7 @@ private:
                 }
             }
 
-            footSteps[footMarkerName] = crl::mocap::convertFootSwingSequenceFromFootContactStates(contactYN);
+            footSteps[footMarkerName] = crl::mocap::convertFootContactsSequenceFromFootContactStates(contactYN);
         }
     }
 
@@ -592,13 +592,13 @@ private:
     bool followCharacter = true;
     bool showCoordinateFrames = false;
     bool showVirtualLimbs = true;
-    bool showContactState = false;
+    bool showContactState = true;
     crl::mocap::PlotLine2D<crl::P3D> baseHeightPlot;
     crl::mocap::PlotLine2D<crl::dVector> baseSpeedPlot;
     crl::mocap::PlotLine2D<crl::dVector> feetHeightPlot;
     crl::mocap::PlotLine2D<crl::dVector> feetVelocityPlot;
     crl::mocap::PlotLine2D<crl::dVector> feetAccelerationPlot;
-    crl::mocap::Timeline swingTimeline;
+    crl::mocap::Timeline contactsTimeline;
 };
 
 }  // namespace mocapApp
