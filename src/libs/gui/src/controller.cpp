@@ -1,6 +1,4 @@
 #include "crl-basic/gui/controller.h"
-#include "annoylib.h"
-#include "kissrandom.h"
 
 namespace crl {
 namespace gui {
@@ -23,45 +21,7 @@ void Controller::init() {
     prevTime = std::chrono::steady_clock::now();
 }
 
-void test(){
-    int numNodes = 3;
-    int numFeatures = 3;
-    int kNearest = 2;
-    std::vector<int> closest;
-
-#ifdef ANNOYLIB_MULTITHREADED_BUILD
-    Annoy::AnnoyIndex<int, double, Annoy::Euclidean, Annoy::Kiss32Random, Annoy::AnnoyIndexMultiThreadedBuildPolicy> a 
-        = Annoy::AnnoyIndex<int, double, Annoy::Euclidean, Annoy::Kiss32Random, Annoy::AnnoyIndexMultiThreadedBuildPolicy>(numFeatures);
-    crl::Logger::consolePrint("MultiThreaded");
-#else
-    Annoy::AnnoyIndex<int, double, Annoy::Euclidean, Annoy::Kiss32Random, Annoy::AnnoyIndexSingleThreadedBuildPolicy> a 
-        = Annoy::AnnoyIndex<int, double, Annoy::Euclidean, Annoy::Kiss32Random, Annoy::AnnoyIndexSingleThreadedBuildPolicy>(numFeatures);
-    crl::Logger::consolePrint("SingleThreaded");
-#endif
-
-    double data[3][3] = {
-        {1, 0, 0},
-        {0, 1, 0},
-        {0, 0, 1},
-    };
-    double v[3] = {1.0, 0.5, 0.4};
-
-    char **error = (char**)malloc(sizeof(char*));
-    a.add_item(0,  data[0], error);
-    a.add_item(1, data[1], error);
-    a.add_item(2, data[2], error);
-    a.build(-1);
-    a.get_nns_by_vector(v, kNearest, numNodes, &closest, nullptr);
-    
-    crl::Logger::consolePrint("Result: %d, %d\n", closest[0], closest[1]);
-    // std::cout << "Error?: " << closest[2] << std::endl;
-    // print(a.get_nns_by_item(0, 100))
-    // print(a.get_nns_by_vector([1.0, 0.5, 0.5], 100))
-}
-
 void Controller::update(TrackingCamera &camera) {
-    test();
-
     currTime = std::chrono::steady_clock::now();
     dt = (std::chrono::duration_cast<std::chrono::milliseconds> (currTime - prevTime)).count();
     

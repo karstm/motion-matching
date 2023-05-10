@@ -9,12 +9,32 @@ Database::Database(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhClips) 
     readFrameSums();
     data = new float[frameSums.back() * noFeatures];
     readData();
+    initializeAnnoy();
 }
 
 // Destructor frees the data array
 Database::~Database() {
     // TODO: This seems to cause malloc errors
     delete[] data;
+    delete annoyIndex;
+}
+
+void Database::initializeAnnoy() 
+{
+    #ifdef ANNOYLIB_MULTITHREADED_BUILD
+        annoyIndex = new Annoy::AnnoyIndex<int, float, Annoy::Euclidean, Annoy::Kiss32Random, Annoy::AnnoyIndexMultiThreadedBuildPolicy>(noFeatures);
+        crl::Logger::consolePrint("MultiThreaded");
+    #else
+        annoyIndex = new Annoy::AnnoyIndex<int, float, Annoy::Euclidean, Annoy::Kiss32Random, Annoy::AnnoyIndexSingleThreadedBuildPolicy>(noFeatures);
+        crl::Logger::consolePrint("SingleThreaded");
+    #endif
+
+    char **error = (char**)malloc(sizeof(char*));
+    for (int frame = 0; frame < frameSums.back(); frame++)
+    {   
+        annoyIndex->add_item(frame, data + frame * noFeatures, error);
+    }
+    annoyIndex->build(-1);
 }
 
 // Matches the given query to the mocap database and returns the clip id and frame number
@@ -26,6 +46,7 @@ void Database::match(crl::Matrix& trajectoryPositions, crl::Matrix& trajectoryDi
                      int& clip_id, int& frame) 
 {
     int lineNumber;
+    int kNearest = 5;
 
     //Steps: 
     // - (arange the query in array) DONE
@@ -44,6 +65,9 @@ void Database::match(crl::Matrix& trajectoryPositions, crl::Matrix& trajectoryDi
     normalize(query);
 
     //TODO: get the line number of the nearest neighbor in the database
+    std::vector<int> closest;
+    annoyIndex->get_nns_by_vector(query, kNearest, -1, &closest, NULL);
+    lineNumber = closest[0];
 
     // get the line number from the nearest neighbor
     getClipAndFrame(lineNumber, clip_id, frame);
