@@ -152,9 +152,7 @@ void Database::getFootPosition(crl::mocap::MocapSkeleton *sk, int foot, int offs
         const auto joint = sk->getMarkerByName(name.c_str());
 
         //TODO: eepos seem to be correct needs to be tested further
-        const auto hipJoint = sk->getMarkerByName("Hips");
-        crl::P3D hippos = hipJoint->state.getWorldCoordinates(crl::P3D(0,0,0));
-        crl::P3D eepos = joint->state.getLocalCoordinates(hippos);
+        crl::P3D eepos = joint->state.getLocalCoordinates(sk->root->state.getWorldCoordinates(crl::P3D(0,0,0)));
 
         data[offset + 0] = eepos.x;
         data[offset + 1] = eepos.y;
@@ -176,8 +174,21 @@ void Database::getFootVelocity(crl::mocap::MocapSkeleton *sk, int foot, int offs
 }
 
 // Compute the hip velocity
-// TODO: implement this
-void Database::getHipVelocity(crl::mocap::MocapSkeleton *sk, int offset) {}
+// TODO: test this
+void Database::getHipVelocity(crl::mocap::MocapSkeleton *sk, int offset) {
+    double roll = 0, pitch = 0, yaw = 0;
+    crl::computeEulerAnglesFromQuaternion(sk->root->state.orientation,                                     //
+                                          sk->forwardAxis, sk->upAxis.cross(sk->forwardAxis), sk->upAxis,  //
+                                          roll, pitch, yaw);
+    crl::Quaternion heading = crl::getRotationQuaternion(yaw, sk->upAxis);
+    double turning = sk->root->state.angularVelocity.dot(sk->upAxis);
+    double forward = (heading.inverse() * sk->root->state.velocity).dot(sk->forwardAxis);
+    double sideways = (heading.inverse() * sk->root->state.velocity).dot(sk->upAxis.cross(sk->forwardAxis));
+
+    data[offset + 0] = turning;
+    data[offset + 1] = forward;
+    data[offset + 2] = sideways;
+}
 
 // Computes the means for each feature and stores them in the means vector
 //TODO: test this
