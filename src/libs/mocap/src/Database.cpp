@@ -13,6 +13,7 @@ Database::Database(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhClips) 
 
 // Destructor frees the data array
 Database::~Database() {
+    // TODO: This seems to cause malloc errors
     delete[] data;
 }
 
