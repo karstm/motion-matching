@@ -6,15 +6,23 @@ Database::Database() {}
 // Constructor that takes a vector of BVHClips and initializes the database
 Database::Database(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhClips) {
     this->bvhClips = bvhClips;
-    readFrameSums();
-    data = new float[frameSums.back() * noFeatures];
-    readData();
 }
 
 // Destructor frees the data array
 Database::~Database() {
     // TODO: This seems to cause malloc errors
     delete[] data;
+}
+
+// Read data and compute feature vector
+void Database::loadDatabase(){
+    crl::Logger::consolePrint("Mirrored: %s\n", loadWithMirror ? "true" : "false");
+    crl::Logger::consolePrint("Weights used: %f\n %f\n %f\n %f\n %f\n", trajectoryPositionWeight, trajectoryFacingWeight,
+                                                                        footPositionWeight, footVelocityWeight, hipVelocityWeight);
+    //if (loadWithMirror) mirrorData();
+    readFrameSums();
+    data = new float[frameSums.back() * noFeatures];
+    readData();
 }
 
 // Matches the given query to the mocap database and returns the clip id and frame number
@@ -47,6 +55,23 @@ void Database::match(crl::Matrix& trajectoryPositions, crl::Matrix& trajectoryDi
 
     // get the line number from the nearest neighbor
     getClipAndFrame(lineNumber, clip_id, frame);
+}
+
+void Database::setBHVClips(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhClips)
+{
+    this->bvhClips = bvhClips;
+}
+
+// Set weights used for the database features
+void Database::setWeights(double& trajectoryPosition, double& trajectoryFacing,
+                        double& footPosition, double& footVelocity,
+                        double& hipVelocity)
+{
+    trajectoryPositionWeight = static_cast<float>(trajectoryPosition);
+    trajectoryFacingWeight = static_cast<float>(trajectoryFacing);
+    footPositionWeight = static_cast<float>(footPosition);
+    footVelocityWeight = static_cast<float>(footVelocity);
+    hipVelocityWeight = static_cast<float>(hipVelocity);
 }
 
 // Normalizes the given data array and applies the weights
