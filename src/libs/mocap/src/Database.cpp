@@ -17,6 +17,7 @@ Database::~Database() {
 }
 
 // Matches the given query to the mocap database and returns the clip id and frame number
+// TODO: implement this
 void Database::match(crl::Matrix& trajectoryPositions, crl::Matrix& trajectoryDirections, 
                      crl::P3D& leftFootPosition, crl::P3D& rightFootPosition,
                      crl::V3D& leftFootVelocity, crl::V3D& rightFootVelocity, 
@@ -144,6 +145,7 @@ void Database::getFootPosition(crl::mocap::MocapSkeleton *sk, int foot, int offs
         const auto joint = sk->getMarkerByName(name.c_str());
 
         //TODO: eepos doesn't seem to be correct
+        // Prob. calling argument should be root bone
         crl::P3D eepos = joint->state.getLocalCoordinates(joint->endSites[0].endSiteOffset);
 
         data[offset + 0] = eepos.x;
