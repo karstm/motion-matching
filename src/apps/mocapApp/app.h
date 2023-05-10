@@ -312,7 +312,7 @@ public:
 
         crl::Logger::consolePrint("Imported %d clips.\n", cnt);
 
-        database = Database(&bvhClips);
+        database.init(&bvhClips);
     }
 
 private:

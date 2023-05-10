@@ -1,20 +1,26 @@
 #include "mocap/Database.h"
 
 // Empty constructor to allow for member initialization
-Database::Database() {}
+Database::Database() {
+    data = nullptr;
+}
 
 // Constructor that takes a vector of BVHClips and initializes the database
 Database::Database(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhClips) {
-    this->bvhClips = bvhClips;
-    readFrameSums();
-    data = new float[frameSums.back() * noFeatures];
-    readData();
+    init(bvhClips);
 }
 
 // Destructor frees the data array
 Database::~Database() {
-    // TODO: This seems to cause malloc errors
     delete[] data;
+}
+
+void Database::init(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhClips)
+{
+    this->bvhClips = bvhClips;
+    readFrameSums();
+    data = new float[frameSums.back() * noFeatures];
+    readData();
 }
 
 // Matches the given query to the mocap database and returns the clip id and frame number

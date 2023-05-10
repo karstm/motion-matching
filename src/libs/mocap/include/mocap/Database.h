@@ -10,6 +10,8 @@ class Database {
         Database(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhClips);
         ~Database();
 
+        void init(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhClips);
+
         void match(crl::Matrix& trajectoryPositions, crl::Matrix& trajectoryDirections, 
                    crl::P3D& leftFootPosition, crl::P3D& rightFootPosition, 
                    crl::V3D& leftFootVelocity, crl::V3D& rightFootVelocity, 
