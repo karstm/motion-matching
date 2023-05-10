@@ -22,7 +22,12 @@ void Controller::init() {
 }
 
 void Controller::update(TrackingCamera &camera) {
+    currTime = std::chrono::steady_clock::now();
+    dt = (std::chrono::duration_cast<std::chrono::milliseconds> (currTime - prevTime)).count();
+    
+    camera.processRotation(dt);
     setInputDirection(camera);
+
     P3D posPrev = pos[0];
     V3D velPrev = vel;
     V3D accPrev = acc;
@@ -35,9 +40,6 @@ void Controller::update(TrackingCamera &camera) {
     }
     posHist.push_back(posPrev);
     rotHist.push_back(rotPrev);
-
-    currTime = std::chrono::steady_clock::now();
-    dt = (std::chrono::duration_cast<std::chrono::milliseconds> (currTime - prevTime)).count();
     prevTime = currTime;
     float T;
     
