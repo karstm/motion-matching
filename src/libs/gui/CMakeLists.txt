@@ -26,6 +26,7 @@ list(
         "imgui" #
         "stb_image" #
         "stl_reader" #
+        "annoy" #
         "nlohmann_json::nlohmann_json" #
         "tinyobjloader" #
         "eigen" #
@@ -47,6 +48,7 @@ list(
         PUBLIC "imgui" #
         PUBLIC "stb_image" #
         PUBLIC "stl_reader" #
+        PUBLIC "annoy" #
         PUBLIC "nlohmann_json::nlohmann_json" #
         PUBLIC "tinyobjloader" #
         PUBLIC "eigen" #

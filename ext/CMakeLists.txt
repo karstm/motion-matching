@@ -164,6 +164,13 @@ if (NOT TARGET stl_reader)
 endif ()
 
 # -----------------------------------------------------------------------------
+# annoy
+if (NOT TARGET annoy)
+    # set(OpenGL_GL_PREFERENCE GLVND)
+    add_subdirectory(annoy)
+endif ()
+
+# -----------------------------------------------------------------------------
 # tinyobjloader
 FetchContent_Declare(
         tinyobjloader #

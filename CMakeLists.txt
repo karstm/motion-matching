@@ -134,3 +134,5 @@ if(WIN32)
     set_target_properties(imgui PROPERTIES FOLDER Ext)
     set_target_properties(tinyobjloader PROPERTIES FOLDER Ext)
 endif(WIN32)
+
+# add_compile_definitions(ANNOYLIB_MULTITHREADED_BUILD)
