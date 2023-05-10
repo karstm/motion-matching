@@ -17,6 +17,12 @@ class Database {
                    crl::V3D& leftFootVelocity, crl::V3D& rightFootVelocity, 
                    crl::V3D& hipVelocity,
                    int& clip_id, int& frame);
+
+        void setBHVClips(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhClips);
+
+        void setWeights(double& trajectoryPositionWeight, double& trajectoryFacingWeight,
+                        double& footPositionWeight, double& footVelocityWeight,
+                        double& hipVelocityWeight);
         
     private:
         void normalize(float* data);

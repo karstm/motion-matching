@@ -186,6 +186,29 @@ public:
         ImGui::Begin("Main Menu");
         ImGui::Checkbox("Follow Character", &followCharacter);
         if (ImGui::CollapsingHeader("Mocap Data", ImGuiTreeNodeFlags_DefaultOpen)) {
+            if (ImGui::TreeNode("Database Wights")) {
+                ImGui::SliderDouble("Trajectory Position Weight", &trajectoryPositionWeight, 0.0, 10.0, "%.2f");
+                ImGui::SliderDouble("Trajectory Facing Weight", &trajectoryFacingWeight, 0.0, 10.0, "%.2f");
+                ImGui::SliderDouble("Foot Position Weight", &footPositionWeight, 0.0, 10.0, "%.2f");
+                ImGui::SliderDouble("Foot Velocity Weight", &footVelocityWeight, 0.0, 10.0, "%.2f");
+                ImGui::SliderDouble("Hip Velocity Weight", &hipVelocityWeight, 0.0, 10.0, "%.2f");
+                if (ImGui::Button("Recompute DB")) {
+                    if (!bvhClips.empty()){
+                        crl::Logger::consolePrint("Computing mocap features...\n");
+                        database.setWeights(trajectoryPositionWeight, trajectoryFacingWeight,
+                                            footPositionWeight, footVelocityWeight,
+                                            hipVelocityWeight);
+                        database.loadDatabase();
+                    }
+                    else {
+                        crl::Logger::consolePrint("ERROR: Import mocap data to autocompute features\n");
+                    }
+                }
+                ImGui::SameLine();
+                ImGui::Text("(Required for weight changes to be applied)");
+                ImGui::TreePop();
+            }
+            ImGui::Checkbox("Load Mirrored Data", &loadWithMirror);
             if (ImGui::Button("Import")) {
                 crl::Logger::consolePrint("Loading mocap data...\n");
                 fileDialog.Open();
@@ -312,15 +335,20 @@ public:
 
         crl::Logger::consolePrint("Imported %d clips.\n", cnt);
 
-        database.init(&bvhClips);
+        
+        database.setWeights(trajectoryPositionWeight, trajectoryFacingWeight,
+                            footPositionWeight, footVelocityWeight,
+                            hipVelocityWeight);
+		database.init(&bvhClips);
     }
 
 private:
     bool loadSingleMocapFile(const fs::path &path) {
         try {
-            if (path.extension() == ".bvh")
+            if (path.extension() == ".bvh"){
+                if (!loadWithMirror && (path.string().find("mirror")!= std::string::npos)) return true;
                 bvhClips.push_back(std::make_unique<crl::mocap::BVHClip>(path));
-            else if (path.extension() == ".c3d")
+            } else if (path.extension() == ".c3d")
                 c3dClips.push_back(std::make_unique<crl::mocap::C3DClip>(path));
         } catch (...) {
             crl::Logger::consolePrint("Failed to load %s file.\n", path.c_str());
@@ -587,6 +615,14 @@ private:
     crl::mocap::Timeline::TimelineData footSteps;
     double footVelocityThreshold = 0.8;
     double footHeightThreshold = 0.055;
+
+    // database processing
+    bool loadWithMirror = false;
+    double trajectoryPositionWeight = 1.0;
+    double trajectoryFacingWeight = 1.5;
+    double footPositionWeight = 0.75;
+    double footVelocityWeight = 1.0;
+    double hipVelocityWeight = 1.0;
 
     // plot and visualization
     bool followCharacter = true;

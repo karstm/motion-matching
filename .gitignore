@@ -17,3 +17,6 @@ cmake-build-*/
 
 # clang
 clang
+
+# remove
+db_gen

@@ -55,6 +55,17 @@ void Database::match(crl::Matrix& trajectoryPositions, crl::Matrix& trajectoryDi
     getClipAndFrame(lineNumber, clip_id, frame);
 }
 
+// Set weights used for the database features
+void Database::setWeights(double& trajectoryPosition, double& trajectoryFacing,
+                        double& footPosition, double& footVelocity,
+                        double& hipVelocity)
+{
+    trajectoryPositionWeight = static_cast<float>(trajectoryPosition);
+    trajectoryFacingWeight = static_cast<float>(trajectoryFacing);
+    footPositionWeight = static_cast<float>(footPosition);
+    footVelocityWeight = static_cast<float>(footVelocity);
+    hipVelocityWeight = static_cast<float>(hipVelocity);
+}
 // Normalizes the given data array and applies the weights
 // TODO: test this
 void Database::normalize(float* data) 
@@ -151,8 +162,8 @@ void Database::getFootPosition(crl::mocap::MocapSkeleton *sk, int foot, int offs
         const auto& name = footMarkerNames[foot];
         const auto joint = sk->getMarkerByName(name.c_str());
 
-        //TODO: eepos seem to be correct needs to be tested further
-        crl::P3D eepos = joint->state.getLocalCoordinates(sk->root->state.getWorldCoordinates(crl::P3D(0,0,0)));
+        //TODO: eepos doesn't seem to be correct needs to be tested further
+        crl::P3D eepos = joint->state.getLocalCoordinates(joint->endSites[0].endSiteOffset);
 
         data[offset + 0] = eepos.x;
         data[offset + 1] = eepos.y;
