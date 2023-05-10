@@ -19,7 +19,7 @@ void Database::init(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhClips)
 {
     this->bvhClips = bvhClips;
     readFrameSums();
-    data = new float[frameSums.back() * noFeatures];
+    data = new float[frameSums.back() * noFeatures]{0};
     readData();
 }
 
@@ -151,9 +151,10 @@ void Database::getFootPosition(crl::mocap::MocapSkeleton *sk, int foot, int offs
         const auto& name = footMarkerNames[foot];
         const auto joint = sk->getMarkerByName(name.c_str());
 
-        //TODO: eepos doesn't seem to be correct
-        // Prob. calling argument should be root bone
-        crl::P3D eepos = joint->state.getLocalCoordinates(joint->endSites[0].endSiteOffset);
+        //TODO: eepos seem to be correct needs to be tested further
+        const auto hipJoint = sk->getMarkerByName("Hips");
+        crl::P3D hippos = hipJoint->state.getWorldCoordinates(crl::P3D(0,0,0));
+        crl::P3D eepos = joint->state.getLocalCoordinates(hippos);
 
         data[offset + 0] = eepos.x;
         data[offset + 1] = eepos.y;
@@ -166,9 +167,8 @@ void Database::getFootVelocity(crl::mocap::MocapSkeleton *sk, int foot, int offs
         const auto& name = footMarkerNames[foot];
         const auto joint = sk->getMarkerByName(name.c_str());
 
-        //TODO: eevel doesn't seem to be correct
+        //TODO: eevel seems to be correct needs to be tested further
         crl::V3D eevel = joint->state.getVelocityForPoint_local(joint->endSites[0].endSiteOffset);
-        eevel.normalize();
 
         data[offset + 0] = eevel(0);
         data[offset + 1] = eevel(1);
