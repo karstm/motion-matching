@@ -12,8 +12,6 @@ class Database {
 
         void loadDatabase();
 
-        void mirrorData();
-
         void match(crl::Matrix& trajectoryPositions, crl::Matrix& trajectoryDirections, 
                    crl::P3D& leftFootPosition, crl::P3D& rightFootPosition, 
                    crl::V3D& leftFootVelocity, crl::V3D& rightFootVelocity, 

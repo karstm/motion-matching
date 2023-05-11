@@ -16,7 +16,6 @@ Database::~Database() {
 
 // Read data and compute feature vector
 void Database::loadDatabase(){
-    crl::Logger::consolePrint("Mirrored: %s\n", loadWithMirror ? "true" : "false");
     crl::Logger::consolePrint("Weights used: %f\n %f\n %f\n %f\n %f\n", trajectoryPositionWeight, trajectoryFacingWeight,
                                                                         footPositionWeight, footVelocityWeight, hipVelocityWeight);
     //if (loadWithMirror) mirrorData();
