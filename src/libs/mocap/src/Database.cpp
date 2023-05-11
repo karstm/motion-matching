@@ -86,9 +86,6 @@ void Database::match(crl::Matrix& trajectoryPositions, crl::Matrix& trajectoryDi
     getClipAndFrame(lineNumber, clip_id, frame);
 }
 
-// Set weights used for the database features and rebuilds the database
-
-
 // Normalizes the given data array and applies the weights
 // TODO: test this
 void Database::normalize(float* data) 
