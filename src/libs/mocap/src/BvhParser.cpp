@@ -309,9 +309,6 @@ int BvhParser::parseMotion(std::ifstream &file) {
                 std::vector<float> data;
                 for (int j = 0; j < joint->getNumberOfChannels(); j++) {
                     file >> number;
-                    // float pi = 355/113;
-                    // if (j == 2){number = -number;}
-                    // if (j == 5){number = -number;}
                     data.push_back(number);
                 }
 
