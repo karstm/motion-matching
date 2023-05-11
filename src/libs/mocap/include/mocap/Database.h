@@ -20,6 +20,8 @@ class Database {
 
         void setBHVClips(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhClips);
 
+        void reloadDatabase();
+
         void setWeights(double& trajectoryPositionWeight, double& trajectoryFacingWeight,
                         double& footPositionWeight, double& footVelocityWeight,
                         double& hipVelocityWeight);

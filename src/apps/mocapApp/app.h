@@ -194,11 +194,12 @@ public:
                 ImGui::SliderDouble("Hip Velocity Weight", &hipVelocityWeight, 0.0, 10.0, "%.2f");
                 if (ImGui::Button("Recompute DB")) {
                     if (!bvhClips.empty()){
-                        crl::Logger::consolePrint("Computing mocap features...\n");
+                        crl::Logger::consolePrint("Computing mocap features...");
                         database.setWeights(trajectoryPositionWeight, trajectoryFacingWeight,
                                             footPositionWeight, footVelocityWeight,
                                             hipVelocityWeight);
-                        database.loadDatabase();
+                        database.reloadDatabase();
+                        crl::Logger::consolePrint("   DONE\n");
                     }
                     else {
                         crl::Logger::consolePrint("ERROR: Import mocap data to autocompute features\n");

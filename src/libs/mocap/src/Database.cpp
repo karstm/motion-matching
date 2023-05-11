@@ -56,6 +56,13 @@ void Database::match(crl::Matrix& trajectoryPositions, crl::Matrix& trajectoryDi
     getClipAndFrame(lineNumber, clip_id, frame);
 }
 
+void Database::reloadDatabase()
+{
+    crl::Logger::consolePrint("Weights used: %f\n %f\n %f\n %f\n %f\n", trajectoryPositionWeight, trajectoryFacingWeight,
+                                                                        footPositionWeight, footVelocityWeight, hipVelocityWeight);
+    init(bvhClips);
+}
+
 void Database::setBHVClips(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhClips)
 {
     this->bvhClips = bvhClips;
