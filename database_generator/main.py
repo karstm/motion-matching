@@ -7,7 +7,7 @@ os.chdir(os.path.dirname(__file__))
 
 """ Basic function for mirroring animation data with this particular skeleton structure """
 
-def animation_mirror(lrot, lpos, names, parents):
+def animation_mirror(i, j, lrot, lpos, names):
 
     joints_mirror = np.array([(
         names.index('Left'+n[5:]) if n.startswith('Right') else (
@@ -15,7 +15,10 @@ def animation_mirror(lrot, lpos, names, parents):
         names.index(n))) for n in names])
 
     lpos[:, :, 2] = -lpos[:, :, 2]
-    lrot[:, :, 2] = -lrot[:, :, 2]
+    lrot[:, :, i] = -lrot[:, :, i]
+    lrot[:, :, j] = -lrot[:, :, j]
+
+    #lrot[:, :, 0] = ((mirrored_rotation + np.pi) % (2 * np.pi)) - np.pi
 
 
     pos_mirror = lpos[:, joints_mirror, :]
@@ -32,13 +35,20 @@ folder_path = os.path.join(os.path.dirname(__file__), "..", "data", "mocap", "la
 files = glob.glob(os.path.join(folder_path, "*"))
 
 """ Loop Over Files """
+
+configurations = ['xyz']
+pairs = [(1, 2)]
+
 for filename in files:
-    print('Loading "%s" %s...' % (filename, "(Mirrored)"))
-    bvh_data = bvh.load(filename)
-    
-    bvh_data['rotations'], bvh_data['positions'], bvh_data['names'] = animation_mirror(bvh_data['rotations'], bvh_data['positions'], bvh_data['names'], bvh_data['parents'])
-    bvh_data['order'] = 'xyz'
+    if ('mirror' in filename): continue
+    for conf in configurations:
+        for i, j in pairs:
+            print('Loading "%s" %s...' % (filename, "(Mirrored)"))
+            bvh_data = bvh.load(filename)
+            
+            bvh_data['rotations'], bvh_data['positions'], bvh_data['names'] = animation_mirror(i, j, bvh_data['rotations'], bvh_data['positions'], bvh_data['names'])
+            bvh_data['order'] = conf
 
-    mirrored_file_name = filename[:-4] + '_mirror.bvh'
+            mirrored_file_name = filename[:-4] + '_mirror.bvh'
 
-    bvh.save(mirrored_file_name, bvh_data, frametime=bvh_data['frametime'])
+            bvh.save(mirrored_file_name, bvh_data, frametime=bvh_data['frametime'])

@@ -12,6 +12,7 @@ Database::Database(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhClips) 
 
 // Destructor frees the data array
 Database::~Database() {
+    // TODO: This seems to cause malloc errors
     delete[] data;
 }
 
@@ -55,6 +56,11 @@ void Database::match(crl::Matrix& trajectoryPositions, crl::Matrix& trajectoryDi
     getClipAndFrame(lineNumber, clip_id, frame);
 }
 
+void Database::setBHVClips(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhClips)
+{
+    this->bvhClips = bvhClips;
+}
+
 // Set weights used for the database features
 void Database::setWeights(double& trajectoryPosition, double& trajectoryFacing,
                         double& footPosition, double& footVelocity,
@@ -66,6 +72,7 @@ void Database::setWeights(double& trajectoryPosition, double& trajectoryFacing,
     footVelocityWeight = static_cast<float>(footVelocity);
     hipVelocityWeight = static_cast<float>(hipVelocity);
 }
+
 // Normalizes the given data array and applies the weights
 // TODO: test this
 void Database::normalize(float* data) 
