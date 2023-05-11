@@ -186,7 +186,7 @@ void Database::getFootPosition(crl::mocap::MocapSkeleton *sk, int foot, int offs
         const auto joint = sk->getMarkerByName(name.c_str());
 
         //TODO: eepos seem to be correct needs to be tested further
-         crl::P3D eepos = joint->state.getLocalCoordinates(sk->root->state.getWorldCoordinates(crl::P3D(0,0,0)));
+        crl::P3D eepos = joint->state.getLocalCoordinates(sk->root->state.getWorldCoordinates(crl::P3D(0,0,0)));
 
         data[offset + 0] = eepos.x;
         data[offset + 1] = eepos.y;
