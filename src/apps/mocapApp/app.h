@@ -187,11 +187,11 @@ public:
         ImGui::Checkbox("Follow Character", &followCharacter);
         if (ImGui::CollapsingHeader("Mocap Data", ImGuiTreeNodeFlags_DefaultOpen)) {
             if (ImGui::TreeNode("Database Wights")) {
-                ImGui::SliderDouble("Trajectory Position Weight", &trajectoryPositionWeight, 0.0, 10.0, "%.2f");
-                ImGui::SliderDouble("Trajectory Facing Weight", &trajectoryFacingWeight, 0.0, 10.0, "%.2f");
-                ImGui::SliderDouble("Foot Position Weight", &footPositionWeight, 0.0, 10.0, "%.2f");
-                ImGui::SliderDouble("Foot Velocity Weight", &footVelocityWeight, 0.0, 10.0, "%.2f");
-                ImGui::SliderDouble("Hip Velocity Weight", &hipVelocityWeight, 0.0, 10.0, "%.2f");
+                ImGui::SliderFloat("Trajectory Position Weight", &trajectoryPositionWeight, 0.0f, 10.0f, "%.2f");
+                ImGui::SliderFloat("Trajectory Facing Weight", &trajectoryFacingWeight, 0.0f, 10.0f, "%.2f");
+                ImGui::SliderFloat("Foot Position Weight", &footPositionWeight, 0.0f, 10.0f, "%.2f");
+                ImGui::SliderFloat("Foot Velocity Weight", &footVelocityWeight, 0.0f, 10.0f, "%.2f");
+                ImGui::SliderFloat("Hip Velocity Weight", &hipVelocityWeight, 0.0f, 10.0f, "%.2f");
                 if (ImGui::Button("Recompute DB")) {
                     if (!bvhClips.empty()){
                         crl::Logger::consolePrint("Computing mocap features...");
@@ -619,11 +619,11 @@ private:
 
     // database processing
     bool loadWithMirror = false;
-    double trajectoryPositionWeight = 1.0;
-    double trajectoryFacingWeight = 1.5;
-    double footPositionWeight = 0.75;
-    double footVelocityWeight = 1.0;
-    double hipVelocityWeight = 1.0;
+    float trajectoryPositionWeight = 1.0;
+    float trajectoryFacingWeight = 1.5;
+    float footPositionWeight = 0.75;
+    float footVelocityWeight = 1.0;
+    float hipVelocityWeight = 1.0;
 
     // plot and visualization
     bool followCharacter = true;

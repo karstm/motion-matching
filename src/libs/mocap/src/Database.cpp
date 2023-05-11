@@ -69,15 +69,15 @@ void Database::setBHVClips(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bv
 }
 
 // Set weights used for the database features
-void Database::setWeights(double& trajectoryPosition, double& trajectoryFacing,
-                        double& footPosition, double& footVelocity,
-                        double& hipVelocity)
+void Database::setWeights(float& trajectoryPosition, float& trajectoryFacing,
+                        float& footPosition, float& footVelocity,
+                        float& hipVelocity)
 {
-    trajectoryPositionWeight = static_cast<float>(trajectoryPosition);
-    trajectoryFacingWeight = static_cast<float>(trajectoryFacing);
-    footPositionWeight = static_cast<float>(footPosition);
-    footVelocityWeight = static_cast<float>(footVelocity);
-    hipVelocityWeight = static_cast<float>(hipVelocity);
+    this->trajectoryPositionWeight = trajectoryPosition;
+    this->trajectoryFacingWeight = trajectoryFacing;
+    this->footPositionWeight = footPosition;
+    this->footVelocityWeight = footVelocity;
+    this->hipVelocityWeight = hipVelocity;
 }
 
 // Normalizes the given data array and applies the weights

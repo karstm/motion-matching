@@ -22,9 +22,9 @@ class Database {
 
         void reloadDatabase();
 
-        void setWeights(double& trajectoryPositionWeight, double& trajectoryFacingWeight,
-                        double& footPositionWeight, double& footVelocityWeight,
-                        double& hipVelocityWeight);
+        void setWeights(float& trajectoryPositionWeight, float& trajectoryFacingWeight,
+                        float& footPositionWeight, float& footVelocityWeight,
+                        float& hipVelocityWeight);
         
     private:
         void normalize(float* data);
