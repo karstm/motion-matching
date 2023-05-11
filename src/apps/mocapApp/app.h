@@ -186,7 +186,7 @@ public:
         ImGui::Begin("Main Menu");
         ImGui::Checkbox("Follow Character", &followCharacter);
         if (ImGui::CollapsingHeader("Mocap Data", ImGuiTreeNodeFlags_DefaultOpen)) {
-            if (ImGui::TreeNode("Database Wights")) {
+            if (ImGui::TreeNode("Database Weights")) {
                 ImGui::SliderFloat("Trajectory Position Weight", &trajectoryPositionWeight, 0.0f, 10.0f, "%.2f");
                 ImGui::SliderFloat("Trajectory Facing Weight", &trajectoryFacingWeight, 0.0f, 10.0f, "%.2f");
                 ImGui::SliderFloat("Foot Position Weight", &footPositionWeight, 0.0f, 10.0f, "%.2f");
@@ -194,12 +194,9 @@ public:
                 ImGui::SliderFloat("Hip Velocity Weight", &hipVelocityWeight, 0.0f, 10.0f, "%.2f");
                 if (ImGui::Button("Recompute DB")) {
                     if (!bvhClips.empty()){
-                        crl::Logger::consolePrint("Computing mocap features...");
-                        database.setWeights(trajectoryPositionWeight, trajectoryFacingWeight,
-                                            footPositionWeight, footVelocityWeight,
-                                            hipVelocityWeight);
-                        database.reloadDatabase();
-                        crl::Logger::consolePrint("   DONE\n");
+                        database.build(trajectoryPositionWeight, trajectoryFacingWeight,
+                                       footPositionWeight, footVelocityWeight,
+                                       hipVelocityWeight, &bvhClips);
                     }
                     else {
                         crl::Logger::consolePrint("ERROR: Import mocap data to autocompute features\n");
@@ -337,10 +334,10 @@ public:
         crl::Logger::consolePrint("Imported %d clips.\n", cnt);
 
         
-        database.setWeights(trajectoryPositionWeight, trajectoryFacingWeight,
-                            footPositionWeight, footVelocityWeight,
-                            hipVelocityWeight);
-		database.init(&bvhClips);
+        database.build(trajectoryPositionWeight, trajectoryFacingWeight,
+                       footPositionWeight, footVelocityWeight,
+                       hipVelocityWeight,
+                       &bvhClips);
     }
 
 private:

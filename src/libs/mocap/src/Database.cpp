@@ -5,23 +5,53 @@ Database::Database() {
     data = nullptr;
 }
 
-// Constructor that takes a vector of BVHClips and initializes the database
-Database::Database(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhClips) {
-    init(bvhClips);
-}
-
 // Destructor frees the data array
 Database::~Database() {
-    // TODO: This seems to cause malloc errors
     delete[] data;
 }
 
-void Database::init(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhClips)
+// Builds the database from the given vector of BVHClips can be used to rebuild the database
+// Combined with set weights because set weights should never be called without rebuilding the database
+void Database::build(float trajectoryPositionWeight, float trajectoryFacingWeight,
+                     float footPositionWeight, float footVelocityWeight,
+                     float hipVelocityWeight,
+                     std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhClips)
 {
-    this->bvhClips = bvhClips;
-    readFrameSums();
+    //start timer
+    crl::Logger::consolePrint("\nBuilding database...\n");
+    auto start = std::chrono::high_resolution_clock::now();
+
+    //set weights
+    this->trajectoryPositionWeight = trajectoryPositionWeight;
+    this->trajectoryFacingWeight = trajectoryFacingWeight;
+    this->footPositionWeight = footPositionWeight;
+    this->footVelocityWeight = footVelocityWeight;
+    this->hipVelocityWeight = hipVelocityWeight;
+    
+    //clear old data
+    frameSums.clear();
+    delete[] data;
+
+    //build new data
+    readFrameSums(bvhClips);
     data = new float[frameSums.back() * noFeatures]{0};
-    readData();
+    readData(bvhClips);
+    
+    //end timer
+    auto end = std::chrono::high_resolution_clock::now();
+
+    //print info
+    crl::Logger::consolePrint("Database built with %d clips and %d frames\n", frameSums.size() - 1, frameSums.back());
+    crl::Logger::consolePrint("Weights used:                    \
+                                \n\tTrajectory Position:\t %f   \
+                                \n\tTrajectory Direction:\t %f  \
+                                \n\tFoot Position:\t %f         \
+                                \n\tFoot Velocity:\t %f         \
+                                \n\tHip Velocity:\t %f\n", 
+                                this->trajectoryPositionWeight, this->trajectoryFacingWeight,
+                                this->footPositionWeight, this->footVelocityWeight, this->hipVelocityWeight);
+    crl::Logger::consolePrint("Database build time: %f seconds\n", std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count());
+    crl::Logger::consolePrint("Database size: %f MB\n", (frameSums.back() * noFeatures * sizeof(float)) / 1000000.0);
 }
 
 // Matches the given query to the mocap database and returns the clip id and frame number
@@ -56,29 +86,8 @@ void Database::match(crl::Matrix& trajectoryPositions, crl::Matrix& trajectoryDi
     getClipAndFrame(lineNumber, clip_id, frame);
 }
 
-void Database::reloadDatabase()
-{
-    crl::Logger::consolePrint("Weights used: %f\n %f\n %f\n %f\n %f\n", trajectoryPositionWeight, trajectoryFacingWeight,
-                                                                        footPositionWeight, footVelocityWeight, hipVelocityWeight);
-    init(bvhClips);
-}
+// Set weights used for the database features and rebuilds the database
 
-void Database::setBHVClips(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhClips)
-{
-    this->bvhClips = bvhClips;
-}
-
-// Set weights used for the database features
-void Database::setWeights(float& trajectoryPosition, float& trajectoryFacing,
-                        float& footPosition, float& footVelocity,
-                        float& hipVelocity)
-{
-    this->trajectoryPositionWeight = trajectoryPosition;
-    this->trajectoryFacingWeight = trajectoryFacing;
-    this->footPositionWeight = footPosition;
-    this->footVelocityWeight = footVelocity;
-    this->hipVelocityWeight = hipVelocity;
-}
 
 // Normalizes the given data array and applies the weights
 // TODO: test this
@@ -123,7 +132,7 @@ bool Database::getClipAndFrame(int lineNumber, int& clip_id, int& frame) {
 
 // Finds the data in the BVH clips and stores it in the data array
 //TODO: test this
-void Database::readData() 
+void Database::readData(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhClips) 
 {
     for (int clipId  = 0; clipId < bvhClips->size(); clipId++) 
     {
@@ -152,7 +161,7 @@ void Database::readData()
 }
 
 // Finds the frame sums for each clip and stores them in the frameSums vector
-void Database::readFrameSums() 
+void Database::readFrameSums(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhClips) 
 {
     int runningTotal = 0;
     frameSums.push_back(runningTotal);
@@ -176,8 +185,8 @@ void Database::getFootPosition(crl::mocap::MocapSkeleton *sk, int foot, int offs
         const auto& name = footMarkerNames[foot];
         const auto joint = sk->getMarkerByName(name.c_str());
 
-        //TODO: eepos doesn't seem to be correct needs to be tested further
-        crl::P3D eepos = joint->state.getLocalCoordinates(joint->endSites[0].endSiteOffset);
+        //TODO: eepos seem to be correct needs to be tested further
+         crl::P3D eepos = joint->state.getLocalCoordinates(sk->root->state.getWorldCoordinates(crl::P3D(0,0,0)));
 
         data[offset + 0] = eepos.x;
         data[offset + 1] = eepos.y;
