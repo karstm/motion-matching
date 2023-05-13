@@ -123,7 +123,7 @@ void Controller::setInputDirection(TrackingCamera &camera){
            int count;
            const float *axis = glfwGetJoystickAxes(i, &count);
            V3D temp(axis[0], 0, axis[1]);
-           if(temp.norm() > 0.1) {   
+           if(temp.norm() > 0.15) {   
                found_controller = true;
                 horizontalDir = axis[0]; 
                 verticalDir = -axis[1]; 
@@ -142,7 +142,11 @@ void Controller::setInputDirection(TrackingCamera &camera){
         V3D cameraDir = MxMUtils::vec3toV3D(camera.target - camera.position());
         cameraDir.y() = 0;
         cameraDir = cameraDir.unit();
-        velDesired = (cameraDir * verticalDir + cameraDir.cross(V3D(0, 1, 0)) * horizontalDir).unit() * 1.5; // desired velocity magnitude of 1.5 m s^-1
+        velDesired = cameraDir * verticalDir + cameraDir.cross(V3D(0, 1, 0)) * horizontalDir;
+        if(!found_controller){
+            velDesired = velDesired.unit();
+        }
+        velDesired *= 1.5; // desired velocity maximumof 1.5 m s^-1;
         rotDesired = MxMUtils::angleBetweenVectors(V3D(0, 0, 1), velDesired);
     } else {
         velDesired = V3D(0, 0, 0);
