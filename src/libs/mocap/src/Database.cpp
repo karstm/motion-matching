@@ -1,14 +1,12 @@
 #include "mocap/Database.h"
 
 // Empty constructor to allow for member initialization
-// Constructor that takes a vector of BVHClips and initializes the database
 Database::Database() {
     data = nullptr;
 }
 
 // Destructor frees the data array
 Database::~Database() {
-    // TODO: This seems to cause malloc errors
     delete[] data;
     delete annoyIndex;
 }
@@ -17,10 +15,10 @@ void Database::initializeAnnoy()
 {
     #ifdef ANNOYLIB_MULTITHREADED_BUILD
         annoyIndex = new Annoy::AnnoyIndex<int, float, Annoy::Euclidean, Annoy::Kiss32Random, Annoy::AnnoyIndexMultiThreadedBuildPolicy>(noFeatures);
-        crl::Logger::consolePrint("MultiThreaded");
+        crl::Logger::consolePrint("MultiThreaded\n");
     #else
         annoyIndex = new Annoy::AnnoyIndex<int, float, Annoy::Euclidean, Annoy::Kiss32Random, Annoy::AnnoyIndexSingleThreadedBuildPolicy>(noFeatures);
-        crl::Logger::consolePrint("SingleThreaded");
+        crl::Logger::consolePrint("SingleThreaded\n");
     #endif
 
     char **error = (char**)malloc(sizeof(char*));
