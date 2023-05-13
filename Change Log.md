@@ -1,4 +1,13 @@
 # Change log
+
+## Minor fixes
+
+- Trajectory generation now gives 4 states in the future and 3 states in the past. The 4 states in the future are at times dt (i.e. 1 frame), dt + 0.33 s, dt + 0.67 s, and dt + 1.00 s. The 3 states in the past are at 20, 40, and 60 frames in the past.
+
+- Default starting orientation is now pi degrees off the z-axis as this is the default starting camera direction, ensuring that the character is facing away from the camera on application start.
+
+- Added `worldToLocalPositions` function in `mxm_utils.h`. For a position trajectory of length n expressed in world coordinates, the function returns a position trajectory of length n-1 (idx 1 to n-1) expressed in local coordinates with reference to the first position (idx 0).
+
 ## Orientation trajectory (historical and future) visualisation
 
 - Historical orientation visualisation implemented.

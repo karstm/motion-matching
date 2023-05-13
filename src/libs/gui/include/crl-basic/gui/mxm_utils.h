@@ -50,6 +50,15 @@ public:
     static V3D angleToVector(float a) {
         return V3D(sin(a), 0, cos(a));
     }
+
+    // returns n-1 positions in local coordinates with respect to the 0th postion of a trajectory vector of length n
+    static std::vector<P3D> worldToLocalPositions(std::vector<P3D> traj) {
+        std::vector<P3D> localTraj;
+        for (int i = 1; i < traj.size(); i++) {
+            localTraj.push_back(traj[i] - traj[0]);
+        }
+        return localTraj;
+    }
 };
 
 }  // namespace gui

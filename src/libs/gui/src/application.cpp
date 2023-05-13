@@ -633,17 +633,17 @@ void ShadowApplication::drawTrajectory(const Shader &shader) {
     crl::gui::drawSphere(pos[0], 0.05, shader, V3D(1, 0.5, 0), 1.0);
     for (int i = 0; i < pos.size() - 1; i++) {
         crl::gui::drawArrow3d(pos[i], V3D(pos[i], pos[i + 1]), world_frame_radius, shader, V3D(1, 0.5, 0), 1.0);
-        crl::gui::drawArrow3d(pos[i], V3D(pos[i], pos[i] + MxMUtils::angleToVector(rot[i]) * 0.2), world_frame_radius / 2, shader, V3D(1, 0, 1), 1.0);
+        crl::gui::drawArrow3d(pos[i], V3D(pos[i], pos[i] + MxMUtils::angleToVector(rot[i]) * 0.25), world_frame_radius / 2, shader, V3D(1, 0, 1), 1.0);
     }
 
     for (int i = 0; i < posHist.size(); i++) {
         if (i < posHist.size() - 1) {
             crl::gui::drawArrow3d(posHist[i], V3D(posHist[i], posHist[i + 1]), world_frame_radius, shader, V3D(1, 0.75, 0.5), 1.0);
-            crl::gui::drawArrow3d(posHist[i], V3D(posHist[i], posHist[i] + MxMUtils::angleToVector(rotHist[i]) * 0.2), world_frame_radius / 2, shader, V3D(1, 0.5, 0.75),
+            crl::gui::drawArrow3d(posHist[i], V3D(posHist[i], posHist[i] + MxMUtils::angleToVector(rotHist[i]) * 0.25), world_frame_radius / 2, shader, V3D(1, 0.5, 0.75),
                                   1.0);
         } else if (i == posHist.size() - 1) {
             crl::gui::drawArrow3d(posHist[i], V3D(posHist[i], pos[0]), world_frame_radius, shader, V3D(1, 0.75, 0.5), 1.0);
-            crl::gui::drawArrow3d(posHist[i], V3D(posHist[i], posHist[i] + MxMUtils::angleToVector(rotHist[i]) * 0.2), world_frame_radius / 2, shader, V3D(1, 0.5, 0.75),
+            crl::gui::drawArrow3d(posHist[i], V3D(posHist[i], posHist[i] + MxMUtils::angleToVector(rotHist[i]) * 0.25), world_frame_radius / 2, shader, V3D(1, 0.5, 0.75),
                                   1.0);
         }
     }

@@ -10,9 +10,9 @@ Controller::Controller(KeyboardState *keyboardState) {
 }
 
 void Controller::init() {
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 4; i++) {
         pos.push_back(P3D(0, 0, 0));
-        rot.push_back(0.0);
+        rot.push_back(M_PI);
     }
     vel = V3D(0, 0, 0);
     acc = V3D(0, 0, 0);
@@ -47,7 +47,7 @@ void Controller::update(TrackingCamera &camera) {
         if (t == 0) {
             T = dt / 1000.0; // take into account the speed at which the loop runs to calculate the actual position in the next frame
         } else {
-            T = 0.2 * t; // predict future positions at intervals of 0.2 s
+            T = dt / 1000.0 + 1.0 / 3.0 * t; // predict future positions at intervals of 0.33 s
         }
         
         // translation
@@ -86,9 +86,9 @@ std::vector<P3D> Controller::getPos() {
 // returns a vector of historical positions arranged in chronological order
 std::vector<P3D> Controller::getPosHist() {
     std::vector<P3D> posHistInterval;
-    int n = 10;  // 0.2 / (dt / 1000.0); hard-coded this number because using the actual dt tends to be very jittery
+    int n = 20;  // 0.33 / (dt / 1000.0); hard-coded this number because using the actual dt tends to be very jittery
     if (n != 0 && posHist.size() >= n) {
-        for (int i = std::min(int(posHist.size() / n), 4); i > 0; i--) {
+        for (int i = std::min(int(posHist.size() / n), 3); i > 0; i--) {
             posHistInterval.push_back(posHist[posHist.size() - n * i]);
         }
     }
@@ -103,9 +103,9 @@ std::vector<float> Controller::getRot() {
 // returns a vector of historical rotations arranged in chronological order
 std::vector<float> Controller::getRotHist() {
     std::vector<float> rotHistInterval;
-    int n = 10;
+    int n = 20;
     if (n != 0 && rotHist.size() >= n) {
-        for (int i = std::min(int(rotHist.size() / n), 4); i > 0; i--) {
+        for (int i = std::min(int(rotHist.size() / n), 3); i > 0; i--) {
             rotHistInterval.push_back(rotHist[rotHist.size() - n * i]);
         }
     }
