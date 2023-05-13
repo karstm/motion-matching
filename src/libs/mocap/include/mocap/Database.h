@@ -3,6 +3,8 @@
 #include "mocap/MocapClip.h"
 #include "mocap/MocapMarkers.h"
 #include "mocap/MocapSkeletonState.h"
+#include "annoylib.h"
+#include "kissrandom.h"
 #include <chrono>
 
 class Database {
@@ -22,6 +24,7 @@ class Database {
                    int& clip_id, int& frame);
         
     private:
+        void initializeAnnoy();
         void normalize(float* data);
         bool getClipAndFrame(int lineNumber, int& clip_id, int& frame);
         void readData(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhClips); 
@@ -65,4 +68,11 @@ class Database {
         // means and standard deviations
         std::vector<float> means;
         std::vector<float> standardDeviations;
+
+        // annoy
+        #ifdef ANNOYLIB_MULTITHREADED_BUILD
+        Annoy::AnnoyIndex<int, float, Annoy::Euclidean, Annoy::Kiss32Random, Annoy::AnnoyIndexMultiThreadedBuildPolicy> *annoyIndex;
+        #else
+        Annoy::AnnoyIndex<int, float, Annoy::Euclidean, Annoy::Kiss32Random, Annoy::AnnoyIndexSingleThreadedBuildPolicy> *annoyIndex;
+        #endif
 };
