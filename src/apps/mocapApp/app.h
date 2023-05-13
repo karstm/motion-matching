@@ -79,7 +79,8 @@ public:
 
     void drawShadowCastingObjects(const crl::gui::Shader &shader) override {
         if (selectedBvhClipIdx > -1) {
-            bvhClips[selectedBvhClipIdx]->draw(shader, frameIdx);
+            //bvhClips[selectedBvhClipIdx]->draw(shader, frameIdx);
+            bvhClips[selectedBvhClipIdx]->drawAt(shader, frameIdx, controller.getPos()[0], controller.getRot()[0]);
         }
         if (selectedC3dClipIdx > -1) {
             c3dClips[selectedC3dClipIdx]->draw(shader, frameIdx);
