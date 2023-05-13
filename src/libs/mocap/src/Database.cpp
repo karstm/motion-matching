@@ -5,22 +5,53 @@ Database::Database() {
     data = nullptr;
 }
 
-// Constructor that takes a vector of BVHClips and initializes the database
-Database::Database(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhClips) {
-    init(bvhClips);
-}
-
 // Destructor frees the data array
 Database::~Database() {
     delete[] data;
 }
 
-void Database::init(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhClips)
+// Builds the database from the given vector of BVHClips can be used to rebuild the database
+// Combined with set weights because set weights should never be called without rebuilding the database
+void Database::build(float trajectoryPositionWeight, float trajectoryFacingWeight,
+                     float footPositionWeight, float footVelocityWeight,
+                     float hipVelocityWeight,
+                     std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhClips)
 {
-    this->bvhClips = bvhClips;
-    readFrameSums();
+    //start timer
+    crl::Logger::consolePrint("\nBuilding database...\n");
+    auto start = std::chrono::high_resolution_clock::now();
+
+    //set weights
+    this->trajectoryPositionWeight = trajectoryPositionWeight;
+    this->trajectoryFacingWeight = trajectoryFacingWeight;
+    this->footPositionWeight = footPositionWeight;
+    this->footVelocityWeight = footVelocityWeight;
+    this->hipVelocityWeight = hipVelocityWeight;
+    
+    //clear old data
+    frameSums.clear();
+    delete[] data;
+
+    //build new data
+    readFrameSums(bvhClips);
     data = new float[frameSums.back() * noFeatures]{0};
-    readData();
+    readData(bvhClips);
+    
+    //end timer
+    auto end = std::chrono::high_resolution_clock::now();
+
+    //print info
+    crl::Logger::consolePrint("Database built with %d clips and %d frames\n", frameSums.size() - 1, frameSums.back());
+    crl::Logger::consolePrint("Weights used:                    \
+                                \n\tTrajectory Position:\t %f   \
+                                \n\tTrajectory Direction:\t %f  \
+                                \n\tFoot Position:\t %f         \
+                                \n\tFoot Velocity:\t %f         \
+                                \n\tHip Velocity:\t %f\n", 
+                                this->trajectoryPositionWeight, this->trajectoryFacingWeight,
+                                this->footPositionWeight, this->footVelocityWeight, this->hipVelocityWeight);
+    crl::Logger::consolePrint("Database build time: %f seconds\n", std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count());
+    crl::Logger::consolePrint("Database size: %f MB\n", (frameSums.back() * noFeatures * sizeof(float)) / 1000000.0);
 }
 
 // Matches the given query to the mocap database and returns the clip id and frame number
@@ -98,7 +129,7 @@ bool Database::getClipAndFrame(int lineNumber, int& clip_id, int& frame) {
 
 // Finds the data in the BVH clips and stores it in the data array
 //TODO: test this
-void Database::readData() 
+void Database::readData(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhClips) 
 {
     for (int clipId  = 0; clipId < bvhClips->size(); clipId++) 
     {
@@ -127,7 +158,7 @@ void Database::readData()
 }
 
 // Finds the frame sums for each clip and stores them in the frameSums vector
-void Database::readFrameSums() 
+void Database::readFrameSums(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhClips) 
 {
     int runningTotal = 0;
     frameSums.push_back(runningTotal);
