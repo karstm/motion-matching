@@ -1,5 +1,6 @@
 build
 CMakeLists.txt.user
+CMakeSettings.json
 .DS_Store
 data/out
 

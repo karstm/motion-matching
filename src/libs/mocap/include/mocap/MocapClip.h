@@ -3,7 +3,7 @@
 #include "mocap/MocapMarkers.h"
 #include "mocap/MocapSkeleton.h"
 #include "mocap/MocapSkeletonState.h"
-
+#include "crl-basic/utils/mathUtils.h"
 namespace crl::mocap {
 
 /**
@@ -38,7 +38,7 @@ public:
         return model_;
     }
 
-    const StateType &getState(uint frameIdx) const {
+    StateType &getState(uint frameIdx) {
         return motions_[frameIdx];
     }
 
@@ -63,6 +63,34 @@ public:
         // set skeleton
         if (model_) {
             model_->setState(&getState(frameIdx));
+            model_->draw(shader, alpha);
+        }
+    }
+
+    void drawAt(const gui::Shader &shader, uint frameIdx, P3D &pos, float rotation, float alpha = 1.0) {
+        if (frameIdx >= frameCount_) {
+            Logger::consolePrint(V3D(1, 0, 0), "Wrong frame index %d > total frame count in clip = %d\n", frameIdx, frameCount_);
+            frameIdx %= frameCount_;
+        }
+
+        // set skeleton
+        if (model_) {
+            StateType* state = &getState(frameIdx);
+            pos.y = state->getRootPosition().y;
+            state->setRootPosition(pos);
+            crl::Quaternion orient = state->getRootOrientation();
+
+            double alpha, beta, gamma;
+            V3D side = V3D(1,0,0);
+            V3D up = V3D(0,1,0);
+            V3D front = V3D(0,0,1);
+            computeEulerAnglesFromQuaternion(orient, front, side, up, alpha, beta, gamma);
+
+            Quaternion negYrotation = getRotationQuaternion(-gamma, up);
+            Quaternion desiredOrientation = getRotationQuaternion(rotation + PI/2.0, up);
+
+            state->setRootOrientation(desiredOrientation * negYrotation * orient);
+            model_->setState(state);
             model_->draw(shader, alpha);
         }
     }
