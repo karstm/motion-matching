@@ -198,16 +198,17 @@ void Database::readFrameSums(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* 
 //TODO: implement this
 void Database::getTrajectoryPositions(crl::mocap::MocapSkeleton *sk, const crl::mocap::MocapSkeletonState *sk1, const crl::mocap::MocapSkeletonState *sk2, const crl::mocap::MocapSkeletonState *sk3,  int offset) {
     crl::P3D p0 = sk->root->state.pos;
-    crl::P3D p1 = sk1->getRootPosition()-p0;
-    crl::P3D p2 = sk2->getRootPosition()-p0;
-    crl::P3D p3 = sk3->getRootPosition()-p0;
+    crl::Quaternion q0Inverse = (sk->root->state.orientation).inverse();
+    crl::V3D p1 = q0Inverse*crl::V3D(p0, sk1->getRootPosition());
+    crl::V3D p2 = q0Inverse*crl::V3D(p0, sk2->getRootPosition());
+    crl::V3D p3 = q0Inverse*crl::V3D(p0, sk3->getRootPosition());
 
-    data[offset+0] = p1.x;
-    data[offset+1] = p1.z;
-    data[offset+2] = p2.x;
-    data[offset+3] = p2.z;
-    data[offset+4] = p3.x;
-    data[offset+5] = p3.z;
+    data[offset+0] = p1[0];
+    data[offset+1] = p1[2];
+    data[offset+2] = p2[0];
+    data[offset+3] = p2[2];
+    data[offset+4] = p3[0];
+    data[offset+5] = p3[2];
 }
 
 // Compute the trajectory direction data
@@ -217,7 +218,7 @@ void Database::getTrajectoryDirections(crl::mocap::MocapSkeleton *sk, const crl:
     crl::Quaternion q1 = sk1->getRootOrientation();
     crl::Quaternion q2 = sk2->getRootOrientation();
     crl::Quaternion q3 = sk3->getRootOrientation();
-    crl::Quaternion q0Inverse = crl::gui::MxMUtils::getNegYrotation(q0);
+    crl::Quaternion q0Inverse = q0.inverse(); //crl::gui::MxMUtils::getNegYrotation(q0);
 
     crl::V3D trajectory_dir0 = q0Inverse*(q1* crl::V3D(0, 0, 1));
     crl::V3D trajectory_dir1 = q0Inverse*(q2* crl::V3D(0, 0, 1));
