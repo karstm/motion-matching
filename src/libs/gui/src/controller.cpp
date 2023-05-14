@@ -3,13 +3,8 @@
 namespace crl {
 namespace gui {
 
-Controller::Controller(){};
-Controller::Controller(KeyboardState *keyboardState) {
+void Controller::init(KeyboardState *keyboardState) {
     this->keyboardState = keyboardState;
-    init();
-}
-
-void Controller::init() {
     for (int i = 0; i < 4; i++) {
         pos.push_back(P3D(0, 0, 0));
         rot.push_back(M_PI);
@@ -21,7 +16,17 @@ void Controller::init() {
     prevTime = std::chrono::steady_clock::now();
 }
 
-void Controller::update(TrackingCamera &camera) {
+void Controller::update(TrackingCamera &camera, Database &database) {
+    if(frameCount >= targetFrameRate){
+        std::vector<P3D> trajectoryPos = MxMUtils::worldToLocalPositions(pos, rot[0]);
+        std::vector<V3D> trajectoryDir = MxMUtils::worldToLocalDirections(rot);
+        database.match(trajectoryPos, trajectoryDir, clipIdx, frameIdx);
+        frameCount = -1;
+    }
+    frameIdx++;
+    frameCount++;
+
+
     currTime = std::chrono::steady_clock::now();
     dt = (std::chrono::duration_cast<std::chrono::milliseconds> (currTime - prevTime)).count();
     

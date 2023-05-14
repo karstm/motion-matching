@@ -63,12 +63,27 @@ public:
     }
 
     // returns n-1 positions in local coordinates with respect to the 0th postion of a trajectory vector of length n
-    static std::vector<P3D> worldToLocalPositions(std::vector<P3D> traj) {
+    static std::vector<P3D> worldToLocalPositions(std::vector<P3D> traj, float yRotation) {
         std::vector<P3D> localTraj;
+        V3D up = V3D(0,1,0);
+        Quaternion currentOrient = getRotationQuaternion(yRotation, up);
+        Quaternion qInverse = currentOrient.inverse();
         for (int i = 1; i < traj.size(); i++) {
-            localTraj.push_back(traj[i] - traj[0]);
+            V3D localDir = qInverse*V3D(traj[0], traj[i]);
+            localTraj.push_back(P3D(localDir[0], localDir[1], localDir[2]));
         }
         return localTraj;
+    }
+
+    static std::vector<V3D> worldToLocalDirections(std::vector<float> rot) {
+        std::vector<V3D> localTrajDir;
+        V3D up = V3D(0,1,0);
+        V3D forward = V3D(0,0,1);
+        for (int i = 1; i < rot.size(); i++) {
+            Quaternion orient = getRotationQuaternion(rot[i] - rot[0], up);
+            localTrajDir.push_back(orient*forward);
+        }
+        return localTrajDir;
     }
 };
 

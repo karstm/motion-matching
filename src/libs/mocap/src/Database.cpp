@@ -72,15 +72,15 @@ void Database::build(float trajectoryPositionWeight, float trajectoryFacingWeigh
                                 this->footPositionWeight, this->footVelocityWeight, this->hipVelocityWeight);
     crl::Logger::consolePrint("Database build time: %f seconds\n", std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count());
     crl::Logger::consolePrint("Database size: %f MB\n", (frameSums.back() * noFeatures * sizeof(float)) / 1000000.0);
+
+    initializeAnnoy();
+    crl::Logger::consolePrint("Annoy Initialized!\n");
 }
 
 // Matches the given query to the mocap database and returns the clip id and frame number
 // TODO: implement this
-void Database::match(crl::Matrix& trajectoryPositions, crl::Matrix& trajectoryDirections, 
-                     crl::P3D& leftFootPosition, crl::P3D& rightFootPosition,
-                     crl::V3D& leftFootVelocity, crl::V3D& rightFootVelocity, 
-                     crl::V3D& hipVelocity, 
-                     int& clip_id, int& frame) 
+void Database::match(std::vector<crl::P3D>& trajectoryPositions, std::vector<crl::V3D>& trajectoryDirections,
+                    int& clip_id, int& frame) 
 {
     int lineNumber;
     int kNearest = 5;
@@ -92,14 +92,30 @@ void Database::match(crl::Matrix& trajectoryPositions, crl::Matrix& trajectoryDi
     // - (get the clip id and frame number from the line number) DONE
 
     // arange the query in array
-    float query[] = {(float)trajectoryPositions.coeff(0,0), (float)trajectoryPositions.coeff(0,1), (float)trajectoryPositions.coeff(1,0), (float)trajectoryPositions.coeff(1,1), (float)trajectoryPositions.coeff(2,0), (float)trajectoryPositions.coeff(2,1),
-                     (float)trajectoryDirections.coeff(0,0), (float)trajectoryDirections.coeff(0,1), (float)trajectoryDirections.coeff(1,0), (float)trajectoryDirections.coeff(1,1), (float)trajectoryDirections.coeff(2,0), (float)trajectoryDirections.coeff(2,1),
-                     (float)leftFootPosition.x, (float)leftFootPosition.y, (float)leftFootPosition.z,
-                     (float)leftFootVelocity(0), (float)leftFootVelocity(1), (float)leftFootVelocity(2),
-                     (float)rightFootVelocity(0), (float)rightFootVelocity(1), (float)rightFootVelocity(2),
-                     (float)hipVelocity(0), (float)hipVelocity(1), (float)hipVelocity(2)};
+    // crl::P3D& leftFootPosition;
+    // crl::P3D& rightFootPosition;
+    // crl::V3D& leftFootVelocity,
+    // crl::V3D& rightFootVelocity, 
+    // crl::V3D& hipVelocity,
+    int line = frameSums[clip_id] + frame;
+    float* currentInfo = data + line; 
+    
+    float query[] = {(float)trajectoryPositions[0].x, (float)trajectoryPositions[0].z, (float)trajectoryPositions[1].x, (float)trajectoryPositions[1].z, (float)trajectoryPositions[2].x, (float)trajectoryPositions[2].z,
+                     (float)trajectoryDirections[0][0], (float)trajectoryDirections[0][2], (float)trajectoryDirections[1][0], (float)trajectoryDirections[1][2], (float)trajectoryDirections[2][0], (float)trajectoryDirections[2][2],
+                     0, 0, 0,
+                     0, 0, 0,
+                     0, 0, 0,
+                     0, 0, 0,
+                     0, 0, 0};
+    
     // normalize the query
     normalize(query);
+
+    // Writing the already normalized data into the query.
+    int trajOffset = 12;
+    for(int i = trajOffset; i < 27; i++){
+        query[i] = currentInfo[i];
+    }
 
     //TODO: get the line number of the nearest neighbor in the database
     std::vector<int> closest;

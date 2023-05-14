@@ -53,6 +53,7 @@ list(
         PUBLIC "tinyobjloader" #
         PUBLIC "eigen" #
         PUBLIC "crl::utils" #
+        PUBLIC "crl::mocap" #
 )
 
 # compile definitions

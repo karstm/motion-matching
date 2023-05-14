@@ -129,7 +129,7 @@ void Application::init(const char *title, int width, int height, std::string ico
         keyboardState.insert(std::pair<int, bool>(i, false));
 
     //initialize controller
-    controller = Controller(&keyboardState);
+    controller.init(&keyboardState);
 }
 
 void Application::setCallbacks() {
@@ -549,9 +549,7 @@ ShadowApplication::ShadowApplication(const char *title, std::string iconPath) : 
     GLCall(glEnable(GL_DEPTH_TEST));
 }
 
-void ShadowApplication::draw() {
-    controller.update(camera);
-    
+void ShadowApplication::draw() {    
     //Clear
     GLCall(glClearColor(clearColor[0], clearColor[1], clearColor[2], 1.f));
     GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));

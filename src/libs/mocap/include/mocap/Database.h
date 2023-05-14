@@ -17,11 +17,8 @@ class Database {
                    float hipVelocityWeight,
                    std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhClips);
 
-        void match(crl::Matrix& trajectoryPositions, crl::Matrix& trajectoryDirections, 
-                   crl::P3D& leftFootPosition, crl::P3D& rightFootPosition, 
-                   crl::V3D& leftFootVelocity, crl::V3D& rightFootVelocity, 
-                   crl::V3D& hipVelocity,
-                   int& clip_id, int& frame);
+        void match(std::vector<crl::P3D>& trajectoryPositions, std::vector<crl::V3D>& trajectoryDirections,
+                    int& clip_id, int& frame);
         
     private:
         void initializeAnnoy();
