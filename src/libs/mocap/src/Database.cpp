@@ -1,4 +1,5 @@
 #include "mocap/Database.h"
+#include "crl-basic/gui/mxm_utils.h"
 
 // Empty constructor to allow for member initialization
 Database::Database() {
@@ -160,11 +161,13 @@ void Database::readData(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhCl
         for (int frame = 0; frame < frameSums[clipId + 1] - frameSums[clipId]; frame++)
         {
             sk->setState(&bvhClips->at(clipId)->getState(frame));
-
+            auto sk1 = &bvhClips->at(clipId)->getState(frame+10);
+            auto sk2 = &bvhClips->at(clipId)->getState(frame+20);
+            auto sk3 = &bvhClips->at(clipId)->getState(frame+30);
             int offset = frameSums[clipId] + frame * noFeatures;
 
-            getTrajectoryPositions(sk, offset);
-            getTrajectoryDirections(sk, offset + 6);
+            getTrajectoryPositions(sk, sk1, sk2, sk3,  offset);
+            getTrajectoryDirections(sk, sk1, sk2, sk3, offset + 6);
             getFootPosition(sk, 0, offset + 12);
             getFootPosition(sk, 1, offset + 15);
             getFootVelocity(sk, 0, offset + 18);
@@ -193,11 +196,41 @@ void Database::readFrameSums(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* 
 
 // Compute the trajectory position data 
 //TODO: implement this
-void Database::getTrajectoryPositions(crl::mocap::MocapSkeleton *sk, int offset) {}
+void Database::getTrajectoryPositions(crl::mocap::MocapSkeleton *sk, const crl::mocap::MocapSkeletonState *sk1, const crl::mocap::MocapSkeletonState *sk2, const crl::mocap::MocapSkeletonState *sk3,  int offset) {
+    crl::P3D p0 = sk->root->state.pos;
+    crl::Quaternion q0Inverse = (sk->root->state.orientation).inverse();
+    crl::V3D p1 = q0Inverse*crl::V3D(p0, sk1->getRootPosition());
+    crl::V3D p2 = q0Inverse*crl::V3D(p0, sk2->getRootPosition());
+    crl::V3D p3 = q0Inverse*crl::V3D(p0, sk3->getRootPosition());
+
+    data[offset+0] = p1[0];
+    data[offset+1] = p1[2];
+    data[offset+2] = p2[0];
+    data[offset+3] = p2[2];
+    data[offset+4] = p3[0];
+    data[offset+5] = p3[2];
+}
 
 // Compute the trajectory direction data
 // TODO: implement this
-void Database::getTrajectoryDirections(crl::mocap::MocapSkeleton *sk, int offset) {}
+void Database::getTrajectoryDirections(crl::mocap::MocapSkeleton *sk, const crl::mocap::MocapSkeletonState *sk1, const crl::mocap::MocapSkeletonState *sk2, const crl::mocap::MocapSkeletonState *sk3, int offset) {
+    crl::Quaternion q0 = sk->root->state.orientation;
+    crl::Quaternion q1 = sk1->getRootOrientation();
+    crl::Quaternion q2 = sk2->getRootOrientation();
+    crl::Quaternion q3 = sk3->getRootOrientation();
+    crl::Quaternion q0Inverse = q0.inverse(); //crl::gui::MxMUtils::getNegYrotation(q0);
+
+    crl::V3D trajectory_dir0 = q0Inverse*(q1* crl::V3D(0, 0, 1));
+    crl::V3D trajectory_dir1 = q0Inverse*(q2* crl::V3D(0, 0, 1));
+    crl::V3D trajectory_dir2 = q0Inverse*(q3* crl::V3D(0, 0, 1));
+
+    data[offset+0] = trajectory_dir0[0];
+    data[offset+1] = trajectory_dir0[2];
+    data[offset+2] = trajectory_dir1[0];
+    data[offset+3] = trajectory_dir1[2];
+    data[offset+4] = trajectory_dir2[0];
+    data[offset+5] = trajectory_dir2[2];
+}
 
 // Compute a feature for the position of a bone relative to the simulation/root bone
 void Database::getFootPosition(crl::mocap::MocapSkeleton *sk, int foot, int offset) 
