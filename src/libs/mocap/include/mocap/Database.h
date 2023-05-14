@@ -29,8 +29,8 @@ class Database {
         bool getClipAndFrame(int lineNumber, int& clip_id, int& frame);
         void readData(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhClips); 
         void readFrameSums(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhClips);
-        void getTrajectoryPositions(crl::mocap::MocapSkeleton *sk, int offset);
-        void getTrajectoryDirections(crl::mocap::MocapSkeleton *sk, int offset);
+        void getTrajectoryPositions(crl::mocap::MocapSkeleton *sk, const crl::mocap::MocapSkeletonState *sk1, const crl::mocap::MocapSkeletonState *sk2, const crl::mocap::MocapSkeletonState *sk3, int offset);
+        void getTrajectoryDirections(crl::mocap::MocapSkeleton *sk, const crl::mocap::MocapSkeletonState *sk1, const crl::mocap::MocapSkeletonState *sk2, const crl::mocap::MocapSkeletonState *sk3, int offset);
         void getFootPosition(crl::mocap::MocapSkeleton *sk, int foot, int offset);
         void getFootVelocity(crl::mocap::MocapSkeleton *sk, int foot, int offset);
         void getHipVelocity(crl::mocap::MocapSkeleton *sk, int offset);

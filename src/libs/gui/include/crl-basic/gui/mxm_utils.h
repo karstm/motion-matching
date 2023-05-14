@@ -31,6 +31,17 @@ public:
         return vec;
     }
 
+    static Quaternion getNegYrotation(Quaternion q){
+        double alpha, beta, gamma;
+        V3D side = V3D(1,0,0);
+        V3D up = V3D(0,1,0);
+        V3D front = V3D(0,0,1);
+        computeEulerAnglesFromQuaternion(q, front, side, up, alpha, beta, gamma);
+
+        Quaternion negYrotation = getRotationQuaternion(-gamma, up);
+        return negYrotation;
+    }
+
     // returns the angle between 2 vectors on the x-z plane from -pi to pi
     static float angleBetweenVectors(V3D v1, V3D v2) {
         V3D v3 = v1.cross(v2);
