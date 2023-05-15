@@ -97,7 +97,7 @@ void Database::match(std::vector<crl::P3D>& trajectoryPositions, std::vector<crl
     // crl::V3D& leftFootVelocity,
     // crl::V3D& rightFootVelocity, 
     // crl::V3D& hipVelocity,
-    int line = frameSums[clip_id] + frame;
+    int line = (frameSums[clip_id] + frame)*noFeatures;
     float* currentInfo = data + line; 
     
     float query[] = {(float)trajectoryPositions[0].x, (float)trajectoryPositions[0].z, (float)trajectoryPositions[1].x, (float)trajectoryPositions[1].z, (float)trajectoryPositions[2].x, (float)trajectoryPositions[2].z,
@@ -113,7 +113,7 @@ void Database::match(std::vector<crl::P3D>& trajectoryPositions, std::vector<crl
 
     // Writing the already normalized data into the query.
     int trajOffset = 12;
-    for(int i = trajOffset; i < 27; i++){
+    for (int i = trajOffset; i < noFeatures; i++) {
         query[i] = currentInfo[i];
     }
 
@@ -152,7 +152,7 @@ void Database::normalize(float* data)
 // Converts a line number to a clip id and frame number using a binary search on the frameSums vector
 //TODO: test this, this might be off by 1, haven't tested it yet
 bool Database::getClipAndFrame(int lineNumber, int& clip_id, int& frame) {
-    if (lineNumber < 0 || lineNumber >= frameSums.size())
+    if (lineNumber < 0 || lineNumber >= frameSums.back())
         return false;
 
     // search on the frameSums to find the clip id
@@ -180,7 +180,7 @@ void Database::readData(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhCl
             auto sk1 = &bvhClips->at(clipId)->getState(frame+10);
             auto sk2 = &bvhClips->at(clipId)->getState(frame+20);
             auto sk3 = &bvhClips->at(clipId)->getState(frame+30);
-            int offset = frameSums[clipId] + frame * noFeatures;
+            int offset = (frameSums[clipId] + frame) * noFeatures;
 
             getTrajectoryPositions(sk, sk1, sk2, sk3,  offset);
             getTrajectoryDirections(sk, sk1, sk2, sk3, offset + 6);
