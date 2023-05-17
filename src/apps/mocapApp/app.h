@@ -32,6 +32,8 @@ public:
     ~App() override {}
 
     void process() override {
+        controller.update(camera, database);
+
         if (selectedBvhClipIdx == -1 && selectedC3dClipIdx == -1)
             return;
 
@@ -78,9 +80,14 @@ public:
     }
 
     void drawShadowCastingObjects(const crl::gui::Shader &shader) override {
-        if (selectedBvhClipIdx > -1) {
-            //bvhClips[selectedBvhClipIdx]->draw(shader, frameIdx);
-            bvhClips[selectedBvhClipIdx]->drawAt(shader, frameIdx, controller.getPos()[0], controller.getRot()[0]);
+        int mxm_clipIdx = controller.getClipIdx();
+        int mxm_frameIdx = controller.getFrameIdx();
+        crl::Logger::consolePrint("ClipIdx: %d, FrameIdx: %d, !\n", mxm_clipIdx, mxm_frameIdx);
+        if (mxm_clipIdx < bvhClips.size() && mxm_clipIdx > -1) {
+            bvhClips[mxm_clipIdx]->drawAt(shader, mxm_frameIdx, controller.getPos()[0], controller.getRot()[0]);
+        } else  if (selectedBvhClipIdx > -1) {
+            bvhClips[selectedBvhClipIdx]->draw(shader, frameIdx);
+            // bvhClips[selectedBvhClipIdx]->drawAt(shader, frameIdx, controller.getPos()[0], controller.getRot()[0]);
         }
         if (selectedC3dClipIdx > -1) {
             c3dClips[selectedC3dClipIdx]->draw(shader, frameIdx);
@@ -96,7 +103,11 @@ public:
     }
 
     void drawObjectsWithoutShadows(const crl::gui::Shader &shader) override {
-        if (selectedBvhClipIdx > -1)
+        int mxm_clipIdx = controller.getClipIdx();
+        int mxm_frameIdx = controller.getFrameIdx();
+        if (mxm_clipIdx < bvhClips.size() && mxm_clipIdx > -1) {
+            bvhClips[mxm_clipIdx]->drawAt(shader, mxm_frameIdx, controller.getPos()[0], controller.getRot()[0]);
+        } else if (selectedBvhClipIdx > -1)
             bvhClips[selectedBvhClipIdx]->draw(shader, frameIdx);
         if (selectedC3dClipIdx > -1) {
             c3dClips[selectedC3dClipIdx]->draw(shader, frameIdx);
@@ -616,7 +627,7 @@ private:
     double footHeightThreshold = 0.055;
 
     // database processing
-    bool loadWithMirror = false;
+    bool loadWithMirror = true;
     float trajectoryPositionWeight = 1.0;
     float trajectoryFacingWeight = 1.5;
     float footPositionWeight = 0.75;

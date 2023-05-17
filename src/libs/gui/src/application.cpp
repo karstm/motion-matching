@@ -129,7 +129,7 @@ void Application::init(const char *title, int width, int height, std::string ico
         keyboardState.insert(std::pair<int, bool>(i, false));
 
     //initialize controller
-    controller = Controller(&keyboardState);
+    controller.init(&keyboardState);
 }
 
 void Application::setCallbacks() {
@@ -549,9 +549,7 @@ ShadowApplication::ShadowApplication(const char *title, std::string iconPath) : 
     GLCall(glEnable(GL_DEPTH_TEST));
 }
 
-void ShadowApplication::draw() {
-    controller.update(camera);
-    
+void ShadowApplication::draw() {    
     //Clear
     GLCall(glClearColor(clearColor[0], clearColor[1], clearColor[2], 1.f));
     GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
@@ -626,14 +624,19 @@ void ShadowApplication::renderPass() {
 
 void ShadowApplication::drawTrajectory(const Shader &shader) {
     std::vector<P3D> pos = controller.getPos();
+    std::vector<P3D> actualPos = controller.getActualPos();
     std::vector<float> rot = controller.getRot();
+    // std::vector<float> actualRot = controller.getActualRot();
     std::vector<P3D> posHist = controller.getPosHist();
     std::vector<float> rotHist = controller.getRotHist();
 
     crl::gui::drawSphere(pos[0], 0.05, shader, V3D(1, 0.5, 0), 1.0);
     for (int i = 0; i < pos.size() - 1; i++) {
         crl::gui::drawArrow3d(pos[i], V3D(pos[i], pos[i + 1]), world_frame_radius, shader, V3D(1, 0.5, 0), 1.0);
-        crl::gui::drawArrow3d(pos[i], V3D(pos[i], pos[i] + MxMUtils::angleToVector(rot[i]) * 0.25), world_frame_radius / 2, shader, V3D(1, 0, 1), 1.0);
+        crl::gui::drawArrow3d(pos[i], V3D(pos[i], pos[i] + MxMUtils::angleToVector(rot[i]) * 0.1), world_frame_radius*4, shader, V3D(1, 0, 1), 1.0);
+
+        crl::gui::drawArrow3d(actualPos[i], V3D(actualPos[i], actualPos[i + 1]), world_frame_radius, shader, V3D(1, 0.5, 1), 1.0);
+        crl::gui::drawArrow3d(actualPos[i], V3D(actualPos[i], actualPos[i] + MxMUtils::angleToVector(rot[i]) * 0.1), world_frame_radius*4, shader, V3D(1, 0, 0), 1.0);
     }
 
     for (int i = 0; i < posHist.size(); i++) {

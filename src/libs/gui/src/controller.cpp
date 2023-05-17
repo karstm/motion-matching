@@ -3,16 +3,13 @@
 namespace crl {
 namespace gui {
 
-Controller::Controller(){};
-Controller::Controller(KeyboardState *keyboardState) {
+void Controller::init(KeyboardState *keyboardState) {
     this->keyboardState = keyboardState;
-    init();
-}
-
-void Controller::init() {
     for (int i = 0; i < 4; i++) {
         pos.push_back(P3D(0, 0, 0));
+        actualPos.push_back(P3D(0, 0, 0));
         rot.push_back(M_PI);
+        actualRot.push_back(M_PI);
     }
     vel = V3D(0, 0, 0);
     acc = V3D(0, 0, 0);
@@ -21,7 +18,18 @@ void Controller::init() {
     prevTime = std::chrono::steady_clock::now();
 }
 
-void Controller::update(TrackingCamera &camera) {
+void Controller::update(TrackingCamera &camera, Database &database) {
+    if(frameCount >= targetFrameRate){
+        std::vector<P3D> trajectoryPos = MxMUtils::worldToLocalPositions(pos, rot[0]);
+        std::vector<float> trajectoryAngle = MxMUtils::worldToLocalDirectionsAngle(rot);
+        database.match(trajectoryPos, trajectoryAngle, clipIdx, frameIdx);
+        
+        frameCount = -1;
+    }
+    frameIdx++;
+    frameCount++;
+
+
     currTime = std::chrono::steady_clock::now();
     dt = (std::chrono::duration_cast<std::chrono::milliseconds> (currTime - prevTime)).count();
     
@@ -76,11 +84,32 @@ void Controller::update(TrackingCamera &camera) {
 
     camera.target =  MxMUtils::V3Dtovec3(V3D(pos[0]));
     //crl::Logger::consolePrint("Character position: %f, %f, %f\n", pos[0][0], pos[0][1], pos[0][2]);
+
+    float dbEntry[27];
+    database.getEntry(clipIdx, frameIdx, dbEntry);
+
+    //trajectory position
+    actualPos.clear();
+
+    P3D p0 = pos[0];
+    V3D p1 = V3D(dbEntry[0], 0, dbEntry[1]);
+    V3D p2 = V3D(dbEntry[2], 0, dbEntry[3]);
+    V3D p3 = V3D(dbEntry[4], 0, dbEntry[5]);
+
+    Quaternion q0 = getRotationQuaternion(rot[0], V3D(0, 1, 0));
+    actualPos.push_back(p0);
+    actualPos.push_back(p0 + q0 * p1);
+    actualPos.push_back(p0 + q0 * p2);
+    actualPos.push_back(p0 + q0 * p3);
 }
 
 // returns a vector of future positions arranged in chronological order
 std::vector<P3D> Controller::getPos() {
     return pos;
+}
+
+std::vector<P3D> Controller::getActualPos(){
+    return actualPos;
 }
 
 // returns a vector of historical positions arranged in chronological order
@@ -98,6 +127,10 @@ std::vector<P3D> Controller::getPosHist() {
 // returns a vector of future rotations arranged in chronological order
 std::vector<float> Controller::getRot() {
     return rot;
+}
+
+std::vector<float> Controller::getActualRot() {
+    return actualRot;
 }
 
 // returns a vector of historical rotations arranged in chronological order
@@ -146,7 +179,7 @@ void Controller::setInputDirection(TrackingCamera &camera){
         if(!found_controller){
             velDesired = velDesired.unit();
         }
-        velDesired *= 1.5; // desired velocity maximumof 1.5 m s^-1;
+        velDesired *= 2.5; // desired velocity maximumof 1.5 m s^-1;
         rotDesired = MxMUtils::angleBetweenVectors(V3D(0, 0, 1), velDesired);
     } else {
         velDesired = V3D(0, 0, 0);

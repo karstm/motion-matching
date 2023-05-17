@@ -72,15 +72,15 @@ void Database::build(float trajectoryPositionWeight, float trajectoryFacingWeigh
                                 this->footPositionWeight, this->footVelocityWeight, this->hipVelocityWeight);
     crl::Logger::consolePrint("Database build time: %f seconds\n", std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count());
     crl::Logger::consolePrint("Database size: %f MB\n", (frameSums.back() * noFeatures * sizeof(float)) / 1000000.0);
+
+    initializeAnnoy();
+    crl::Logger::consolePrint("Annoy Initialized!\n");
 }
 
 // Matches the given query to the mocap database and returns the clip id and frame number
 // TODO: implement this
-void Database::match(crl::Matrix& trajectoryPositions, crl::Matrix& trajectoryDirections, 
-                     crl::P3D& leftFootPosition, crl::P3D& rightFootPosition,
-                     crl::V3D& leftFootVelocity, crl::V3D& rightFootVelocity, 
-                     crl::V3D& hipVelocity, 
-                     int& clip_id, int& frame) 
+void Database::match(std::vector<crl::P3D>& trajectoryPositions, std::vector<float>& trajectoryAngles,
+                    int& clip_id, int& frame) 
 {
     int lineNumber;
     int kNearest = 5;
@@ -92,14 +92,30 @@ void Database::match(crl::Matrix& trajectoryPositions, crl::Matrix& trajectoryDi
     // - (get the clip id and frame number from the line number) DONE
 
     // arange the query in array
-    float query[] = {(float)trajectoryPositions.coeff(0,0), (float)trajectoryPositions.coeff(0,1), (float)trajectoryPositions.coeff(1,0), (float)trajectoryPositions.coeff(1,1), (float)trajectoryPositions.coeff(2,0), (float)trajectoryPositions.coeff(2,1),
-                     (float)trajectoryDirections.coeff(0,0), (float)trajectoryDirections.coeff(0,1), (float)trajectoryDirections.coeff(1,0), (float)trajectoryDirections.coeff(1,1), (float)trajectoryDirections.coeff(2,0), (float)trajectoryDirections.coeff(2,1),
-                     (float)leftFootPosition.x, (float)leftFootPosition.y, (float)leftFootPosition.z,
-                     (float)leftFootVelocity(0), (float)leftFootVelocity(1), (float)leftFootVelocity(2),
-                     (float)rightFootVelocity(0), (float)rightFootVelocity(1), (float)rightFootVelocity(2),
-                     (float)hipVelocity(0), (float)hipVelocity(1), (float)hipVelocity(2)};
+    // crl::P3D& leftFootPosition;
+    // crl::P3D& rightFootPosition;
+    // crl::V3D& leftFootVelocity,
+    // crl::V3D& rightFootVelocity, 
+    // crl::V3D& hipVelocity,
+    int line = (frameSums[clip_id] + frame)*noFeatures;
+    float* currentInfo = data + line; 
+    
+    float query[] = {(float)trajectoryPositions[0].x, (float)trajectoryPositions[0].z, (float)trajectoryPositions[1].x, (float)trajectoryPositions[1].z, (float)trajectoryPositions[2].x, (float)trajectoryPositions[2].z,
+                     trajectoryAngles[0], trajectoryAngles[1], trajectoryAngles[2],
+                     0, 0, 0,
+                     0, 0, 0,
+                     0, 0, 0,
+                     0, 0, 0,
+                     0, 0, 0};
+    
     // normalize the query
     normalize(query);
+
+    // Writing the already normalized data into the query.
+    int trajOffset = 9;
+    for (int i = trajOffset; i < noFeatures; i++) {
+        query[i] = currentInfo[i];
+    }
 
     //TODO: get the line number of the nearest neighbor in the database
     std::vector<int> closest;
@@ -108,6 +124,18 @@ void Database::match(crl::Matrix& trajectoryPositions, crl::Matrix& trajectoryDi
 
     // get the line number from the nearest neighbor
     getClipAndFrame(lineNumber, clip_id, frame);
+}
+
+void Database::getEntry(int clip_id, int frame, float* entry)
+{
+    int line = (frameSums[clip_id] + frame)*noFeatures;
+    float* currentInfo = data + line; 
+
+    for (int i = 0; i < noFeatures; i++) {
+        entry[i] = currentInfo[i];
+    }
+
+    denormalize(entry);
 }
 
 // Normalizes the given data array and applies the weights
@@ -120,23 +148,45 @@ void Database::normalize(float* data)
         float weight;
         if (i < 6)
             weight = trajectoryPositionWeight;
-        else if(i < 12)
+        else if (i < 9)
             weight = trajectoryFacingWeight;
-        else if(i < 18)
+        else if (i < 15)
             weight = footPositionWeight;
-        else if(i < 24)
+        else if (i < 21)
             weight = footVelocityWeight;
-        else if(i < 27)
+        else if (i < 24)
             weight = hipVelocityWeight;
 
-        data[i] = (data[i] - means[i]) / standardDeviations[i] * weight;
+        data[i] = ((data[i] - means[i]) / standardDeviations[i]) * weight;
+    }
+}
+
+// Denormalizes the given data array and applies the weights
+void Database::denormalize(float* entry)
+{
+    for (int i = 0; i < noFeatures; i++) 
+    {   
+        // ugly hardcoding of weights
+        float weight;
+        if (i < 6)
+            weight = trajectoryPositionWeight;
+        else if (i < 9)
+            weight = trajectoryFacingWeight;
+        else if (i < 15)
+            weight = footPositionWeight;
+        else if (i < 21)
+            weight = footVelocityWeight;
+        else if (i < 24)
+            weight = hipVelocityWeight;
+
+        entry[i] = (entry[i] / weight) * standardDeviations[i] + means[i];
     }
 }
 
 // Converts a line number to a clip id and frame number using a binary search on the frameSums vector
 //TODO: test this, this might be off by 1, haven't tested it yet
 bool Database::getClipAndFrame(int lineNumber, int& clip_id, int& frame) {
-    if (lineNumber < 0 || lineNumber >= frameSums.size())
+    if (lineNumber < 0 || lineNumber >= frameSums.back())
         return false;
 
     // search on the frameSums to find the clip id
@@ -164,15 +214,15 @@ void Database::readData(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhCl
             auto sk1 = &bvhClips->at(clipId)->getState(frame+10);
             auto sk2 = &bvhClips->at(clipId)->getState(frame+20);
             auto sk3 = &bvhClips->at(clipId)->getState(frame+30);
-            int offset = frameSums[clipId] + frame * noFeatures;
+            int offset = (frameSums[clipId] + frame) * noFeatures;
 
             getTrajectoryPositions(sk, sk1, sk2, sk3,  offset);
             getTrajectoryDirections(sk, sk1, sk2, sk3, offset + 6);
-            getFootPosition(sk, 0, offset + 12);
-            getFootPosition(sk, 1, offset + 15);
-            getFootVelocity(sk, 0, offset + 18);
-            getFootVelocity(sk, 1, offset + 21);
-            getHipVelocity(sk, offset + 24);
+            getFootPosition(sk, 0, offset + 9);
+            getFootPosition(sk, 1, offset + 12);
+            getFootVelocity(sk, 0, offset + 15);
+            getFootVelocity(sk, 1, offset + 18);
+            getHipVelocity(sk, offset + 21);
         }
     }
 
@@ -198,7 +248,9 @@ void Database::readFrameSums(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* 
 //TODO: implement this
 void Database::getTrajectoryPositions(crl::mocap::MocapSkeleton *sk, const crl::mocap::MocapSkeletonState *sk1, const crl::mocap::MocapSkeletonState *sk2, const crl::mocap::MocapSkeletonState *sk3,  int offset) {
     crl::P3D p0 = sk->root->state.pos;
-    crl::Quaternion q0Inverse = (sk->root->state.orientation).inverse();
+    crl::Quaternion q0Inverse = crl::gui::MxMUtils::getNegYrotation(sk->root->state.orientation);
+    crl::Quaternion nintyDegreeRotation = crl::getRotationQuaternion(M_PI_2, crl::V3D(0, 1, 0));
+    q0Inverse = q0Inverse * nintyDegreeRotation;
     crl::V3D p1 = q0Inverse*crl::V3D(p0, sk1->getRootPosition());
     crl::V3D p2 = q0Inverse*crl::V3D(p0, sk2->getRootPosition());
     crl::V3D p3 = q0Inverse*crl::V3D(p0, sk3->getRootPosition());
@@ -213,23 +265,32 @@ void Database::getTrajectoryPositions(crl::mocap::MocapSkeleton *sk, const crl::
 
 // Compute the trajectory direction data
 // TODO: implement this
+
+void printGamma(float gamma, int i){
+    if(gamma <= -M_PI || gamma >= M_PI){
+        crl::Logger::consolePrint("Gamma %d: %f\n", i, gamma);
+    }
+}
 void Database::getTrajectoryDirections(crl::mocap::MocapSkeleton *sk, const crl::mocap::MocapSkeletonState *sk1, const crl::mocap::MocapSkeletonState *sk2, const crl::mocap::MocapSkeletonState *sk3, int offset) {
     crl::Quaternion q0 = sk->root->state.orientation;
     crl::Quaternion q1 = sk1->getRootOrientation();
     crl::Quaternion q2 = sk2->getRootOrientation();
     crl::Quaternion q3 = sk3->getRootOrientation();
-    crl::Quaternion q0Inverse = q0.inverse(); //crl::gui::MxMUtils::getNegYrotation(q0);
 
-    crl::V3D trajectory_dir0 = q0Inverse*(q1* crl::V3D(0, 0, 1));
-    crl::V3D trajectory_dir1 = q0Inverse*(q2* crl::V3D(0, 0, 1));
-    crl::V3D trajectory_dir2 = q0Inverse*(q3* crl::V3D(0, 0, 1));
-
-    data[offset+0] = trajectory_dir0[0];
-    data[offset+1] = trajectory_dir0[2];
-    data[offset+2] = trajectory_dir1[0];
-    data[offset+3] = trajectory_dir1[2];
-    data[offset+4] = trajectory_dir2[0];
-    data[offset+5] = trajectory_dir2[2];
+    float gamma0 = crl::gui::MxMUtils::getYAngle(q0);
+    float gamma1 = crl::gui::MxMUtils::getYAngle(q1);
+    float gamma2 = crl::gui::MxMUtils::getYAngle(q2);
+    float gamma3 = crl::gui::MxMUtils::getYAngle(q3);
+    printGamma(gamma0, 0);
+    printGamma(gamma1, 1);
+    printGamma(gamma2, 2);
+    printGamma(gamma3, 3);
+    // printGamma(gamma1 - gamma0, 4);
+    // printGamma(gamma2 - gamma0, 5);
+    // printGamma(gamma3 - gamma0, 6);
+    data[offset + 0] = crl::gui::MxMUtils::minusPiToPi(gamma1 - gamma0);
+    data[offset + 1] = crl::gui::MxMUtils::minusPiToPi(gamma2 - gamma0);
+    data[offset + 2] = crl::gui::MxMUtils::minusPiToPi(gamma3 - gamma0);
 }
 
 // Compute a feature for the position of a bone relative to the simulation/root bone
