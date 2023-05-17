@@ -22,9 +22,7 @@ void Controller::update(TrackingCamera &camera, Database &database) {
     if(frameCount >= targetFrameRate){
         std::vector<P3D> trajectoryPos = MxMUtils::worldToLocalPositions(pos, rot[0]);
         std::vector<float> trajectoryAngle = MxMUtils::worldToLocalDirectionsAngle(rot);
-        actualPos.clear();
-        actualPos.push_back(P3D(0, 0, 0));
-        database.match(trajectoryPos, trajectoryAngle, clipIdx, frameIdx, actualPos);
+        database.match(trajectoryPos, trajectoryAngle, clipIdx, frameIdx);
         
         frameCount = -1;
     }
@@ -86,6 +84,23 @@ void Controller::update(TrackingCamera &camera, Database &database) {
 
     camera.target =  MxMUtils::V3Dtovec3(V3D(pos[0]));
     //crl::Logger::consolePrint("Character position: %f, %f, %f\n", pos[0][0], pos[0][1], pos[0][2]);
+
+    float dbEntry[27];
+    database.getEntry(clipIdx, frameIdx, dbEntry);
+
+    //trajectory position
+    actualPos.clear();
+
+    P3D p0 = pos[0];
+    V3D p1 = V3D(dbEntry[0], 0, dbEntry[1]);
+    V3D p2 = V3D(dbEntry[2], 0, dbEntry[3]);
+    V3D p3 = V3D(dbEntry[4], 0, dbEntry[5]);
+
+    Quaternion q0 = getRotationQuaternion(rot[0], V3D(0, 1, 0));
+    actualPos.push_back(p0);
+    actualPos.push_back(p0 + q0 * p1);
+    actualPos.push_back(p0 + q0 * p2);
+    actualPos.push_back(p0 + q0 * p3);
 }
 
 // returns a vector of future positions arranged in chronological order
@@ -164,7 +179,7 @@ void Controller::setInputDirection(TrackingCamera &camera){
         if(!found_controller){
             velDesired = velDesired.unit();
         }
-        velDesired *= 1.3; // desired velocity maximumof 1.5 m s^-1;
+        velDesired *= 0.8; // desired velocity maximumof 1.5 m s^-1;
         rotDesired = MxMUtils::angleBetweenVectors(V3D(0, 0, 1), velDesired);
     } else {
         velDesired = V3D(0, 0, 0);

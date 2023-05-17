@@ -80,7 +80,7 @@ void Database::build(float trajectoryPositionWeight, float trajectoryFacingWeigh
 // Matches the given query to the mocap database and returns the clip id and frame number
 // TODO: implement this
 void Database::match(std::vector<crl::P3D>& trajectoryPositions, std::vector<float>& trajectoryAngles,
-                    int& clip_id, int& frame, std::vector<crl::P3D> &actualTrajectory) 
+                    int& clip_id, int& frame) 
 {
     int lineNumber;
     int kNearest = 5;
@@ -124,12 +124,18 @@ void Database::match(std::vector<crl::P3D>& trajectoryPositions, std::vector<flo
 
     // get the line number from the nearest neighbor
     getClipAndFrame(lineNumber, clip_id, frame);
+}
 
-    float* matchedInfo = data + lineNumber;
+void Database::getEntry(int clip_id, int frame, float* entry)
+{
+    int line = (frameSums[clip_id] + frame)*noFeatures;
+    float* currentInfo = data + line; 
 
-    for(int i = 0; i < 3; i++){
-        actualTrajectory.push_back(crl::P3D(matchedInfo[i*2 + 0], 0, matchedInfo[i*2 + 1]));
-    } 
+    for (int i = 0; i < noFeatures; i++) {
+        entry[i] = currentInfo[i];
+    }
+
+    denormalize(entry);
 }
 
 // Normalizes the given data array and applies the weights
@@ -152,6 +158,28 @@ void Database::normalize(float* data)
             weight = hipVelocityWeight;
 
         data[i] = ((data[i] - means[i]) / standardDeviations[i]) * weight;
+    }
+}
+
+// Denormalizes the given data array and applies the weights
+void Database::denormalize(float* entry)
+{
+    for (int i = 0; i < noFeatures; i++) 
+    {   
+        // ugly hardcoding of weights
+        float weight;
+        if (i < 6)
+            weight = trajectoryPositionWeight;
+        else if (i < 9)
+            weight = trajectoryFacingWeight;
+        else if (i < 15)
+            weight = footPositionWeight;
+        else if (i < 21)
+            weight = footVelocityWeight;
+        else if (i < 24)
+            weight = hipVelocityWeight;
+
+        entry[i] = (entry[i] / weight) * standardDeviations[i] + means[i];
     }
 }
 
@@ -220,7 +248,9 @@ void Database::readFrameSums(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* 
 //TODO: implement this
 void Database::getTrajectoryPositions(crl::mocap::MocapSkeleton *sk, const crl::mocap::MocapSkeletonState *sk1, const crl::mocap::MocapSkeletonState *sk2, const crl::mocap::MocapSkeletonState *sk3,  int offset) {
     crl::P3D p0 = sk->root->state.pos;
-    crl::Quaternion q0Inverse = (sk->root->state.orientation).inverse();
+    crl::Quaternion q0Inverse = crl::gui::MxMUtils::getNegYrotation(sk->root->state.orientation);
+    crl::Quaternion nintyDegreeRotation = crl::getRotationQuaternion(M_PI_2, crl::V3D(0, 1, 0));
+    q0Inverse = q0Inverse * nintyDegreeRotation;
     crl::V3D p1 = q0Inverse*crl::V3D(p0, sk1->getRootPosition());
     crl::V3D p2 = q0Inverse*crl::V3D(p0, sk2->getRootPosition());
     crl::V3D p3 = q0Inverse*crl::V3D(p0, sk3->getRootPosition());

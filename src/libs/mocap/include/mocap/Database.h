@@ -18,7 +18,9 @@ class Database {
                    std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhClips);
 
         void match(std::vector<crl::P3D> &trajectoryPositions, std::vector<float> &trajectoryAngles,
-                    int& clip_id, int& frame, std::vector<crl::P3D> &actualTrajectory);
+                    int& clip_id, int& frame);
+
+        void getEntry(int clip_id, int frame, float* entry);
         
     private:
         void initializeAnnoy();
@@ -33,6 +35,7 @@ class Database {
         void getHipVelocity(crl::mocap::MocapSkeleton *sk, int offset);
         void computeMeans();
         void computeStandardDeviations();
+        void denormalize(float* data);
 
 
     // Member Variables

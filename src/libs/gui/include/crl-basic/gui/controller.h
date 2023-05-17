@@ -62,7 +62,7 @@ private:
     float rotDesired;
     int clipIdx = 0, frameIdx = 86;
     int frameCount = 0;
-    const int targetFrameRate = 10;
+    const int targetFrameRate = 3;
 
     float lambda = 4.0f;
     float lambdaRot = 6.0f;

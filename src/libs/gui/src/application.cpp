@@ -635,10 +635,8 @@ void ShadowApplication::drawTrajectory(const Shader &shader) {
         crl::gui::drawArrow3d(pos[i], V3D(pos[i], pos[i + 1]), world_frame_radius, shader, V3D(1, 0.5, 0), 1.0);
         crl::gui::drawArrow3d(pos[i], V3D(pos[i], pos[i] + MxMUtils::angleToVector(rot[i]) * 0.1), world_frame_radius*4, shader, V3D(1, 0, 1), 1.0);
 
-        crl::gui::drawArrow3d(pos[0] + actualPos[i], V3D(actualPos[i], actualPos[i + 1]), world_frame_radius, shader, V3D(1, 0.5, 1), 1.0);
-        crl::gui::drawArrow3d(pos[0] + actualPos[i], V3D(actualPos[i], actualPos[i] + MxMUtils::angleToVector(rot[i]) * 0.25), world_frame_radius / 2, shader,
-                              V3D(1, 0, 0),
-                              1.0);
+        crl::gui::drawArrow3d(actualPos[i], V3D(actualPos[i], actualPos[i + 1]), world_frame_radius, shader, V3D(1, 0.5, 1), 1.0);
+        crl::gui::drawArrow3d(actualPos[i], V3D(actualPos[i], actualPos[i] + MxMUtils::angleToVector(rot[i]) * 0.1), world_frame_radius*4, shader, V3D(1, 0, 0), 1.0);
     }
 
     for (int i = 0; i < posHist.size(); i++) {
