@@ -7,7 +7,9 @@ void Controller::init(KeyboardState *keyboardState) {
     this->keyboardState = keyboardState;
     for (int i = 0; i < 4; i++) {
         pos.push_back(P3D(0, 0, 0));
+        actualPos.push_back(P3D(0, 0, 0));
         rot.push_back(M_PI);
+        actualRot.push_back(M_PI);
     }
     vel = V3D(0, 0, 0);
     acc = V3D(0, 0, 0);
@@ -19,8 +21,11 @@ void Controller::init(KeyboardState *keyboardState) {
 void Controller::update(TrackingCamera &camera, Database &database) {
     if(frameCount >= targetFrameRate){
         std::vector<P3D> trajectoryPos = MxMUtils::worldToLocalPositions(pos, rot[0]);
-        std::vector<V3D> trajectoryDir = MxMUtils::worldToLocalDirections(rot);
-        database.match(trajectoryPos, trajectoryDir, clipIdx, frameIdx);
+        std::vector<float> trajectoryAngle = MxMUtils::worldToLocalDirectionsAngle(rot);
+        actualPos.clear();
+        actualPos.push_back(P3D(0, 0, 0));
+        database.match(trajectoryPos, trajectoryAngle, clipIdx, frameIdx, actualPos);
+        
         frameCount = -1;
     }
     frameIdx++;
@@ -88,6 +93,10 @@ std::vector<P3D> Controller::getPos() {
     return pos;
 }
 
+std::vector<P3D> Controller::getActualPos(){
+    return actualPos;
+}
+
 // returns a vector of historical positions arranged in chronological order
 std::vector<P3D> Controller::getPosHist() {
     std::vector<P3D> posHistInterval;
@@ -103,6 +112,10 @@ std::vector<P3D> Controller::getPosHist() {
 // returns a vector of future rotations arranged in chronological order
 std::vector<float> Controller::getRot() {
     return rot;
+}
+
+std::vector<float> Controller::getActualRot() {
+    return actualRot;
 }
 
 // returns a vector of historical rotations arranged in chronological order
@@ -151,7 +164,7 @@ void Controller::setInputDirection(TrackingCamera &camera){
         if(!found_controller){
             velDesired = velDesired.unit();
         }
-        velDesired *= 1.5; // desired velocity maximumof 1.5 m s^-1;
+        velDesired *= 1.3; // desired velocity maximumof 1.5 m s^-1;
         rotDesired = MxMUtils::angleBetweenVectors(V3D(0, 0, 1), velDesired);
     } else {
         velDesired = V3D(0, 0, 0);

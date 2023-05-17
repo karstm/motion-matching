@@ -31,6 +31,16 @@ public:
         return vec;
     }
 
+    static float getYAngle(Quaternion q) {
+        double alpha, beta, gamma;
+        V3D side = V3D(1, 0, 0);
+        V3D up = V3D(0, 1, 0);
+        V3D front = V3D(0, 0, 1);
+        computeEulerAnglesFromQuaternion(q, front, side, up, alpha, beta, gamma);
+
+        return gamma;
+    }
+
     static Quaternion getNegYrotation(Quaternion q){
         double alpha, beta, gamma;
         V3D side = V3D(1,0,0);
@@ -82,6 +92,20 @@ public:
         for (int i = 1; i < rot.size(); i++) {
             Quaternion orient = getRotationQuaternion(rot[i] - rot[0], up);
             localTrajDir.push_back(orient*forward);
+        }
+        return localTrajDir;
+    }
+
+    static void printGamma(float gamma, int i){
+        if(gamma <= -2.5 || gamma >= 2.5){
+            crl::Logger::consolePrint("Rot %d: %f\n", i, gamma);
+        }
+    }
+    static std::vector<float> worldToLocalDirectionsAngle(std::vector<float> rot) {
+        std::vector<float> localTrajDir;
+        for (int i = 1; i < rot.size(); i++) {
+            localTrajDir.push_back(minusPiToPi(rot[i] - rot[0]));
+            printGamma(rot[i] - rot[0], i);
         }
         return localTrajDir;
     }
