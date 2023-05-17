@@ -17,7 +17,7 @@ class Database {
                    float hipVelocityWeight,
                    std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhClips);
 
-        void match(std::vector<crl::P3D> &trajectoryPositions, std::vector<float> &trajectoryAngles,
+        void match(std::vector<crl::P3D> &trajectoryPositions, std::vector<crl::V3D> &trajectoryDirections,
                     int& clip_id, int& frame);
 
         void getEntry(int clip_id, int frame, float* entry);
@@ -50,12 +50,12 @@ class Database {
         
         // 27 features:
         //  6 trajectory positions,
-        //  3 trajectory angles,
+        //  6 trajectory directions,
         //  6 foot positions (3 left + 3 right)
         //  6 foot velocities (3 left + 3 right)
         //  3 hip velocities
         int const numTrajPos = 6;
-        int const numTrajOrient = 3;
+        int const numTrajOrient = 6;
         int const numFootPos = 6;
         int const numFootVel = 6;
         int const numHipVel = 3;

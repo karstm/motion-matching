@@ -9,7 +9,8 @@ void Controller::init(KeyboardState *keyboardState) {
         pos.push_back(P3D(0, 0, 0));
         actualPos.push_back(P3D(0, 0, 0));
         rot.push_back(M_PI);
-        actualRot.push_back(M_PI);
+        directions.push_back(V3D(0, 0, 0));
+        actualDirections.push_back(V3D(0, 0, 0));
     }
     vel = V3D(0, 0, 0);
     acc = V3D(0, 0, 0);
@@ -22,7 +23,11 @@ void Controller::update(TrackingCamera &camera, Database &database) {
     if(frameCount >= targetFrameRate){
         std::vector<P3D> trajectoryPos = MxMUtils::worldToLocalPositions(pos, rot[0]);
         std::vector<float> trajectoryAngle = MxMUtils::worldToLocalDirectionsAngle(rot);
-        database.match(trajectoryPos, trajectoryAngle, clipIdx, frameIdx);
+        std::vector<V3D> trajectoryDir;
+        for (int i = 0; i < trajectoryAngle.size(); i++) {
+            trajectoryDir.push_back(V3D(sin(trajectoryAngle[i]), 0, cos(trajectoryAngle[i])));
+        }
+        database.match(trajectoryPos, trajectoryDir, clipIdx, frameIdx);
         
         frameCount = -1;
     }
@@ -90,17 +95,31 @@ void Controller::update(TrackingCamera &camera, Database &database) {
 
     //trajectory position
     actualPos.clear();
+    actualDirections.clear();
 
     P3D p0 = pos[0];
     V3D p1 = V3D(dbEntry[0], 0, dbEntry[1]);
     V3D p2 = V3D(dbEntry[2], 0, dbEntry[3]);
     V3D p3 = V3D(dbEntry[4], 0, dbEntry[5]);
+    V3D d1 = V3D(dbEntry[6], 0, dbEntry[7]);
+    V3D d2 = V3D(dbEntry[8], 0, dbEntry[9]);
+    V3D d3 = V3D(dbEntry[10], 0, dbEntry[11]);
 
     Quaternion q0 = getRotationQuaternion(rot[0], V3D(0, 1, 0));
     actualPos.push_back(p0);
     actualPos.push_back(p0 + q0 * p1);
     actualPos.push_back(p0 + q0 * p2);
     actualPos.push_back(p0 + q0 * p3);
+
+    actualDirections.push_back(q0 * d1);
+    actualDirections.push_back(q0 * d2);
+    actualDirections.push_back(q0 * d3);
+
+    std::vector<float> trajectoryAngle = MxMUtils::worldToLocalDirectionsAngle(rot);
+    for (int i = 0; i < trajectoryAngle.size(); i++) {
+        directions[i] = q0 * V3D(sin(trajectoryAngle[i]), 0, cos(trajectoryAngle[i]));
+    }
+
 }
 
 // returns a vector of future positions arranged in chronological order
@@ -129,8 +148,14 @@ std::vector<float> Controller::getRot() {
     return rot;
 }
 
-std::vector<float> Controller::getActualRot() {
-    return actualRot;
+// returns a vector of future positions arranged in chronological order
+std::vector<V3D> Controller::getDirections() {
+    return directions;
+}
+
+// returns a vector of future positions arranged in chronological order
+std::vector<V3D> Controller::getActualDirections() {
+    return actualDirections;
 }
 
 // returns a vector of historical rotations arranged in chronological order
