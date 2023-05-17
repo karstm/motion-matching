@@ -627,12 +627,12 @@ private:
     double footHeightThreshold = 0.055;
 
     // database processing
-    bool loadWithMirror = false;
+    bool loadWithMirror = true;
     float trajectoryPositionWeight = 1.0;
-    float trajectoryFacingWeight = 0.5;
-    float footPositionWeight = 0;
-    float footVelocityWeight = 0;
-    float hipVelocityWeight = 0;
+    float trajectoryFacingWeight = 1.5;
+    float footPositionWeight = 0.75;
+    float footVelocityWeight = 1.0;
+    float hipVelocityWeight = 1.0;
 
     // plot and visualization
     bool followCharacter = true;

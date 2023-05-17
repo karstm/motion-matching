@@ -179,7 +179,7 @@ void Controller::setInputDirection(TrackingCamera &camera){
         if(!found_controller){
             velDesired = velDesired.unit();
         }
-        velDesired *= 0.8; // desired velocity maximumof 1.5 m s^-1;
+        velDesired *= 2.5; // desired velocity maximumof 1.5 m s^-1;
         rotDesired = MxMUtils::angleBetweenVectors(V3D(0, 0, 1), velDesired);
     } else {
         velDesired = V3D(0, 0, 0);

@@ -86,7 +86,7 @@ public:
 
     //--- Framerate
     bool limitFramerate = true;
-    int targetFramerate = 60;
+    int targetFramerate = 30;
     float averageFPS = 0.f;
     float averagePercentTimeSpentProcessing = 0.f;
 
