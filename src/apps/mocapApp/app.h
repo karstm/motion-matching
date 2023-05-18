@@ -27,6 +27,7 @@ public:
           contactsTimeline(footSteps) {
         fileDialog.SetPwd(fs::path(CRL_MOCAP_DATA_FOLDER));
         fileDialog.SetTitle("Mocap Directory");
+        controller.init(&keyboardState, &bvhClips);
     }
 
     ~App() override {}
@@ -80,14 +81,10 @@ public:
     }
 
     void drawShadowCastingObjects(const crl::gui::Shader &shader) override {
-        int mxm_clipIdx = controller.getClipIdx();
-        int mxm_frameIdx = controller.getFrameIdx();
-        crl::Logger::consolePrint("ClipIdx: %d, FrameIdx: %d, !\n", mxm_clipIdx, mxm_frameIdx);
-        if (mxm_clipIdx < bvhClips.size() && mxm_clipIdx > -1) {
-            bvhClips[mxm_clipIdx]->drawAt(shader, mxm_frameIdx, controller.getPos()[0], controller.getRot()[0]);
+        if (0 < bvhClips.size()) {
+            controller.draw(shader);
         } else  if (selectedBvhClipIdx > -1) {
             bvhClips[selectedBvhClipIdx]->draw(shader, frameIdx);
-            // bvhClips[selectedBvhClipIdx]->drawAt(shader, frameIdx, controller.getPos()[0], controller.getRot()[0]);
         }
         if (selectedC3dClipIdx > -1) {
             c3dClips[selectedC3dClipIdx]->draw(shader, frameIdx);
@@ -103,10 +100,8 @@ public:
     }
 
     void drawObjectsWithoutShadows(const crl::gui::Shader &shader) override {
-        int mxm_clipIdx = controller.getClipIdx();
-        int mxm_frameIdx = controller.getFrameIdx();
-        if (mxm_clipIdx < bvhClips.size() && mxm_clipIdx > -1) {
-            bvhClips[mxm_clipIdx]->drawAt(shader, mxm_frameIdx, controller.getPos()[0], controller.getRot()[0]);
+        if (0 < bvhClips.size()) {
+            controller.draw(shader);
         } else if (selectedBvhClipIdx > -1)
             bvhClips[selectedBvhClipIdx]->draw(shader, frameIdx);
         if (selectedC3dClipIdx > -1) {

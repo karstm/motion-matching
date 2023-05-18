@@ -3,8 +3,9 @@
 namespace crl {
 namespace gui {
 
-void Controller::init(KeyboardState *keyboardState) {
+void Controller::init(KeyboardState *keyboardState, std::vector<std::unique_ptr<crl::mocap::BVHClip>> *clips) {
     this->keyboardState = keyboardState;
+    this->clips = clips;
     for (int i = 0; i < 4; i++) {
         pos.push_back(P3D(0, 0, 0));
         actualPos.push_back(P3D(0, 0, 0));
@@ -20,6 +21,8 @@ void Controller::init(KeyboardState *keyboardState) {
 }
 
 void Controller::update(TrackingCamera &camera, Database &database) {
+    if(clips->size() == 0) return;
+
     if(frameCount >= targetFrameRate){
         std::vector<P3D> trajectoryPos = MxMUtils::worldToLocalPositions(pos, rot[0]);
         std::vector<float> trajectoryAngle = MxMUtils::worldToLocalDirectionsAngle(rot);
@@ -120,8 +123,31 @@ void Controller::update(TrackingCamera &camera, Database &database) {
         directions[i] = q0 * V3D(sin(trajectoryAngle[i]), 0, cos(trajectoryAngle[i]));
     }
 
+
+    //create state
+    mocap::MocapSkeletonState state = clips->at(clipIdx)->getState(frameIdx);
+
+    state.setRootPosition(P3D(pos[0][0], state.getRootPosition().y, pos[0][2]));
+    crl::Quaternion orient = state.getRootOrientation();
+    crl::Quaternion negYrotation = MxMUtils::getYrotation(orient, true);
+    Quaternion desiredOrientation = getRotationQuaternion(rot[0] + PI/2.0, V3D(0, 1, 0));
+    state.setRootOrientation(desiredOrientation * negYrotation * orient);
+    skeletonStates.push_front(state);
+
+    if(skeletonStates.size() > 10){
+        skeletonStates.pop_back();
+    }
 }
 
+void Controller::draw(const Shader &shader)
+{
+    if(skeletonStates.size() == 0){
+        return;
+    }
+
+
+    clips->at(clipIdx)->drawState(shader, &skeletonStates[0]);
+}
 // returns a vector of future positions arranged in chronological order
 std::vector<P3D> Controller::getPos() {
     return pos;
