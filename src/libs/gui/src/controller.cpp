@@ -182,9 +182,9 @@ void Controller::setInputDirection(TrackingCamera &camera){
             
             int buttonCount;
             const unsigned char *buttons = glfwGetJoystickButtons(i, &buttonCount);
-            strave = buttons[GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER];
+            strafe = buttons[GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER];
             run = buttons[GLFW_GAMEPAD_BUTTON_SQUARE]; //for some reason this is the circle button
-            Logger::consolePrint("strave: %d\n", strave);
+            Logger::consolePrint("strafe: %d\n", strafe);
 
             int axisCount;
             const float *axis = glfwGetJoystickAxes(i, &axisCount);
@@ -201,7 +201,7 @@ void Controller::setInputDirection(TrackingCamera &camera){
         verticalDir -= keyboardState->at(GLFW_KEY_S);
         horizontalDir = keyboardState->at(GLFW_KEY_D);
         horizontalDir -= keyboardState->at(GLFW_KEY_A);
-        strave = keyboardState->at(GLFW_KEY_RIGHT_SHIFT);
+        strafe = keyboardState->at(GLFW_KEY_RIGHT_SHIFT);
         run = keyboardState->at(GLFW_KEY_LEFT_SHIFT);
     }
 
@@ -215,7 +215,7 @@ void Controller::setInputDirection(TrackingCamera &camera){
         }
 
         velDesired *= run? runSpeed : walkSpeed;
-        rotDesired = strave? rot[0] : MxMUtils::angleBetweenVectors(V3D(0, 0, 1), velDesired);
+        rotDesired = strafe? rot[0] : MxMUtils::angleBetweenVectors(V3D(0, 0, 1), velDesired);
     } else {
         velDesired = V3D(0, 0, 0);
         rotDesired = rot[0];

@@ -61,9 +61,9 @@ private:
     V3D acc;
     V3D velDesired;
 
-    bool strave = false;
+    bool strafe = false;
     bool run = false;
-    float straveRot = 0.0f;
+    float strafeRot = 0.0f;
 
     std::vector<float> rot; // future rotations about y-axis arranged in chronological order (0 degrees defined as z-axis)
     std::deque<float> rotHist; // historical rotations arranged in chronological order
