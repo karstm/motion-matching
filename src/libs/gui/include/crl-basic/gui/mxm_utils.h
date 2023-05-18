@@ -31,24 +31,14 @@ public:
         return vec;
     }
 
-    static float getYAngle(Quaternion q) {
-        double alpha, beta, gamma;
-        V3D side = V3D(1, 0, 0);
-        V3D up = V3D(0, 1, 0);
-        V3D front = V3D(0, 0, 1);
-        computeEulerAnglesFromQuaternion(q, front, side, up, alpha, beta, gamma);
-
-        return gamma;
-    }
-
-    static Quaternion getNegYrotation(Quaternion q){
+    static Quaternion getYrotation(Quaternion q, bool inverse = true){
         double alpha, beta, gamma;
         V3D side = V3D(1,0,0);
         V3D up = V3D(0,1,0);
         V3D front = V3D(0,0,1);
         computeEulerAnglesFromQuaternion(q, front, side, up, alpha, beta, gamma);
 
-        Quaternion negYrotation = getRotationQuaternion(-gamma, up);
+        Quaternion negYrotation = getRotationQuaternion(inverse? -gamma : gamma, up);
         return negYrotation;
     }
 
