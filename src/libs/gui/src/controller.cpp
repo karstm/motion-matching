@@ -178,11 +178,18 @@ void Controller::setInputDirection(TrackingCamera &camera){
     for(int i = 0; i < GLFW_JOYSTICK_LAST; i++) {
        if (glfwJoystickIsGamepad(i))
        {
-           int count;
-           const float *axis = glfwGetJoystickAxes(i, &count);
-           V3D temp(axis[0], 0, axis[1]);
-           if(temp.norm() > 0.15) {   
-               found_controller = true;
+            found_controller = true;
+            
+            int buttonCount;
+            const unsigned char *buttons = glfwGetJoystickButtons(i, &buttonCount);
+            strafe = buttons[GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER];
+            run = buttons[GLFW_GAMEPAD_BUTTON_SQUARE]; //for some reason this is the circle button
+            Logger::consolePrint("strafe: %d\n", strafe);
+
+            int axisCount;
+            const float *axis = glfwGetJoystickAxes(i, &axisCount);
+            V3D temp(axis[0], 0, axis[1]);
+            if(temp.norm() > 0.15) {   
                 horizontalDir = axis[0]; 
                 verticalDir = -axis[1]; 
            }
@@ -194,6 +201,8 @@ void Controller::setInputDirection(TrackingCamera &camera){
         verticalDir -= keyboardState->at(GLFW_KEY_S);
         horizontalDir = keyboardState->at(GLFW_KEY_D);
         horizontalDir -= keyboardState->at(GLFW_KEY_A);
+        strafe = keyboardState->at(GLFW_KEY_LEFT_ALT);
+        run = keyboardState->at(GLFW_KEY_LEFT_SHIFT);
     }
 
     if (verticalDir != 0 || horizontalDir != 0) {
@@ -204,8 +213,9 @@ void Controller::setInputDirection(TrackingCamera &camera){
         if(!found_controller){
             velDesired = velDesired.unit();
         }
-        velDesired *= 2.5; // desired velocity maximumof 1.5 m s^-1;
-        rotDesired = MxMUtils::angleBetweenVectors(V3D(0, 0, 1), velDesired);
+
+        velDesired *= run? runSpeed : walkSpeed;
+        rotDesired = strafe? rot[0] : MxMUtils::angleBetweenVectors(V3D(0, 0, 1), velDesired);
     } else {
         velDesired = V3D(0, 0, 0);
         rotDesired = rot[0];

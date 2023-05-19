@@ -49,15 +49,21 @@ public:
     int getClipIdx() { return clipIdx; }
     int getFrameIdx() { return frameIdx; }
 
+// Members
+public:
+    float walkSpeed = 1.14f;
+    float runSpeed = 3.5f;
 private:
-    // Members
     std::vector<P3D> pos, actualPos; // future positions arranged in chronological order (i.e. "future-r" positions at the back)
     std::vector<V3D> directions, actualDirections; // future directions arranged in chronological order (i.e. "future-r" directions at the back)
     std::deque<P3D> posHist; // historical positions arranged in chronological order (i.e. "past-er" positions at the front)
     V3D vel;
     V3D acc;
     V3D velDesired;
-    
+
+    bool strafe = false;
+    bool run = false;
+
     std::vector<float> rot; // future rotations about y-axis arranged in chronological order (0 degrees defined as z-axis)
     std::deque<float> rotHist; // historical rotations arranged in chronological order
     float angVel;
