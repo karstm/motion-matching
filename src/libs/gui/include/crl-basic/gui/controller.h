@@ -63,7 +63,6 @@ private:
 
     bool strafe = false;
     bool run = false;
-    float strafeRot = 0.0f;
 
     std::vector<float> rot; // future rotations about y-axis arranged in chronological order (0 degrees defined as z-axis)
     std::deque<float> rotHist; // historical rotations arranged in chronological order
