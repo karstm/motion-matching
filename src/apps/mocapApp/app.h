@@ -192,6 +192,13 @@ public:
 
         ImGui::Begin("Main Menu");
         ImGui::Checkbox("Follow Character", &followCharacter);
+
+        if(ImGui::CollapsingHeader("Controller", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+           ImGui::SliderFloat("Max Walk Speed", &controller.walkSpeed, 0.5f, 2.0f, "%.2f"); 
+           ImGui::SliderFloat("Max Run Speed", &controller.runSpeed, 2.0f, 7.0f, "%.2f"); 
+        }
+
         if (ImGui::CollapsingHeader("Mocap Data", ImGuiTreeNodeFlags_DefaultOpen)) {
             if (ImGui::TreeNode("Database Weights")) {
                 ImGui::SliderFloat("Trajectory Position Weight", &trajectoryPositionWeight, 0.0f, 10.0f, "%.2f");
