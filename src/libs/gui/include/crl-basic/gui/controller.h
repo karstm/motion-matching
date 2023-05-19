@@ -18,6 +18,7 @@
 #include <imgui_widgets/imgui_add.h>
 #include <imgui_widgets/implot.h>
 #include <mocap/Database.h>
+#include <mocap/MocapClip.h>
 
 #include <thread>
 #include <deque>
@@ -35,10 +36,11 @@ class Controller {
 public:
     // Constructor
     Controller(){};
-    void init(KeyboardState *keyboardState);
+    void init(KeyboardState *keyboardState, std::vector<std::unique_ptr<crl::mocap::BVHClip>> *clips);
     
     // Methods
     void update(TrackingCamera &camera, Database &database);
+    void draw(const Shader &shader);
     std::vector<P3D> getPos();
     std::vector<P3D> getActualPos();
     std::vector<P3D> getPosHist();
@@ -49,11 +51,13 @@ public:
     int getClipIdx() { return clipIdx; }
     int getFrameIdx() { return frameIdx; }
 
-// Members
-public:
     float walkSpeed = 1.14f;
     float runSpeed = 3.5f;
+    
 private:
+    std::vector<std::unique_ptr<crl::mocap::BVHClip>> *clips = nullptr;
+    std::deque<mocap::MocapSkeletonState> skeletonStates;
+
     std::vector<P3D> pos, actualPos; // future positions arranged in chronological order (i.e. "future-r" positions at the back)
     std::vector<V3D> directions, actualDirections; // future directions arranged in chronological order (i.e. "future-r" directions at the back)
     std::deque<P3D> posHist; // historical positions arranged in chronological order (i.e. "past-er" positions at the front)

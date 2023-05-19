@@ -127,9 +127,6 @@ void Application::init(const char *title, int width, int height, std::string ico
     // initialize keyboard state
     for (int i = 0; i < GLFW_KEY_LAST; i++)
         keyboardState.insert(std::pair<int, bool>(i, false));
-
-    //initialize controller
-    controller.init(&keyboardState);
 }
 
 void Application::setCallbacks() {
