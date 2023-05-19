@@ -120,7 +120,6 @@ public:
     virtual void drawShadowCastingObjects(const Shader &shader) {}   // objects that will cast a shadow
     virtual void drawObjectsWithShadows(const Shader &shader);       // objects that will have a shadow cast on them
     virtual void drawObjectsWithoutShadows(const Shader &shader) {}  // objectst that will NOT have shadows cast on them
-    virtual void drawTrajectory(const Shader &shader); // draw trajectory
 
     virtual void draw() override;
     virtual void shadowPass();
