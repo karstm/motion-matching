@@ -201,7 +201,7 @@ void Controller::setInputDirection(TrackingCamera &camera){
         verticalDir -= keyboardState->at(GLFW_KEY_S);
         horizontalDir = keyboardState->at(GLFW_KEY_D);
         horizontalDir -= keyboardState->at(GLFW_KEY_A);
-        strafe = keyboardState->at(GLFW_KEY_RIGHT_SHIFT);
+        strafe = keyboardState->at(GLFW_KEY_LEFT_ALT);
         run = keyboardState->at(GLFW_KEY_LEFT_SHIFT);
     }
 
