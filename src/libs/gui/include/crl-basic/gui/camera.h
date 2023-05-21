@@ -88,8 +88,8 @@ public:
     }
 
     void processRotation(float dt){
-        double verticalRotSpeed = 0.003;
-        double horizontalRotSpeed = 0.003;
+        double verticalRotSpeed = 0.80;
+        double horizontalRotSpeed = 1.20;
         for(int i = 0; i < GLFW_JOYSTICK_LAST; i++) {
             if (glfwJoystickIsGamepad(i))
             {
@@ -98,7 +98,7 @@ public:
                     if(abs(axis[2]) > 0.1)
                         rotAboutUpAxis = rotAboutUpAxis+ axis[2] * horizontalRotSpeed*dt;
                     if(abs(axis[5]) > 0.1)
-                        rotAboutRightAxis = std::clamp(rotAboutRightAxis - axis[5] * verticalRotSpeed*dt, 0.05, 1.2);
+                        rotAboutRightAxis = std::clamp(rotAboutRightAxis - axis[5] * verticalRotSpeed*dt, 0.10, 1.2);
             }
         }
     }

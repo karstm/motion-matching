@@ -200,7 +200,7 @@ public:
            ImGui::Checkbox("Animation Trajectory", &drawAnimationTrajectory);
            ImGui::SliderFloat("Max Walk Speed", &controller.walkSpeed, 0.5f, 2.0f, "%.2f"); 
            ImGui::SliderFloat("Max Run Speed", &controller.runSpeed, 2.0f, 7.0f, "%.2f");
-           ImGui::SliderInt("Match after Frames", &controller.targetFrameRate, 3, 30);
+           ImGui::SliderInt("Match after Frames", &controller.motionMatchingRate, 3, 30);
            ImGui::SliderFloat("Transition time", &controller.transitionTime, 0.1f, 1.0f, "%.2f");
         }
 
@@ -636,8 +636,8 @@ private:
 
     // database processing
     bool loadWithMirror = true;
-    float trajectoryPositionWeight = 1.0;
-    float trajectoryFacingWeight = 1.5;
+    float trajectoryPositionWeight = 1.5;
+    float trajectoryFacingWeight = 0.8;
     float footPositionWeight = 0.75;
     float footVelocityWeight = 1.0;
     float hipVelocityWeight = 1.0;

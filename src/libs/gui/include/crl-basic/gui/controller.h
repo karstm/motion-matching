@@ -49,10 +49,10 @@ private:
 
 // Members
 public:
-    float walkSpeed = 1.14f;
-    float runSpeed = 3.5f;
-    int targetFrameRate = 15;
-    float transitionTime = 0.5f;
+    float walkSpeed = 1.1f;
+    float runSpeed = 3.3f;
+    int motionMatchingRate = 6;
+    float transitionTime = 0.4f;
     
 private:
     KeyboardState *keyboardState;
@@ -74,7 +74,7 @@ private:
 
     int lastMatchedFrameIdx = 85;
     int clipIdx = 0, frameIdx = 86;
-    int frameCount = 0;
+    int motionMatchingFrameCount = 0;
 
     float lambda = 4.0f;
     float lambdaRot = 6.0f;
@@ -83,10 +83,11 @@ private:
     std::chrono::steady_clock::time_point currTime;
 
     // Inertialization
+    float t;
     int numMarkers;
     InertializationInfo rootPosInertializationInfo;
-    InertializationInfo rootRotInertializationInfo;
-    std::vector<InertializationInfo> jointPosInertializationInfos;
+    InertializationInfo rootOrientInertializationInfo;
+    std::vector<InertializationInfo> jointOrientInertializationInfos;
 };
 
 }  // namespace gui

@@ -19,9 +19,9 @@ void Controller::init(KeyboardState *keyboardState, std::vector<std::unique_ptr<
     // initialize inertialization info
     numMarkers = clips->at(0)->getModel()->getMarkerCount();
     rootPosInertializationInfo = InertializationInfo();
-    rootRotInertializationInfo = InertializationInfo();
+    rootOrientInertializationInfo = InertializationInfo();
     for (uint i = 0; i < numMarkers; i++) {
-        jointPosInertializationInfos.push_back(InertializationInfo());
+        jointOrientInertializationInfos.push_back(InertializationInfo());
     }
 
     // initialize states
@@ -34,11 +34,6 @@ void Controller::init(KeyboardState *keyboardState, std::vector<std::unique_ptr<
 }
 
 void Controller::update(TrackingCamera &camera, Database &database) {
-    // time keeping
-    currTime = std::chrono::steady_clock::now();
-    dt = (std::chrono::duration_cast<std::chrono::milliseconds> (currTime - prevTime)).count();
-    prevTime = currTime;
-
     // input handling
     camera.processRotation(dt);
     getInput(camera);
@@ -47,8 +42,8 @@ void Controller::update(TrackingCamera &camera, Database &database) {
 
 
     // Motion Matching
-    bool transition = (frameCount >= targetFrameRate);
-    if(transition){
+    bool transition = false; //a transition only occurs if the motion matching algorithm changes the clip or frame index
+    if(motionMatchingFrameCount >= motionMatchingRate){
         // prepare query
         std::vector<P3D> trajectoryPos = MxMUtils::worldToLocalPositions(controllerPos, controllerRot[0]);
         std::vector<float> trajectoryAngle = MxMUtils::worldToLocalDirectionsAngle(controllerRot);
@@ -56,35 +51,65 @@ void Controller::update(TrackingCamera &camera, Database &database) {
         for (int i = 0; i < trajectoryAngle.size(); i++) {
             trajectoryDir.push_back(V3D(sin(trajectoryAngle[i]), 0, cos(trajectoryAngle[i])));
         }
-        // Match
+
+        // save the last clip and frame index to check if a transition occured
+        int lastclipIdx = clipIdx;
+        int lastFrameIdx = frameIdx;
+
+        // match the previous frame for better transition
+        frameIdx--;
         database.match(trajectoryPos, trajectoryDir, clipIdx, frameIdx);
-        lastMatchedFrameIdx = frameIdx;
+        frameIdx++;
+
+        // check if a transition occured
+        transition = (lastclipIdx != clipIdx) || (lastFrameIdx != frameIdx);
         
-        frameCount = 0;
+        // reset the frame count
+        motionMatchingFrameCount = 0;
     }
 
-    //create state
+    // copy the state for the current clip and frame
     mocap::MocapSkeletonState state = clips->at(clipIdx)->getState(frameIdx);
 
+    // set root position and orientation to the controller
     state.setRootPosition(P3D(controllerPos[0][0], state.getRootPosition().y, controllerPos[0][2]));
     crl::Quaternion orient = state.getRootOrientation();
     crl::Quaternion negYrotation = MxMUtils::getYrotation(orient, true);
     Quaternion desiredOrientation = getRotationQuaternion(controllerRot[0] + PI/2.0, V3D(0, 1, 0));
     state.setRootOrientation(desiredOrientation * negYrotation * orient);
 
+    // update the state queue
+    // 0 = current state, 1 = previous state, 2 = previous previous state
     motionStates.push_front(state);
     motionStates.pop_back();
 
+    // if a transition happened, compute inertialization info
     if(transition)
-    {
-        InertializationUtils::computeInertialization(rootPosInertializationInfo, rootRotInertializationInfo, jointPosInertializationInfos, numMarkers, motionStates[2], motionStates[1], motionStates[0], transitionTime, dt/1000.0);
+    {   
+        InertializationUtils::computeInertializationInfo(rootPosInertializationInfo, rootOrientInertializationInfo, jointOrientInertializationInfos, numMarkers, motionStates[2], motionStates[1], motionStates[0], transitionTime, dt); //here we use the old dt
+        t = 0;
     }
+    
+    // time keeping
+    t += dt;
+    currTime = std::chrono::steady_clock::now();
+    dt = (std::chrono::duration_cast<std::chrono::milliseconds> (currTime - prevTime)).count()/1000.0f;
+    prevTime = currTime;
 
+    // inertialization
+    motionStates[0] = InertializationUtils::inertializeState(rootPosInertializationInfo, rootOrientInertializationInfo, jointOrientInertializationInfos, numMarkers, motionStates[0], motionStates[1], t, dt); // here we use the new dt
+
+    // setting the root position and orientation to the controller again after inertialization
+    // this seems wrong but without this we get weird stutters
+    motionStates[0].setRootPosition(P3D(controllerPos[0][0], motionStates[0].getRootPosition().y, controllerPos[0][2]));
+    orient = motionStates[0].getRootOrientation();
+    negYrotation = MxMUtils::getYrotation(orient, true);
+    desiredOrientation = getRotationQuaternion(controllerRot[0] + PI/2.0, V3D(0, 1, 0));
+    motionStates[0].setRootOrientation(desiredOrientation * negYrotation * orient);
+
+    // update frame
     frameIdx++;
-    frameCount++;
-
-    float t = (frameIdx + 1 - lastMatchedFrameIdx) * dt/1000.0;
-    motionStates[0] = InertializationUtils::inertializeState(rootPosInertializationInfo, rootRotInertializationInfo, jointPosInertializationInfos, numMarkers, motionStates[0], motionStates[1], t, dt/1000);
+    motionMatchingFrameCount++;
 }
 
 void Controller::drawSkeleton(const Shader &shader)
@@ -205,9 +230,9 @@ void Controller::updateControllerTrajectory()
     
     for (int t = 0; t < controllerPos.size(); t++) { // for each timestep
         if (t == 0) {
-            T = dt / 1000.0; // take into account the speed at which the loop runs to calculate the actual position in the next frame
+            T = dt; // take into account the speed at which the loop runs to calculate the actual position in the next frame
         } else {
-            T = dt / 1000.0 + 1.0 / 3.0 * t; // predict future positions at intervals of 0.33 s
+            T = dt + 1.0 / 3.0 * t; // predict future positions at intervals of 0.33 s
         }
         
         // translation
