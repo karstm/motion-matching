@@ -11,6 +11,7 @@
 #include "mocap/TimelineUtils.h"
 
 #include "mocap/Database.h"
+#include "robot/Robot.h"
 
 namespace mocapApp {
 
@@ -28,12 +29,18 @@ public:
         fileDialog.SetPwd(fs::path(CRL_MOCAP_DATA_FOLDER));
         fileDialog.SetTitle("Mocap Directory");
         controller.init(&keyboardState, &bvhClips);
+
+        fs::path robotPath = fs::path(CRL_MOCAP_DATA_FOLDER).append("../robot/bob/bob.rbs");
+        std::string robotPathStr = robotPath.string();
+        robot = new crl::Robot(robotPathStr.c_str());
+        
     }
 
     ~App() override {}
 
     void process() override {
         controller.update(camera, database);
+        robot->setMocapState(controller.getCurrentState());
 
         if (selectedBvhClipIdx == -1 && selectedC3dClipIdx == -1)
             return;
@@ -81,6 +88,7 @@ public:
     }
 
     void drawShadowCastingObjects(const crl::gui::Shader &shader) override {
+        robot->draw(shader);
         if (0 < bvhClips.size()) {
             controller.draw(shader);
         } else  if (selectedBvhClipIdx > -1) {
@@ -100,6 +108,7 @@ public:
     }
 
     void drawObjectsWithoutShadows(const crl::gui::Shader &shader) override {
+        robot->draw(shader);
         if (0 < bvhClips.size()) {
             controller.draw(shader);
         } else if (selectedBvhClipIdx > -1)
@@ -647,6 +656,8 @@ private:
     crl::mocap::PlotLine2D<crl::dVector> feetVelocityPlot;
     crl::mocap::PlotLine2D<crl::dVector> feetAccelerationPlot;
     crl::mocap::Timeline contactsTimeline;
+
+    crl::Robot *robot;
 };
 
 }  // namespace mocapApp

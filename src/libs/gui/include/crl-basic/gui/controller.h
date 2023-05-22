@@ -50,6 +50,9 @@ public:
     std::vector<V3D> getActualDirections();
     int getClipIdx() { return clipIdx; }
     int getFrameIdx() { return frameIdx; }
+    crl::mocap::MocapSkeletonState *getCurrentState() { 
+        if(clips->size() == 0) return nullptr;
+        return &skeletonStates[0]; }
 
     float walkSpeed = 1.14f;
     float runSpeed = 3.5f;
