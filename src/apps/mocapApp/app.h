@@ -38,7 +38,7 @@ public:
         if (selectedBvhClipIdx == -1 && selectedC3dClipIdx == -1)
             return;
 
-        if (selectedBvhClipIdx > -1) {
+        if (animationPlayer && selectedBvhClipIdx > -1) {
             auto &clip = bvhClips[selectedBvhClipIdx];
             if (auto *skel = clip->getModel()) {
                 auto state = clip->getState(frameIdx);
@@ -81,7 +81,7 @@ public:
     }
 
     void drawShadowCastingObjects(const crl::gui::Shader &shader) override {
-        if (0 < bvhClips.size()) {
+        if (!animationPlayer && 0 < bvhClips.size()) {
             controller.draw(shader);
         } else  if (selectedBvhClipIdx > -1) {
             bvhClips[selectedBvhClipIdx]->draw(shader, frameIdx);
@@ -100,10 +100,11 @@ public:
     }
 
     void drawObjectsWithoutShadows(const crl::gui::Shader &shader) override {
-        if (0 < bvhClips.size()) {
+        if (!animationPlayer && 0 < bvhClips.size()) {
             controller.draw(shader);
-        } else if (selectedBvhClipIdx > -1)
+        } else if (selectedBvhClipIdx > -1) {
             bvhClips[selectedBvhClipIdx]->draw(shader, frameIdx);
+        }
         if (selectedC3dClipIdx > -1) {
             c3dClips[selectedC3dClipIdx]->draw(shader, frameIdx);
 
@@ -191,7 +192,18 @@ public:
         crl::gui::ShadowApplication::drawImGui();
 
         ImGui::Begin("Main Menu");
-        ImGui::Checkbox("Follow Character", &followCharacter);
+        if(ImGui::CollapsingHeader("Animation Player", ImGuiTreeNodeFlags_DefaultOpen)){
+            ImGui::Checkbox("Activate Animation Player", &animationPlayer);
+            ImGui::Checkbox("Follow Character", &followCharacter);
+            if (selectedBvhClipIdx > -1)
+                maxFrameIdx = bvhClips[selectedBvhClipIdx]->getFrameCount();
+            if(ImGui::ArrowButton("Prev Frame", ImGuiDir_Left))
+                frameIdx--;
+            ImGui::SameLine();
+            if(ImGui::ArrowButton("Next Frame", ImGuiDir_Right))
+                frameIdx++;
+            ImGui::SliderInt("Frame", &frameIdx, 0, maxFrameIdx-1, "%d");
+        }
 
         if(ImGui::CollapsingHeader("Controller", ImGuiTreeNodeFlags_DefaultOpen))
         {
@@ -619,6 +631,8 @@ private:
     int selectedC3dClipIdx = -1;
     int selectedMarkerIdx = -1;
     int frameIdx = 0;
+    int maxFrameIdx = 0;
+    bool animationPlayer = false;
 
     // post processing
     std::vector<std::string> footMarkerNames;

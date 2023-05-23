@@ -72,7 +72,7 @@ private:
     std::deque<float> rotHist; // historical rotations arranged in chronological order
     float angVel;
     float rotDesired;
-    int clipIdx = 0, frameIdx = 86;
+    int clipIdx = 0, frameIdx = 0;
     int frameCount = 0;
     const int targetFrameRate = 3;
 
