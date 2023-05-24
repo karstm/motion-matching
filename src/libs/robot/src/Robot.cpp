@@ -4,6 +4,7 @@
 #include <robot/Robot.h>
 #include <robot/RobotState.h>
 #include "crl-basic/gui/mxm_utils.h"
+#include "crl-basic/utils/mathUtils.h"
 
 namespace crl {
 
@@ -100,36 +101,96 @@ void Robot::setMocapState(crl::mocap::MocapSkeletonState *state) {
     rs.setPosition(state->getRootPosition());
     rs.setOrientation(state->getRootOrientation() * getRotationQuaternion(-PI/2, V3D(0, 0, 1)) * getRotationQuaternion(-PI/2, V3D(0, 1, 0)));
     
+    double alpha, beta, gamma;
+    crl::V3D side = V3D(1, 0, 0);
+    crl::V3D up = V3D(0, 1, 0);
+    crl::V3D front = V3D(0, 0, 1);
+
     //left hip
     crl::Quaternion q = state->getJointRelativeOrientation(1);
-    std::vector<float> angles = crl::gui::MxMUtils::quarternionToAngles(q, 2, 1, 3);
-    rs.setJointRelativeOrientation(crl::getRotationQuaternion(angles[0] + M_PI, jointList[7]->rotationAxis), 7); //y
-    rs.setJointRelativeOrientation(crl::getRotationQuaternion(angles[1], jointList[4]->rotationAxis), 4); //z
-    rs.setJointRelativeOrientation(crl::getRotationQuaternion(angles[2], jointList[1]->rotationAxis), 1); //x
+    computeEulerAnglesFromQuaternion(q, front, side, up, alpha, beta, gamma);
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(beta, jointList[7]->rotationAxis), 7); //y
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(gamma + M_PI, jointList[4]->rotationAxis), 4); //z
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(-alpha, jointList[1]->rotationAxis), 1); //x
     
     //right hip
     q = state->getJointRelativeOrientation(5);
-    angles = crl::gui::MxMUtils::quarternionToAngles(q, 2, 1, 3);
-    rs.setJointRelativeOrientation(crl::getRotationQuaternion(angles[0] + M_PI, jointList[8]->rotationAxis), 8); //y
-    rs.setJointRelativeOrientation(crl::getRotationQuaternion(angles[1], jointList[5]->rotationAxis), 5); //z
-    rs.setJointRelativeOrientation(crl::getRotationQuaternion(angles[2], jointList[2]->rotationAxis), 2); //x
+    computeEulerAnglesFromQuaternion(q, front, side, up, alpha, beta, gamma);
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(beta, jointList[8]->rotationAxis), 8); //y
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(gamma + M_PI, jointList[5]->rotationAxis), 5); //z
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(-alpha, jointList[2]->rotationAxis), 2); //x
 
     //left knee
     q = state->getJointRelativeOrientation(2);
-    angles = crl::gui::MxMUtils::quarternionToAngles(q, 2, 1, 3);
-    rs.setJointRelativeOrientation(crl::getRotationQuaternion(-angles[2], jointList[10]->rotationAxis), 10); //x
+    computeEulerAnglesFromQuaternion(q, front, side, up, alpha, beta, gamma);
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(-alpha, jointList[10]->rotationAxis), 10); //x
     
     //right knee
     q = state->getJointRelativeOrientation(6);
-    angles = crl::gui::MxMUtils::quarternionToAngles(q, 2, 1, 3);
-    rs.setJointRelativeOrientation(crl::getRotationQuaternion(-angles[2], jointList[11]->rotationAxis), 11); //x
+    computeEulerAnglesFromQuaternion(q, front, side, up, alpha, beta, gamma);
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(-alpha, jointList[11]->rotationAxis), 11); //x
     
-    //rs.setJointRelativeOrientation(crl::Quaternion(0.923, 0, 0.383, 0), 7); //y
-    //rs.setJointRelativeOrientation(crl::Quaternion(0.707, 0, 0, 0.707), 4); //z
-    //rs.setJointRelativeOrientation(crl::Quaternion(0.707, 0.707, 0, 0), 1); //x
-    //crl::Quaternion q = crl::Quaternion(0.772, 0.310, 0.210, 0.514);
-    //std::vector<float> angles = crl::gui::MxMUtils::quarternionToAngles(q, 1, 2, 3);
-    //printf("x %f y %f z %f \n", angles[0], angles[1], angles[2]);
+    //left foot
+    q = state->getJointRelativeOrientation(3);
+    computeEulerAnglesFromQuaternion(q, front, side, up, alpha, beta, gamma);
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(gamma, jointList[16]->rotationAxis), 16);  //z
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(-alpha + M_PI_2, jointList[13]->rotationAxis), 13);  //x
+
+    //right foot
+    q = state->getJointRelativeOrientation(7);
+    computeEulerAnglesFromQuaternion(q, front, side, up, alpha, beta, gamma);
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(gamma, jointList[17]->rotationAxis), 17);  //z
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(-alpha + M_PI_2, jointList[14]->rotationAxis), 14);  //x
+
+    //left toe
+    q = state->getJointRelativeOrientation(4);
+    computeEulerAnglesFromQuaternion(q, front, side, up, alpha, beta, gamma);
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(-alpha, jointList[21]->rotationAxis), 21);  //x
+
+    //right toe
+    q = state->getJointRelativeOrientation(8);
+    computeEulerAnglesFromQuaternion(q, front, side, up, alpha, beta, gamma);
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(-alpha, jointList[22]->rotationAxis), 22);  //x
+
+    ////lower back
+    //q = state->getJointRelativeOrientation(10);
+    //computeEulerAnglesFromQuaternion(q, front, side, up, alpha, beta, gamma);
+    //rs.setJointRelativeOrientation(crl::getRotationQuaternion(beta, jointList[3]->rotationAxis), 3);  //y
+    //rs.setJointRelativeOrientation(crl::getRotationQuaternion(-gamma, jointList[3]->rotationAxis), 6);  //z
+    //rs.setJointRelativeOrientation(crl::getRotationQuaternion(alpha, jointList[0]->rotationAxis), 0);        //x
+
+    ////upper back
+    //q = state->getJointRelativeOrientation(11);
+    //computeEulerAnglesFromQuaternion(q, front, side, up, alpha, beta, gamma);
+    //rs.setJointRelativeOrientation(crl::getRotationQuaternion(beta, jointList[12]->rotationAxis), 12);   //y
+    //rs.setJointRelativeOrientation(crl::getRotationQuaternion(-gamma, jointList[15]->rotationAxis), 15);  //z
+    //rs.setJointRelativeOrientation(crl::getRotationQuaternion(alpha, jointList[9]->rotationAxis), 9);  //x
+
+    //left shoulder
+    q = state->getJointRelativeOrientation(15);
+    computeEulerAnglesFromQuaternion(q, front, side, up, alpha, beta, gamma);
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(beta, jointList[33]->rotationAxis), 33);          //y
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(-gamma + M_PI_2, jointList[30]->rotationAxis), 30);  //z
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(alpha, jointList[27]->rotationAxis), 27);            //x
+
+    //left elbow
+    q = state->getJointRelativeOrientation(16);
+    computeEulerAnglesFromQuaternion(q, front, side, up, alpha, beta, gamma);
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(beta, jointList[38]->rotationAxis), 38);  //y
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(alpha, jointList[36]->rotationAxis), 36);  //x
+
+    //right shoulder
+    q = state->getJointRelativeOrientation(19);
+    computeEulerAnglesFromQuaternion(q, front, side, up, alpha, beta, gamma);
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(beta, jointList[34]->rotationAxis), 34);             //y
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(-gamma - M_PI_2, jointList[31]->rotationAxis), 31);  //z
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(alpha, jointList[28]->rotationAxis), 28);            //x
+
+    //right elbow
+    q = state->getJointRelativeOrientation(20);
+    computeEulerAnglesFromQuaternion(q, front, side, up, alpha, beta, gamma);
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(beta, jointList[39]->rotationAxis), 39);   //y
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(alpha, jointList[37]->rotationAxis), 37);  //x
 
     setState(&rs);
 }
