@@ -37,7 +37,7 @@ public:
         V3D up = V3D(0,1,0);
         V3D front = V3D(0,0,1);
         computeEulerAnglesFromQuaternion(q, front, side, up, alpha, beta, gamma);
-
+        gamma = gamma+M_PI;
         Quaternion negYrotation = getRotationQuaternion(inverse? -gamma : gamma, up);
         return negYrotation;
     }
