@@ -1,5 +1,6 @@
 #include "mocap/Database.h"
 #include "crl-basic/gui/mxm_utils.h"
+#include <algorithm>
 
 // Empty constructor to allow for member initialization
 Database::Database() {
@@ -23,9 +24,11 @@ void Database::initializeAnnoy()
     #endif
 
     char **error = (char**)malloc(sizeof(char*));
-    for (int frame = 0; frame < frameSums.back(); frame++)
-    {   
-        annoyIndex->add_item(frame, data + frame * noFeatures, error);
+    
+    for (int clipId = 0; clipId < frameSums.size() - 1; clipId++) {
+        for (int frame = frameSums[clipId]; frame < frameSums[clipId + 1] - endFramesWhereIgnoreMatching; frame++) {
+            annoyIndex->add_item(frame, data + frame * noFeatures, error);
+        }
     }
     annoyIndex->build(-1);
 }
@@ -83,7 +86,7 @@ void Database::match(std::vector<crl::P3D>& trajectoryPositions, std::vector<crl
                     int& clip_id, int& frame) 
 {
     int lineNumber;
-    int kNearest = endFramesWhereIgnoreMatching + 1;
+    int kNearest = 1;
 
     // arange the query in array
     // crl::P3D& leftFootPosition;
@@ -116,13 +119,8 @@ void Database::match(std::vector<crl::P3D>& trajectoryPositions, std::vector<crl
     annoyIndex->get_nns_by_vector(query, kNearest, -1, &closest, NULL);
 
     // get the line number from the nearest neighbor
-    int match = 0;
-    do
-    {
-        lineNumber = closest[match];
-        getClipAndFrame(lineNumber, clip_id, frame);
-        match++;
-    } while(frameSums[clip_id] + frame > frameSums[clip_id+1] - endFramesWhereIgnoreMatching);
+    lineNumber = closest[0];
+    getClipAndFrame(lineNumber, clip_id, frame);
 }
 
 void Database::getEntry(int clip_id, int frame, float* entry)
@@ -205,12 +203,17 @@ void Database::readData(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhCl
     for (int clipId  = 0; clipId < bvhClips->size(); clipId++) 
     {
         auto *sk = bvhClips->at(clipId)->getModel();
-        for (int frame = 0; frame < frameSums[clipId + 1] - frameSums[clipId]; frame++)
+        int numFramesInClip = frameSums[clipId + 1] - frameSums[clipId];
+        for (int frame = 0; frame < numFramesInClip; frame++)
         {
             sk->setState(&bvhClips->at(clipId)->getState(frame));
-            auto sk1 = &bvhClips->at(clipId)->getState(frame+10);
-            auto sk2 = &bvhClips->at(clipId)->getState(frame+20);
-            auto sk3 = &bvhClips->at(clipId)->getState(frame+30);
+            int frame10 = std::min(frame + 10, numFramesInClip-1);
+            int frame20 = std::min(frame + 20, numFramesInClip-1);
+            int frame30 = std::min(frame + 30, numFramesInClip-1);
+
+            auto sk1 = &bvhClips->at(clipId)->getState(frame10);
+            auto sk2 = &bvhClips->at(clipId)->getState(frame20);
+            auto sk3 = &bvhClips->at(clipId)->getState(frame30);
             int offset = (frameSums[clipId] + frame) * noFeatures;
 
             getTrajectoryPositions(sk, sk1, sk2, sk3,  offset);
