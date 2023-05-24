@@ -51,4 +51,4 @@ for filename in files:
 
             mirrored_file_name = filename[:-4] + '_mirror.bvh'
 
-            bvh.save(mirrored_file_name, bvh_data, frametime=bvh_data['frametime'])
+            bvh.save(mirrored_file_name, bvh_data, frametime=bvh_data['frametime'], flip=True)

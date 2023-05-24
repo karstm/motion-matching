@@ -15,7 +15,7 @@ files = glob.glob(os.path.join(folder_path, "*"))
 def generate_sim_bone(bvh=None):
     # Extract positions and rotations
     positions = bvh['positions']
-    rotations = quat.unroll(quat.from_euler(np.radians(bvh['rotations']), order=bvh['order']))
+    rotations = quat.unroll(quat.from_euler(np.radians(bvh['rotations']), order='zyx'))
 
     ''' Super sample'''
     nframes = positions.shape[0]

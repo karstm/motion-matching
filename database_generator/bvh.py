@@ -173,7 +173,7 @@ def save_joint(f, data, t, i, save_order, order='zyx', save_positions=False, sav
     return t
     
 
-def save(filename, data, frametime=1.0/30.0, save_positions=False, save_hip_position=False):
+def save(filename, data, frametime=1.0/30.0, save_positions=False, save_hip_position=False, flip=False):
     
     order = data['order']
     
@@ -187,7 +187,7 @@ def save(filename, data, frametime=1.0/30.0, save_positions=False, save_hip_posi
 
         f.write("%sOFFSET %f %f %f\n" % (t, data['offsets'][0,0], data['offsets'][0,1], data['offsets'][0,2]) )
         f.write("%sCHANNELS 6 Xposition Yposition Zposition %s %s %s \n" % 
-            (t, channelmap_inv[order[0]], channelmap_inv[order[1]], channelmap_inv[order[2]]))
+            (t, channelmap_inv[order[2 if flip else 0]], channelmap_inv[order[1]], channelmap_inv[order[0 if flip else 2]]))
 
         save_order = [0]
             
