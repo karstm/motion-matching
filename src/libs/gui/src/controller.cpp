@@ -21,6 +21,7 @@ void Controller::init(KeyboardState *keyboardState, std::vector<std::unique_ptr<
     rootPosInertializationInfo = InertializationInfo();
     rootOrientInertializationInfo = InertializationInfo();
     for (uint i = 0; i < numMarkers; i++) {
+        jointPositionInertializationInfos.push_back(InertializationInfo());
         jointOrientInertializationInfos.push_back(InertializationInfo());
     }
 
@@ -86,7 +87,7 @@ void Controller::update(TrackingCamera &camera, Database &database) {
     // if a transition happened, compute inertialization info
     if(transition)
     {   
-        InertializationUtils::computeInertializationInfo(rootPosInertializationInfo, rootOrientInertializationInfo, jointOrientInertializationInfos, numMarkers, motionStates[2], motionStates[1], motionStates[0], transitionTime, dt); //here we use the old dt
+        InertializationUtils::computeInertializationInfo(rootPosInertializationInfo, rootOrientInertializationInfo, jointPositionInertializationInfos, jointOrientInertializationInfos, numMarkers, motionStates[2], motionStates[1], motionStates[0], transitionTime, dt); //here we use the old dt
         t = 0;
     }
     
@@ -98,7 +99,7 @@ void Controller::update(TrackingCamera &camera, Database &database) {
 
     // inertialization
     if(useInertialization)
-        motionStates[0] = InertializationUtils::inertializeState(rootPosInertializationInfo, rootOrientInertializationInfo, jointOrientInertializationInfos, numMarkers, motionStates[0], motionStates[1], t, dt); // here we use the new dt
+        motionStates[0] = InertializationUtils::inertializeState(rootPosInertializationInfo, rootOrientInertializationInfo, jointPositionInertializationInfos, jointOrientInertializationInfos, numMarkers, motionStates[0], motionStates[1], t, dt); // here we use the new dt
 
     // setting the root position and orientation to the controller again after inertialization
     // this seems wrong but without this we get weird stutters

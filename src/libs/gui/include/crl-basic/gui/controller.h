@@ -88,6 +88,7 @@ private:
     int numMarkers;
     InertializationInfo rootPosInertializationInfo;
     InertializationInfo rootOrientInertializationInfo;
+    std::vector<InertializationInfo> jointPositionInertializationInfos;
     std::vector<InertializationInfo> jointOrientInertializationInfos;
 };
 
