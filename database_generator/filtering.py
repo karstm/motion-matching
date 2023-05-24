@@ -1,6 +1,7 @@
 import quat
 import bvh
 import scipy.signal as signal
+from scipy.interpolate import griddata
 import numpy as np
 import glob
 
@@ -8,12 +9,32 @@ import os
 os.chdir(os.path.dirname(__file__))
 
 """ Files to Process """
-folder_path = os.path.join(os.path.dirname(__file__), "..", "data", "mocap", "lafan1")
+folder_path = os.path.join(os.path.dirname(__file__), "..", "data", "mocap", "lafan1_selected")
 files = glob.glob(os.path.join(folder_path, "*"))
 
 def generate_sim_bone(bvh=None):
+    # Extract positions and rotations
     positions = bvh['positions']
     rotations = quat.unroll(quat.from_euler(np.radians(bvh['rotations']), order=bvh['order']))
+
+    ''' Super sample'''
+    nframes = positions.shape[0]
+    nbones = positions.shape[1]
+    
+    # Supersample data to 60 fps
+    original_times = np.linspace(0, nframes - 1, nframes)
+    sample_times = np.linspace(0, nframes - 1, (nframes * 2 - 1))
+
+    # This does a cubic interpolation of the data for supersampling
+    positions = griddata(original_times, positions.reshape([nframes, -1]), sample_times, method='cubic').reshape([len(sample_times), nbones, 3])
+    rotations = griddata(original_times, rotations.reshape([nframes, -1]), sample_times, method='cubic').reshape([len(sample_times), nbones, 4])
+    
+    # Need to re-normalize after super-sampling
+    rotations = quat.normalize(rotations)
+
+    bvh['frametime'] = 1 / 60.0
+    
+    ''' Simulation bone and filtering '''
     # First compute world space positions/rotations
     global_rotations, global_positions = quat.fk(rotations, positions, bvh['parents'])
     
@@ -42,12 +63,16 @@ def generate_sim_bone(bvh=None):
     
     positions = np.concatenate([sim_position, positions], axis=1)
     rotations = np.concatenate([sim_rotation, rotations], axis=1)
-
-    """ END ORANGEDUCK """
+    
+    # Save positions and rotations
     bvh['positions'] = positions
     bvh['rotations'] = np.degrees(quat.to_euler(rotations, order='xyz'))
-    bvh['offsets'] = np.concatenate([np.array(np.array([0.0, 0.0, 0.0]) * (bvh['offsets'][sim_rotation_joint])).reshape(1, -1), np.array(bvh['offsets'])], axis=0)
-    bvh['offsets'][1] = np.array(np.array([0.0, 0.0, 0.0]) * (bvh['offsets'][sim_rotation_joint]))
+    
+    # Add offsets of new bone and adjust hips offset
+    bvh['offsets'] = np.concatenate([[[0.0, 0.0, 0.0]], np.array(bvh['offsets'])], axis=0)
+    bvh['offsets'][1] = [0.0, 0.0, 0.0]
+
+    # Add simulation bone as parent and re-parent all other bones
     bvh['parents'] = np.concatenate([[-1], bvh['parents'] + 1])
     bvh['names'] = ['SimulationBone'] + bvh['names']
 
@@ -55,9 +80,11 @@ def generate_sim_bone(bvh=None):
 
 
 """ Loop Over Files """
+# save_path = os.path.join(os.path.dirname(__file__), "..", "data", "mocap", "lafan1_filtered")
 for filename in files:
     if ('filtered' in filename): continue
     print('Loading "%s" ...' % (filename))
     bvh_data = generate_sim_bone(bvh=bvh.load(filename))  
-    new_file_name = filename[:-4] + '_filtered.bvh'
-    bvh.save(new_file_name, bvh_data, save_hip_position=True)
+    new_filename = os.path.basename(filename)[:-4]+ '_filtered.bvh'
+    new_file_name = os.path.join(os.path.dirname(__file__), "..", "data", "mocap", "lafan1_filtered", new_filename)
+    bvh.save(new_file_name, bvh_data, frametime=bvh_data['frametime'], save_hip_position=True)

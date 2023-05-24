@@ -35,6 +35,7 @@ def load(filename, order=None):
     # Parse the  file, line by line
     for line in f:
 
+        if "SimulationBone" in line: raise ImportError('Attempted to filter a filtered file -> %s' % filename)
         if "HIERARCHY" in line: continue
         if "MOTION" in line: continue
 
