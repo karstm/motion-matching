@@ -20,6 +20,11 @@ void MocapRenderer::drawMarker(const MocapMarker *joint, const crl::gui::Shader 
         P3D endPos = joint->state.pos;
         drawCapsule(startPos, endPos, linkCylinderRadius_, shader, drawColor);
     }
+    else{
+        P3D startPos = joint->state.pos;
+        P3D endPos = startPos + joint->state.orientation * V3D(0.5, 0, 0);
+        drawCapsule(startPos, endPos, linkCylinderRadius_, shader, V3D(1, 0, 0));
+    }
 
     // bone ~ children
     for (uint i = 0; i < joint->children.size(); i++) {

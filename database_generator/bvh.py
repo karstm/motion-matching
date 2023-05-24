@@ -134,17 +134,17 @@ def load(filename, order=None):
     }
     
     
-def save_joint(f, data, t, i, save_order, order='zyx', save_positions=False):
+def save_joint(f, data, t, i, save_order, order='zyx', save_positions=False, save_hip_position=False):
     
     save_order.append(i)
     
     f.write("%sJOINT %s\n" % (t, data['names'][i]))
     f.write("%s{\n" % t)
     t += '\t'
-  
+    
     f.write("%sOFFSET %f %f %f\n" % (t, data['offsets'][i,0], data['offsets'][i,1], data['offsets'][i,2]))
     
-    if save_positions:
+    if save_positions or (save_hip_position and data['names'][i] == 'Hips'):
         f.write("%sCHANNELS 6 Xposition Yposition Zposition %s %s %s \n" % (t, 
             channelmap_inv[order[0]], channelmap_inv[order[1]], channelmap_inv[order[2]]))
     else:
@@ -155,7 +155,7 @@ def save_joint(f, data, t, i, save_order, order='zyx', save_positions=False):
     
     for j in range(len(data['parents'])):
         if data['parents'][j] == i:
-            t = save_joint(f, data, t, j, save_order, order=order, save_positions=save_positions)
+            t = save_joint(f, data, t, j, save_order, order=order, save_positions=save_positions, save_hip_position=save_hip_position)
             end_site = False
     
     if end_site:
@@ -172,7 +172,7 @@ def save_joint(f, data, t, i, save_order, order='zyx', save_positions=False):
     return t
     
 
-def save(filename, data, frametime=1.0/60.0, save_positions=False):
+def save(filename, data, frametime=1.0/30.0, save_positions=False, save_hip_position=False):
     
     order = data['order']
     
@@ -192,7 +192,7 @@ def save(filename, data, frametime=1.0/60.0, save_positions=False):
             
         for i in range(len(data['parents'])):
             if data['parents'][i] == 0:
-                t = save_joint(f, data, t, i, save_order, order=order, save_positions=save_positions)
+                t = save_joint(f, data, t, i, save_order, order=order, save_positions=save_positions, save_hip_position=save_hip_position)
       
         t = t[:-1]
         f.write("%s}\n" % t)
@@ -206,7 +206,7 @@ def save(filename, data, frametime=1.0/60.0, save_positions=False):
         for i in range(rots.shape[0]):
             for j in save_order:
                 
-                if save_positions or j == 0:
+                if save_positions or j == 0 or (save_hip_position and data['names'][j] == 'Hips'):
                 
                     f.write("%f %f %f %f %f %f " % (
                         poss[i,j,0],                  poss[i,j,1],                  poss[i,j,2], 
