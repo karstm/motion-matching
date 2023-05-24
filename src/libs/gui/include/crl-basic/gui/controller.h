@@ -73,8 +73,8 @@ private:
     float rotDesired;
 
 
-    int lastMatchedFrameIdx = 85;
-    int clipIdx = 0, frameIdx = 86;
+    int lastMatchedFrameIdx = 0;
+    int clipIdx = 0, frameIdx = 0;
     int motionMatchingFrameCount = 0;
 
     float lambda = 4.0f;
