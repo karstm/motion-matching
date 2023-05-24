@@ -53,6 +53,7 @@ public:
     float runSpeed = 3.3f;
     int motionMatchingRate = 6;
     float transitionTime = 0.4f;
+    bool useInertialization = true;
     
 private:
     KeyboardState *keyboardState;

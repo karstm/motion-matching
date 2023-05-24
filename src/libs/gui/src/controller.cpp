@@ -97,7 +97,8 @@ void Controller::update(TrackingCamera &camera, Database &database) {
     prevTime = currTime;
 
     // inertialization
-    motionStates[0] = InertializationUtils::inertializeState(rootPosInertializationInfo, rootOrientInertializationInfo, jointOrientInertializationInfos, numMarkers, motionStates[0], motionStates[1], t, dt); // here we use the new dt
+    if(useInertialization)
+        motionStates[0] = InertializationUtils::inertializeState(rootPosInertializationInfo, rootOrientInertializationInfo, jointOrientInertializationInfos, numMarkers, motionStates[0], motionStates[1], t, dt); // here we use the new dt
 
     // setting the root position and orientation to the controller again after inertialization
     // this seems wrong but without this we get weird stutters
