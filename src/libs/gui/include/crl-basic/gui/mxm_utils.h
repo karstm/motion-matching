@@ -103,7 +103,6 @@ public:
     // https://github.com/evbernardes/quaternion_to_euler/blob/main/euler_from_quat.py
     // converts a quarternion to desired Euler angles
     // i != j != k. i, j, k within {1, 2, 3} i.e. {x, y, z}
-    // flip order of i, j, k depending on whether the rotations are extrinsic or intrinsic
     static std::vector<float> quarternionToAngles(crl::Quaternion quaternion, int i, int j, int k) {
         std::vector<float> q;
         q.push_back(quaternion.w());

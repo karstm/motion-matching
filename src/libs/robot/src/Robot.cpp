@@ -99,11 +99,31 @@ void Robot::setMocapState(crl::mocap::MocapSkeletonState *state) {
     RobotState rs = RobotState(this, true);
     rs.setPosition(state->getRootPosition());
     rs.setOrientation(state->getRootOrientation() * getRotationQuaternion(-PI/2, V3D(0, 0, 1)) * getRotationQuaternion(-PI/2, V3D(0, 1, 0)));
+    
+    //left hip
     crl::Quaternion q = state->getJointRelativeOrientation(1);
-    std::vector<float> angles = crl::gui::MxMUtils::quarternionToAngles(q, 2, 3, 1);
-    rs.setJointRelativeOrientation(crl::getRotationQuaternion(angles[1], V3D(0, 1, 0)), 7);  //y
-    rs.setJointRelativeOrientation(crl::getRotationQuaternion(angles[2], V3D(0, 0, 1)), 7);  //z
-    rs.setJointRelativeOrientation(crl::getRotationQuaternion(angles[0], V3D(1, 0, 0)), 7);  //x
+    std::vector<float> angles = crl::gui::MxMUtils::quarternionToAngles(q, 2, 1, 3);
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(angles[0] + M_PI, jointList[7]->rotationAxis), 7); //y
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(angles[1], jointList[4]->rotationAxis), 4); //z
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(angles[2], jointList[1]->rotationAxis), 1); //x
+    
+    //right hip
+    q = state->getJointRelativeOrientation(5);
+    angles = crl::gui::MxMUtils::quarternionToAngles(q, 2, 1, 3);
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(angles[0] + M_PI, jointList[8]->rotationAxis), 8); //y
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(angles[1], jointList[5]->rotationAxis), 5); //z
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(angles[2], jointList[2]->rotationAxis), 2); //x
+
+    //left knee
+    q = state->getJointRelativeOrientation(2);
+    angles = crl::gui::MxMUtils::quarternionToAngles(q, 2, 1, 3);
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(-angles[2], jointList[10]->rotationAxis), 10); //x
+    
+    //right knee
+    q = state->getJointRelativeOrientation(6);
+    angles = crl::gui::MxMUtils::quarternionToAngles(q, 2, 1, 3);
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(-angles[2], jointList[11]->rotationAxis), 11); //x
+    
     //rs.setJointRelativeOrientation(crl::Quaternion(0.923, 0, 0.383, 0), 7); //y
     //rs.setJointRelativeOrientation(crl::Quaternion(0.707, 0, 0, 0.707), 4); //z
     //rs.setJointRelativeOrientation(crl::Quaternion(0.707, 0.707, 0, 0), 1); //x
