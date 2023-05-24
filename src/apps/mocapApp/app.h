@@ -27,13 +27,14 @@ public:
           contactsTimeline(footSteps) {
         fileDialog.SetPwd(fs::path(CRL_MOCAP_DATA_FOLDER));
         fileDialog.SetTitle("Mocap Directory");
-        controller.init(&keyboardState, &bvhClips);
     }
 
     ~App() override {}
 
     void process() override {
-        controller.update(camera, database);
+        if(!bvhClips.empty()){
+            controller.update(camera, database);
+        }
 
         if (selectedBvhClipIdx == -1 && selectedC3dClipIdx == -1)
             return;
@@ -82,7 +83,7 @@ public:
 
     void drawShadowCastingObjects(const crl::gui::Shader &shader) override {
         if (!animationPlayer && 0 < bvhClips.size()) {
-            controller.draw(shader);
+            controller.drawSkeleton(shader);
         } else  if (selectedBvhClipIdx > -1) {
             bvhClips[selectedBvhClipIdx]->draw(shader, frameIdx);
         }
@@ -101,7 +102,8 @@ public:
 
     void drawObjectsWithoutShadows(const crl::gui::Shader &shader) override {
         if (!animationPlayer && 0 < bvhClips.size()) {
-            controller.draw(shader);
+            controller.drawSkeleton(shader);
+            controller.drawTrajectory(shader, database, drawControllerTrajectory, drawAnimationTrajectory);
         } else if (selectedBvhClipIdx > -1) {
             bvhClips[selectedBvhClipIdx]->draw(shader, frameIdx);
         }
@@ -207,8 +209,13 @@ public:
 
         if(ImGui::CollapsingHeader("Controller", ImGuiTreeNodeFlags_DefaultOpen))
         {
+           ImGui::Checkbox("Controller Trajectory", &drawControllerTrajectory);
+           ImGui::Checkbox("Animation Trajectory", &drawAnimationTrajectory);
            ImGui::SliderFloat("Max Walk Speed", &controller.walkSpeed, 0.5f, 2.0f, "%.2f"); 
-           ImGui::SliderFloat("Max Run Speed", &controller.runSpeed, 2.0f, 7.0f, "%.2f"); 
+           ImGui::SliderFloat("Max Run Speed", &controller.runSpeed, 2.0f, 7.0f, "%.2f");
+           ImGui::SliderInt("Match after Frames", &controller.motionMatchingRate, 3, 30);
+           ImGui::Checkbox("Inertialization", &controller.useInertialization);
+           ImGui::SliderFloat("Transition time", &controller.transitionTime, 0.1f, 1.0f, "%.2f");
         }
 
         if (ImGui::CollapsingHeader("Mocap Data", ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -364,6 +371,7 @@ public:
                        footPositionWeight, footVelocityWeight,
                        hipVelocityWeight,
                        &bvhClips);
+        controller.init(&keyboardState, &bvhClips);
     }
 
 private:
@@ -644,13 +652,15 @@ private:
 
     // database processing
     bool loadWithMirror = true;
-    float trajectoryPositionWeight = 1.0;
-    float trajectoryFacingWeight = 1.5;
-    float footPositionWeight = 0.75;
-    float footVelocityWeight = 1.0;
-    float hipVelocityWeight = 1.0;
+    float trajectoryPositionWeight = 1.5;
+    float trajectoryFacingWeight = 0.8;
+    float footPositionWeight = 1.5;
+    float footVelocityWeight = 2.0;
+    float hipVelocityWeight = 2.0;
 
     // plot and visualization
+    bool drawControllerTrajectory = true;
+    bool drawAnimationTrajectory = false;
     bool followCharacter = true;
     bool showCoordinateFrames = false;
     bool showVirtualLimbs = true;
