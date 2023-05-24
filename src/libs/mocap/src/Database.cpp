@@ -83,7 +83,7 @@ void Database::match(std::vector<crl::P3D>& trajectoryPositions, std::vector<crl
                     int& clip_id, int& frame) 
 {
     int lineNumber;
-    int kNearest = 5;
+    int kNearest = endFramesWhereIgnoreMatching + 1;
 
     // arange the query in array
     // crl::P3D& leftFootPosition;
@@ -114,10 +114,15 @@ void Database::match(std::vector<crl::P3D>& trajectoryPositions, std::vector<crl
     //TODO: get the line number of the nearest neighbor in the database
     std::vector<int> closest;
     annoyIndex->get_nns_by_vector(query, kNearest, -1, &closest, NULL);
-    lineNumber = closest[0];
 
     // get the line number from the nearest neighbor
-    getClipAndFrame(lineNumber, clip_id, frame);
+    int match = 0;
+    do
+    {
+        lineNumber = closest[match];
+        getClipAndFrame(lineNumber, clip_id, frame);
+        match++;
+    } while(frameSums[clip_id] + frame > frameSums[clip_id+1] - endFramesWhereIgnoreMatching);
 }
 
 void Database::getEntry(int clip_id, int frame, float* entry)
@@ -231,7 +236,7 @@ void Database::readFrameSums(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* 
     int runningTotal = 0;
     frameSums.push_back(runningTotal);
     for (int i = 0; i < bvhClips->size(); i++) {
-        runningTotal += (*bvhClips)[i]->getFrameCount() - ignoredEndFrames;
+        runningTotal += (*bvhClips)[i]->getFrameCount();
         frameSums.push_back(runningTotal);
     }
 }
