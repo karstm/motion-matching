@@ -62,7 +62,7 @@ class Database {
         int noFeatures = numTrajPos + numTrajOrient + numFootPos + numFootVel + numHipVel;
         
         std::vector<std::string> footMarkerNames = {"LeftToe", "RightToe"};
-        int ignoredEndFrames = 60;
+        int endFramesWhereIgnoreMatching = 30;
 
         // weights
         float trajectoryPositionWeight;
