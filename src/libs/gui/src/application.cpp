@@ -285,7 +285,7 @@ void Application::run() {
 
         if (screenIsRecording) {
             char filename[1000];
-            sprintf(filename, "%s_%04d.png", screenshotPath.c_str(), screenShotCounter);
+            snprintf(filename, 1000, "%s_%04d.png", screenshotPath.c_str(), screenShotCounter);
             screenshot(filename);
             screenShotCounter++;
         }
@@ -383,7 +383,7 @@ void Application::drawFPS() {
     ImGui::SetNextWindowSize(ImVec2(pixelRatio * 320, pixelRatio * 80), ImGuiCond_Always);
     ImGui::SetNextWindowCollapsed(true, ImGuiCond_Once);
     char title[100];
-    sprintf(title, "FPS: %.2f###FPS", averageFPS);
+    snprintf(title, 100, "FPS: %.2f###FPS", averageFPS);
     ImGui::Begin(title);
     ImGui::Text("Time spent processing: %.2f%%", 100.0 * averagePercentTimeSpentProcessing);
     ImGui::Checkbox("Limit FPS", &limitFramerate);
