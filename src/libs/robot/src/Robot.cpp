@@ -3,6 +3,7 @@
 #include <robot/RBLoader.h>
 #include <robot/Robot.h>
 #include <robot/RobotState.h>
+#include "crl-basic/gui/mxm_utils.h"
 
 namespace crl {
 
@@ -98,7 +99,18 @@ void Robot::setMocapState(crl::mocap::MocapSkeletonState *state) {
     RobotState rs = RobotState(this, true);
     rs.setPosition(state->getRootPosition());
     rs.setOrientation(state->getRootOrientation() * getRotationQuaternion(-PI/2, V3D(0, 0, 1)) * getRotationQuaternion(-PI/2, V3D(0, 1, 0)));
-    rs.joints[1].qRel = state->getJointRelativeOrientation(1); // this should but does not work
+    crl::Quaternion q = state->getJointRelativeOrientation(1);
+    std::vector<float> angles = crl::gui::MxMUtils::quarternionToAngles(q, 2, 3, 1);
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(angles[1], V3D(0, 1, 0)), 7);  //y
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(angles[2], V3D(0, 0, 1)), 7);  //z
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(angles[0], V3D(1, 0, 0)), 7);  //x
+    //rs.setJointRelativeOrientation(crl::Quaternion(0.923, 0, 0.383, 0), 7); //y
+    //rs.setJointRelativeOrientation(crl::Quaternion(0.707, 0, 0, 0.707), 4); //z
+    //rs.setJointRelativeOrientation(crl::Quaternion(0.707, 0.707, 0, 0), 1); //x
+    //crl::Quaternion q = crl::Quaternion(0.772, 0.310, 0.210, 0.514);
+    //std::vector<float> angles = crl::gui::MxMUtils::quarternionToAngles(q, 1, 2, 3);
+    //printf("x %f y %f z %f \n", angles[0], angles[1], angles[2]);
+
     setState(&rs);
 }
 

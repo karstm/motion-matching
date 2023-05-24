@@ -99,6 +99,63 @@ public:
         }
         return localTrajDir;
     }
+
+    // https://github.com/evbernardes/quaternion_to_euler/blob/main/euler_from_quat.py
+    // converts a quarternion to desired Euler angles
+    // i != j != k. i, j, k within {1, 2, 3} i.e. {x, y, z}
+    // flip order of i, j, k depending on whether the rotations are extrinsic or intrinsic
+    static std::vector<float> quarternionToAngles(crl::Quaternion quaternion, int i, int j, int k) {
+        std::vector<float> q;
+        q.push_back(quaternion.w());
+        q.push_back(quaternion.x());
+        q.push_back(quaternion.y());
+        q.push_back(quaternion.z());
+        float a;
+        float b;
+        float c;
+        float d;
+        std::vector<float> angles;
+        for (int i = 0; i < 3; i++) {
+            angles.push_back(0.0);
+        }
+
+        float sign = (float)((i - j) * (j - k) * (k - i) / 2);
+
+        a = q[0] - q[j];
+        b = q[i] + q[k] * sign;
+        c = q[j] + q[0];
+        d = q[k] * sign - q[i];
+
+        angles[1] = acos(2 * (pow(a, 2) + pow(b, 2)) / (pow(a, 2) + pow(b, 2) + pow(c, 2) + pow(d, 2)) - 1);
+        bool safe1 = abs(angles[1]) >= 1e-7;
+        bool safe2 = abs(angles[1] - M_PI / 2) >= 1e-7;
+        bool safe = safe1 && safe2;
+        
+        float aPlus = atan2(b, a);
+        float aMinus = atan2(-d, c);
+
+        if (safe) {
+            angles[0] = aPlus + aMinus;
+            angles[2] = aPlus - aMinus;
+        } else {
+            angles[2] = 0;
+            if (!safe1) {
+                angles[0] = 2 * aPlus;
+            } else if (!safe2) {
+                angles[0] = 2 * aMinus;
+            }
+        }
+
+        angles[2] = sign * angles[2];
+        angles[1] = angles[1] - M_PI_2;
+
+        for (int i = 0; i < 3; i++) {
+            angles[i] = minusPiToPi(angles[i]);
+        }
+
+        return angles;
+    }
+
 };
 
 }  // namespace gui
