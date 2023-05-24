@@ -127,9 +127,6 @@ void Application::init(const char *title, int width, int height, std::string ico
     // initialize keyboard state
     for (int i = 0; i < GLFW_KEY_LAST; i++)
         keyboardState.insert(std::pair<int, bool>(i, false));
-
-    //initialize controller
-    controller.init(&keyboardState);
 }
 
 void Application::setCallbacks() {
@@ -288,7 +285,7 @@ void Application::run() {
 
         if (screenIsRecording) {
             char filename[1000];
-            sprintf(filename, "%s_%04d.png", screenshotPath.c_str(), screenShotCounter);
+            snprintf(filename, 1000, "%s_%04d.png", screenshotPath.c_str(), screenShotCounter);
             screenshot(filename);
             screenShotCounter++;
         }
@@ -386,7 +383,7 @@ void Application::drawFPS() {
     ImGui::SetNextWindowSize(ImVec2(pixelRatio * 320, pixelRatio * 80), ImGuiCond_Always);
     ImGui::SetNextWindowCollapsed(true, ImGuiCond_Once);
     char title[100];
-    sprintf(title, "FPS: %.2f###FPS", averageFPS);
+    snprintf(title, 100, "FPS: %.2f###FPS", averageFPS);
     ImGui::Begin(title);
     ImGui::Text("Time spent processing: %.2f%%", 100.0 * averagePercentTimeSpentProcessing);
     ImGui::Checkbox("Limit FPS", &limitFramerate);
@@ -558,7 +555,6 @@ void ShadowApplication::draw() {
     prepareToDraw();
     shadowPass();
     renderPass();
-    drawTrajectory(shadowShader);
 
     //ImGui
     ImGui_ImplOpenGL3_NewFrame();
@@ -620,41 +616,6 @@ void ShadowApplication::renderPass() {
 
     drawObjectsWithShadows(shadowShader);
     drawObjectsWithoutShadows(basicShader);
-}
-
-void ShadowApplication::drawTrajectory(const Shader &shader) {
-    std::vector<P3D> pos = controller.getPos();
-    std::vector<V3D> directions = controller.getDirections();
-    std::vector<V3D> actualDirections = controller.getActualDirections();
-    std::vector<P3D> actualPos = controller.getActualPos();
-    std::vector<float> rot = controller.getRot();
-    // std::vector<float> actualRot = controller.getActualRot();
-    std::vector<P3D> posHist = controller.getPosHist();
-    std::vector<float> rotHist = controller.getRotHist();
-
-    crl::gui::drawSphere(pos[0], 0.05, shader, V3D(1, 0.5, 0), 1.0);
-    for (int i = 0; i < pos.size() - 1; i++) {
-        // controller trajectory
-        //crl::gui::drawArrow3d(pos[i], V3D(pos[i], pos[i + 1]), world_frame_radius, shader, V3D(1, 0.5, 0), 1.0);
-        crl::gui::drawArrow3d(pos[i], directions[i], world_frame_radius*4, shader, V3D(0, 0, 1), 1.0);
-
-        
-        // animation trajectory
-        //crl::gui::drawArrow3d(actualPos[i], V3D(actualPos[i], actualPos[i + 1]), world_frame_radius, shader, V3D(1, 0.5, 1), 1.0);
-        crl::gui::drawArrow3d(actualPos[i], actualDirections[i], world_frame_radius*4, shader, V3D(1, 0, 1), 1.0);
-    }
-
-    // for (int i = 0; i < posHist.size(); i++) {
-    //     if (i < posHist.size() - 1) {
-    //         crl::gui::drawArrow3d(posHist[i], V3D(posHist[i], posHist[i + 1]), world_frame_radius, shader, V3D(1, 0.75, 0.5), 1.0);
-    //         crl::gui::drawArrow3d(posHist[i], V3D(posHist[i], posHist[i] + MxMUtils::angleToVector(rotHist[i]) * 0.25), world_frame_radius / 2, shader, V3D(1, 0.5, 0.75),
-    //                               1.0);
-    //     } else if (i == posHist.size() - 1) {
-    //         crl::gui::drawArrow3d(posHist[i], V3D(posHist[i], pos[0]), world_frame_radius, shader, V3D(1, 0.75, 0.5), 1.0);
-    //         crl::gui::drawArrow3d(posHist[i], V3D(posHist[i], posHist[i] + MxMUtils::angleToVector(rotHist[i]) * 0.25), world_frame_radius / 2, shader, V3D(1, 0.5, 0.75),
-    //                               1.0);
-    //     }
-    // }
 }
 
 void ShadowApplication::drawObjectsWithShadows(const Shader &shader) {

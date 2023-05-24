@@ -32,12 +32,14 @@ public:
     ~App() override {}
 
     void process() override {
-        controller.update(camera, database);
+        if(!bvhClips.empty()){
+            controller.update(camera, database);
+        }
 
         if (selectedBvhClipIdx == -1 && selectedC3dClipIdx == -1)
             return;
 
-        if (selectedBvhClipIdx > -1) {
+        if (animationPlayer && selectedBvhClipIdx > -1) {
             auto &clip = bvhClips[selectedBvhClipIdx];
             if (auto *skel = clip->getModel()) {
                 auto state = clip->getState(frameIdx);
@@ -80,9 +82,10 @@ public:
     }
 
     void drawShadowCastingObjects(const crl::gui::Shader &shader) override {
-        if (selectedBvhClipIdx > -1) {
+        if (!animationPlayer && 0 < bvhClips.size()) {
+            controller.drawSkeleton(shader);
+        } else  if (selectedBvhClipIdx > -1) {
             bvhClips[selectedBvhClipIdx]->draw(shader, frameIdx);
-            // bvhClips[selectedBvhClipIdx]->drawAt(shader, frameIdx, controller.getPos()[0], controller.getRot()[0]);
         }
         if (selectedC3dClipIdx > -1) {
             c3dClips[selectedC3dClipIdx]->draw(shader, frameIdx);
@@ -98,8 +101,12 @@ public:
     }
 
     void drawObjectsWithoutShadows(const crl::gui::Shader &shader) override {
-        if (selectedBvhClipIdx > -1)
+        if (!animationPlayer && 0 < bvhClips.size()) {
+            controller.drawSkeleton(shader);
+            controller.drawTrajectory(shader, database, drawControllerTrajectory, drawAnimationTrajectory);
+        } else if (selectedBvhClipIdx > -1) {
             bvhClips[selectedBvhClipIdx]->draw(shader, frameIdx);
+        }
         if (selectedC3dClipIdx > -1) {
             c3dClips[selectedC3dClipIdx]->draw(shader, frameIdx);
 
@@ -187,7 +194,30 @@ public:
         crl::gui::ShadowApplication::drawImGui();
 
         ImGui::Begin("Main Menu");
-        ImGui::Checkbox("Follow Character", &followCharacter);
+        if(ImGui::CollapsingHeader("Animation Player", ImGuiTreeNodeFlags_DefaultOpen)){
+            ImGui::Checkbox("Activate Animation Player", &animationPlayer);
+            ImGui::Checkbox("Follow Character", &followCharacter);
+            if (selectedBvhClipIdx > -1)
+                maxFrameIdx = bvhClips[selectedBvhClipIdx]->getFrameCount();
+            if(ImGui::ArrowButton("Prev Frame", ImGuiDir_Left))
+                frameIdx--;
+            ImGui::SameLine();
+            if(ImGui::ArrowButton("Next Frame", ImGuiDir_Right))
+                frameIdx++;
+            ImGui::SliderInt("Frame", &frameIdx, 0, maxFrameIdx-1, "%d");
+        }
+
+        if(ImGui::CollapsingHeader("Controller", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+           ImGui::Checkbox("Controller Trajectory", &drawControllerTrajectory);
+           ImGui::Checkbox("Animation Trajectory", &drawAnimationTrajectory);
+           ImGui::SliderFloat("Max Walk Speed", &controller.walkSpeed, 0.5f, 2.0f, "%.2f"); 
+           ImGui::SliderFloat("Max Run Speed", &controller.runSpeed, 2.0f, 7.0f, "%.2f");
+           ImGui::SliderInt("Match after Frames", &controller.motionMatchingRate, 3, 30);
+           ImGui::Checkbox("Inertialization", &controller.useInertialization);
+           ImGui::SliderFloat("Transition time", &controller.transitionTime, 0.1f, 1.0f, "%.2f");
+        }
+
         if (ImGui::CollapsingHeader("Mocap Data", ImGuiTreeNodeFlags_DefaultOpen)) {
             if (ImGui::TreeNode("Database Weights")) {
                 ImGui::SliderFloat("Trajectory Position Weight", &trajectoryPositionWeight, 0.0f, 10.0f, "%.2f");
@@ -341,6 +371,7 @@ public:
                        footPositionWeight, footVelocityWeight,
                        hipVelocityWeight,
                        &bvhClips);
+        controller.init(&keyboardState, &bvhClips);
     }
 
 private:
@@ -608,6 +639,8 @@ private:
     int selectedC3dClipIdx = -1;
     int selectedMarkerIdx = -1;
     int frameIdx = 0;
+    int maxFrameIdx = 0;
+    bool animationPlayer = false;
 
     // post processing
     std::vector<std::string> footMarkerNames;
@@ -619,13 +652,15 @@ private:
 
     // database processing
     bool loadWithMirror = true;
-    float trajectoryPositionWeight = 1.0;
-    float trajectoryFacingWeight = 1.5;
-    float footPositionWeight = 0.75;
-    float footVelocityWeight = 1.0;
-    float hipVelocityWeight = 1.0;
+    float trajectoryPositionWeight = 1.5;
+    float trajectoryFacingWeight = 0.8;
+    float footPositionWeight = 1.5;
+    float footVelocityWeight = 2.0;
+    float hipVelocityWeight = 2.0;
 
     // plot and visualization
+    bool drawControllerTrajectory = true;
+    bool drawAnimationTrajectory = false;
     bool followCharacter = true;
     bool showCoordinateFrames = false;
     bool showVirtualLimbs = true;

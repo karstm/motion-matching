@@ -12,12 +12,14 @@
 #include <crl-basic/gui/shadow_casting_light.h>
 #include <crl-basic/gui/shadow_map_fbo.h>
 #include <crl-basic/gui/mxm_utils.h>
+#include <crl-basic/gui/inertializationUtils.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <imgui_widgets/imGuIZMOquat.h>
 #include <imgui_widgets/imgui_add.h>
 #include <imgui_widgets/implot.h>
 #include <mocap/Database.h>
+#include <mocap/MocapClip.h>
 
 #include <thread>
 #include <deque>
@@ -32,49 +34,62 @@ namespace gui {
 
 class Controller {
 
+// Methods
 public:
-    // Constructor
     Controller(){};
-    void init(KeyboardState *keyboardState);
+    void init(KeyboardState *keyboardState, std::vector<std::unique_ptr<crl::mocap::BVHClip>> *clips);
     
-    // Methods
     void update(TrackingCamera &camera, Database &database);
-    std::vector<P3D> getPos();
-    std::vector<P3D> getActualPos();
-    std::vector<P3D> getPosHist();
-    std::vector<float> getRot();
-    std::vector<float> getRotHist();
-    std::vector<V3D> getDirections();
-    std::vector<V3D> getActualDirections();
-    int getClipIdx() { return clipIdx; }
-    int getFrameIdx() { return frameIdx; }
+    void drawSkeleton(const Shader &shader);
+    void drawTrajectory(const Shader &shader, Database &database, bool drawControllerTrajectory, bool drawAnimationTrajectory);
 
 private:
-    // Members
-    std::vector<P3D> pos, actualPos; // future positions arranged in chronological order (i.e. "future-r" positions at the back)
-    std::vector<V3D> directions, actualDirections; // future directions arranged in chronological order (i.e. "future-r" directions at the back)
-    std::deque<P3D> posHist; // historical positions arranged in chronological order (i.e. "past-er" positions at the front)
+    void updateControllerTrajectory();
+    void getInput(TrackingCamera &camera);
+
+// Members
+public:
+    float walkSpeed = 1.1f;
+    float runSpeed = 3.3f;
+    int motionMatchingRate = 6;
+    float transitionTime = 0.4f;
+    bool useInertialization = true;
+    
+private:
+    KeyboardState *keyboardState;
+    std::vector<std::unique_ptr<crl::mocap::BVHClip>> *clips = nullptr;
+    std::deque<mocap::MocapSkeletonState> motionStates;
+
+    std::vector<P3D> controllerPos; // future positions arranged in chronological order (i.e. "future-r" positions at the back)
+    std::vector<float> controllerRot; // future rotations about y-axis arranged in chronological order (0 degrees defined as z-axis)
     V3D vel;
     V3D acc;
     V3D velDesired;
-    
-    std::vector<float> rot; // future rotations about y-axis arranged in chronological order (0 degrees defined as z-axis)
-    std::deque<float> rotHist; // historical rotations arranged in chronological order
+
+    bool strafe = false;
+    bool run = false;
+
     float angVel;
     float rotDesired;
+
+
+    int lastMatchedFrameIdx = 85;
     int clipIdx = 0, frameIdx = 86;
-    int frameCount = 0;
-    const int targetFrameRate = 3;
+    int motionMatchingFrameCount = 0;
 
     float lambda = 4.0f;
     float lambdaRot = 6.0f;
     float dt;
-    KeyboardState *keyboardState;
     std::chrono::steady_clock::time_point prevTime;
     std::chrono::steady_clock::time_point currTime;
 
-    // Methods
-    void setInputDirection(TrackingCamera &camera);
+    // Inertialization
+    float t;
+    int numMarkers;
+    InertializationInfo rootPosInertializationInfo;
+    InertializationInfo rootOrientInertializationInfo;
+    std::vector<InertializationInfo> jointPositionInertializationInfos;
+    std::vector<InertializationInfo> jointOrientInertializationInfos;
 };
 
 }  // namespace gui

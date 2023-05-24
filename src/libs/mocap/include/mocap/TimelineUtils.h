@@ -99,7 +99,7 @@ public:
         cursorVal = getWindowCoord(t, timeStart, timeEnd);
         draw_list->AddLine(ImVec2(p.x + cursorVal, p.y), ImVec2(p.x + cursorVal, p.y + rowOffset), col_cursor);
         char timeText[100];
-        sprintf(timeText, "t = %2.2lfs", t);
+        snprintf(timeText, 100, "t = %2.2lfs", t);
         draw_list->AddText(ImVec2(p.x + cursorVal - height / 2.0, p.y + rowOffset + height * 0.5), col_cursor, timeText);
         draw_list->AddCircleFilled(ImVec2(p.x + cursorVal, p.y - 5), 5, col_cursor);
         draw_list->AddCircleFilled(ImVec2(p.x + cursorVal, p.y + rowOffset + 5), 5, col_cursor);
