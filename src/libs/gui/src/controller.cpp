@@ -17,6 +17,11 @@ void Controller::init(KeyboardState *keyboardState, std::vector<std::unique_ptr<
     vel = V3D(0, 0, 0);
     acc = V3D(0, 0, 0);
     angVel = 0.0;
+    for (int i=0; i<4; i++)
+    {
+        oldVerticalDir.push_back(0.0);
+        oldHorizontalDir.push_back(0.0);
+    }
 
     // initialize inertialization info
     numMarkers = clips->at(0)->getModel()->getMarkerCount();
@@ -48,13 +53,14 @@ void Controller::update(TrackingCamera &camera, Database &database) {
     // input handling
     camera.processRotation(dt);
     getInput(camera);
+    //FIXME: this might need to be called after the mothion matching update
     updateControllerTrajectory();
     camera.target = MxMUtils::V3Dtovec3(V3D(controllerPos[0]));
 
 
     // Motion Matching
     bool transition = false; //a transition only occurs if the motion matching algorithm changes the clip or frame index
-    if(motionMatchingFrameCount >= motionMatchingRate){
+    if(motionMatchingFrameCount >= motionMatchingRate || forceMatch){
         // prepare query
         std::vector<P3D> simulationPositions = {simulationPos, controllerPos[1], controllerPos[2], controllerPos[3]};
         std::vector<P3D> trajectoryPos = MxMUtils::worldToLocalPositions(simulationPositions, getRotationQuaternion(M_PI_2, V3D(0,1,0)) * simulationRot);
@@ -96,8 +102,8 @@ void Controller::update(TrackingCamera &camera, Database &database) {
     {   
         lastMatchSimulationPos = motionStates[0].getRootPosition();
         lastMatchSimulationRot = motionStates[0].getRootOrientation();
-        lastMatchAnimationPos = clips->at(clipIdx)->getState(frameIdx).getRootPosition();
-        lastMatchAnimationRot = clips->at(clipIdx)->getState(frameIdx).getRootOrientation();
+        lastMatchAnimationPos = clips->at(clipIdx)->getState(frameIdx-1).getRootPosition();
+        lastMatchAnimationRot = clips->at(clipIdx)->getState(frameIdx-1).getRootOrientation();
     }
 
     simulationRot = lastMatchSimulationRot * lastMatchAnimationRot.inverse() * state.getRootOrientation();
@@ -143,6 +149,8 @@ void Controller::update(TrackingCamera &camera, Database &database) {
     // negYrotation = MxMUtils::getYrotation(orient, true);
     // desiredOrientation = getRotationQuaternion(controllerRot[0] + PI/2.0, V3D(0, 1, 0));
     // motionStates[0].setRootOrientation(desiredOrientation * negYrotation * orient);
+    //motionStates[0].setRootOrientation(simulationRot);
+    //motionStates[0].setRootPosition(simulationPos); 
 
 
     // update frame
@@ -236,6 +244,22 @@ void Controller::getInput(TrackingCamera &camera){
         if(V3D(axis[0], 0, axis[1]).norm() > 0.15) {   
             horizontalDir = axis[0]; 
             verticalDir = -axis[1]; 
+        }
+    }
+
+    oldHorizontalDir.push_front(horizontalDir);
+    oldVerticalDir.push_front(verticalDir);
+    oldHorizontalDir.pop_back();
+    oldVerticalDir.pop_back();
+
+    V3D oldDirection = V3D(oldHorizontalDir[3], 0, oldVerticalDir[3]).normalized();
+    V3D newDirection = V3D(horizontalDir, 0, verticalDir).normalized();
+    
+    forceMatch = MxMUtils::angleBetweenVectors(oldDirection, newDirection) > M_PI_4/2.0; //Force Match angle is 22.5 degrees 
+    if(forceMatch) {
+        for (int i = 0; i < 4; i++) {
+            oldHorizontalDir[i] = horizontalDir;
+            oldVerticalDir[i] = verticalDir;
         }
     }
 

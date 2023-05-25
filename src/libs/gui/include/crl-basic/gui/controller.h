@@ -71,6 +71,8 @@ private:
     V3D vel;
     V3D acc;
     V3D velDesired;
+    std::deque<float> oldVerticalDir;
+    std::deque<float> oldHorizontalDir;
 
     bool strafe = false;
     bool run = false;
@@ -80,6 +82,7 @@ private:
 
     int clipIdx = 0, frameIdx = 1;
     int motionMatchingFrameCount = 0;
+    bool forceMatch = false;
 
     float lambda = 4.0f;
     float lambdaRot = 6.0f;
