@@ -201,12 +201,15 @@ int SizableGroundModel::getSize() const {
 }
 
 void SizableGroundModel::draw(const Shader &shader, const double &intensity, const V3D &groundColor, const V3D &gridColor) {
-    ground.draw(shader, groundColor * intensity);
     if (showGrid) {
+        ground.draw(shader, groundColor * intensity);
         for (int i = -size; i <= size; i++) {
             drawRectangle(P3D((double)i, 0.001, 0.0), V3D(0.0, 1.0, 0.0), 0.0, Vector2d(gridThickness, (double)size * 2.0), shader, gridColor);
             drawRectangle(P3D(0.0, 0.001, (double)i), V3D(0.0, 1.0, 0.0), 0.0, Vector2d((double)size * 2.0, gridThickness), shader, gridColor);
         }
+    } else {
+        checkerboard.draw(shader, V3D(0.75,0.75,0.75));
+        checkerboard2.draw(shader, V3D(0.95,0.95,0.95));
     }
 }
 

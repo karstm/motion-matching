@@ -75,6 +75,8 @@ private:
 public:
     double gridThickness = 0.025;
     bool showGrid = true;
+    Model checkerboard = Model(CRL_DATA_FOLDER "/meshes/checkerboard.obj");
+    Model checkerboard2 = Model(CRL_DATA_FOLDER "/meshes/checkerboard2.obj");
 };
 
 namespace rendering {
