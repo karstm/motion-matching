@@ -41,8 +41,10 @@ void Database::initializeAnnoy()
 void Database::build(float trajectoryPositionWeight, float trajectoryFacingWeight,
                      float footPositionWeight, float footVelocityWeight,
                      float hipVelocityWeight,
-                     std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhClips)
+                     std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhClips, int targetFramerate)
 {
+    this->targetFramerate = targetFramerate;
+
     //start timer
     crl::Logger::consolePrint("\nBuilding database...\n");
     auto start = std::chrono::high_resolution_clock::now();
@@ -211,13 +213,13 @@ void Database::readData(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhCl
         for (int frame = 0; frame < numFramesInClip; frame++)
         {
             sk->setState(&bvhClips->at(clipId)->getState(frame));
-            int frame10 = std::min(frame + 10, numFramesInClip-1);
-            int frame20 = std::min(frame + 20, numFramesInClip-1);
-            int frame30 = std::min(frame + 30, numFramesInClip-1);
+            int frame1_3 = std::min(frame + targetFramerate/3, numFramesInClip-1);
+            int frame2_3 = std::min(frame + 2*targetFramerate/3, numFramesInClip-1);
+            int frame3_3 = std::min(frame + targetFramerate, numFramesInClip-1);
 
-            auto sk1 = &bvhClips->at(clipId)->getState(frame10);
-            auto sk2 = &bvhClips->at(clipId)->getState(frame20);
-            auto sk3 = &bvhClips->at(clipId)->getState(frame30);
+            auto sk1 = &bvhClips->at(clipId)->getState(frame1_3);
+            auto sk2 = &bvhClips->at(clipId)->getState(frame2_3);
+            auto sk3 = &bvhClips->at(clipId)->getState(frame3_3);
             int offset = (frameSums[clipId] + frame) * noFeatures;
 
             getTrajectoryPositions(sk, sk1, sk2, sk3,  offset);

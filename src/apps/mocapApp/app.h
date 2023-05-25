@@ -214,7 +214,7 @@ public:
            ImGui::SliderFloat("Max Walk Speed", &controller.walkSpeed, 0.5f, 2.0f, "%.2f"); 
            ImGui::SliderFloat("Max Run Speed", &controller.runSpeed, 2.0f, 7.0f, "%.2f");
            ImGui::SliderFloat("Synchronization Factor", &controller.syncFactor, 0.0f, 1.0f, "%.2f");
-           ImGui::SliderInt("Match after Frames", &controller.motionMatchingRate, 3, 30);
+           ImGui::SliderInt("Match after Frames", &controller.motionMatchingRate, 3, 60);
            ImGui::Checkbox("Inertialization", &controller.useInertialization);
            ImGui::SliderFloat("Transition time", &controller.transitionTime, 0.1f, 1.0f, "%.2f");
         }
@@ -230,7 +230,7 @@ public:
                     if (!bvhClips.empty()){
                         database.build(trajectoryPositionWeight, trajectoryFacingWeight,
                                        footPositionWeight, footVelocityWeight,
-                                       hipVelocityWeight, &bvhClips);
+                                       hipVelocityWeight, &bvhClips, targetFramerate);
                     }
                     else {
                         crl::Logger::consolePrint("ERROR: Import mocap data to autocompute features\n");
@@ -371,8 +371,8 @@ public:
         database.build(trajectoryPositionWeight, trajectoryFacingWeight,
                        footPositionWeight, footVelocityWeight,
                        hipVelocityWeight,
-                       &bvhClips);
-        controller.init(&keyboardState, &bvhClips);
+                       &bvhClips, targetFramerate);
+        controller.init(&keyboardState, &bvhClips, targetFramerate);
     }
 
 private:
