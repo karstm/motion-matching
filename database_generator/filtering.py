@@ -5,7 +5,7 @@ from scipy.interpolate import griddata
 import numpy as np
 import glob
 
-upsample = False
+upsample = True
 
 import os
 os.chdir(os.path.dirname(__file__))
@@ -90,5 +90,5 @@ for filename in files:
     print('Loading "%s" ...' % (filename))
     bvh_data = generate_sim_bone(bvh=bvh.load(filename))  
     new_filename = os.path.basename(filename)[:-4]+ '_filtered.bvh'
-    new_file_name = os.path.join(os.path.dirname(__file__), "..", "data", "mocap", "lafan1_filtered", new_filename)
+    new_file_name = os.path.join(os.path.dirname(__file__), "..", "data", "mocap", "lafan1_filtered_60fps", new_filename)
     bvh.save(new_file_name, bvh_data, frametime=bvh_data['frametime'], save_hip_position=True)
