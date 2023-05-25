@@ -21,6 +21,7 @@ void Controller::init(KeyboardState *keyboardState, std::vector<std::unique_ptr<
     {
         oldVerticalDir.push_back(0.0);
         oldHorizontalDir.push_back(0.0);
+        oldSpeed.push_back(0.0);
     }
 
     // initialize inertialization info
@@ -52,15 +53,11 @@ void Controller::init(KeyboardState *keyboardState, std::vector<std::unique_ptr<
 void Controller::update(TrackingCamera &camera, Database &database) {
     // input handling
     camera.processRotation(dt);
-    getInput(camera);
-    //FIXME: this might need to be called after the mothion matching update
-    updateControllerTrajectory();
     camera.target = MxMUtils::V3Dtovec3(V3D(controllerPos[0]));
-
 
     // Motion Matching
     bool transition = false; //a transition only occurs if the motion matching algorithm changes the clip or frame index
-    if(motionMatchingFrameCount >= motionMatchingRate || forceMatch){
+    if(motionMatchingFrameCount >= motionMatchingRate || forceMatch) {
         // prepare query
         std::vector<P3D> simulationPositions = {simulationPos, controllerPos[1], controllerPos[2], controllerPos[3]};
         std::vector<P3D> trajectoryPos = MxMUtils::worldToLocalPositions(simulationPositions, getRotationQuaternion(M_PI_2, V3D(0,1,0)) * simulationRot);
@@ -93,15 +90,16 @@ void Controller::update(TrackingCamera &camera, Database &database) {
         // reset the frame count
         motionMatchingFrameCount = 0;
     }
-
+    getInput(camera);
+    updateControllerTrajectory();
     // copy the state for the current clip and frame
     mocap::MocapSkeletonState state = clips->at(clipIdx)->getState(frameIdx);
 
 
     if(transition)
     {   
-        lastMatchSimulationPos = motionStates[0].getRootPosition();
-        lastMatchSimulationRot = motionStates[0].getRootOrientation();
+        lastMatchSimulationPos = simulationPos;
+        lastMatchSimulationRot = simulationRot;
         lastMatchAnimationPos = clips->at(clipIdx)->getState(frameIdx-1).getRootPosition();
         lastMatchAnimationRot = clips->at(clipIdx)->getState(frameIdx-1).getRootOrientation();
     }
@@ -109,16 +107,13 @@ void Controller::update(TrackingCamera &camera, Database &database) {
     simulationRot = lastMatchSimulationRot * lastMatchAnimationRot.inverse() * state.getRootOrientation();
     simulationPos = lastMatchSimulationPos + lastMatchSimulationRot * lastMatchAnimationRot.inverse() * (V3D(lastMatchAnimationPos, state.getRootPosition()));
 
-    state.setRootOrientation(simulationRot);
-    state.setRootPosition(simulationPos);
-    
-
     // set root position and orientation to the controller
-    // state.setRootPosition(P3D(controllerPos[0][0], state.getRootPosition().y, controllerPos[0][2]));
-    //crl::Quaternion orient = state.getRootOrientation();
-    //crl::Quaternion negYrotation = MxMUtils::getYrotation(orient, true);
-    //Quaternion desiredOrientation = getRotationQuaternion(controllerRot[0] + PI/2.0, V3D(0, 1, 0));
-    //state.setRootOrientation(desiredOrientation * negYrotation * orient);
+    P3D finalPos = MxMUtils::lerp(simulationPos, controllerPos[0], syncFactor);
+    Quaternion controllerOrientation = getRotationQuaternion(controllerRot[0] - M_PI_2, V3D(0, 1, 0));
+    Quaternion finalRot = MxMUtils::quatNlerpShortest(simulationRot, controllerOrientation, syncFactor);
+    
+    state.setRootOrientation(finalRot);
+    state.setRootPosition(finalPos);
 
     // update the state queue
     // 0 = current state, 1 = previous state, 2 = previous previous state
@@ -141,17 +136,6 @@ void Controller::update(TrackingCamera &camera, Database &database) {
     // inertialization
     if(useInertialization)
         motionStates[0] = InertializationUtils::inertializeState(rootPosInertializationInfo, rootOrientInertializationInfo, jointPositionInertializationInfos, jointOrientInertializationInfos, numMarkers, motionStates[0], motionStates[1], t, dt); // here we use the new dt
-
-    // setting the root position and orientation to the controller again after inertialization
-    // this seems wrong but without this we get weird stutters
-    // motionStates[0].setRootPosition(P3D(controllerPos[0][0], motionStates[0].getRootPosition().y, controllerPos[0][2]));
-    // orient = motionStates[0].getRootOrientation();
-    // negYrotation = MxMUtils::getYrotation(orient, true);
-    // desiredOrientation = getRotationQuaternion(controllerRot[0] + PI/2.0, V3D(0, 1, 0));
-    // motionStates[0].setRootOrientation(desiredOrientation * negYrotation * orient);
-    //motionStates[0].setRootOrientation(simulationRot);
-    //motionStates[0].setRootPosition(simulationPos); 
-
 
     // update frame
     frameIdx++;
@@ -247,21 +231,6 @@ void Controller::getInput(TrackingCamera &camera){
         }
     }
 
-    oldHorizontalDir.push_front(horizontalDir);
-    oldVerticalDir.push_front(verticalDir);
-    oldHorizontalDir.pop_back();
-    oldVerticalDir.pop_back();
-
-    V3D oldDirection = V3D(oldHorizontalDir[3], 0, oldVerticalDir[3]).normalized();
-    V3D newDirection = V3D(horizontalDir, 0, verticalDir).normalized();
-    
-    forceMatch = MxMUtils::angleBetweenVectors(oldDirection, newDirection) > M_PI_4/2.0; //Force Match angle is 22.5 degrees 
-    if(forceMatch) {
-        for (int i = 0; i < 4; i++) {
-            oldHorizontalDir[i] = horizontalDir;
-            oldVerticalDir[i] = verticalDir;
-        }
-    }
 
     // compute desired velocity and rotation
     if (verticalDir != 0 || horizontalDir != 0) {
@@ -279,6 +248,29 @@ void Controller::getInput(TrackingCamera &camera){
         velDesired = V3D(0, 0, 0);
         rotDesired = controllerRot[0];
     }
+
+    oldHorizontalDir.push_front(horizontalDir);
+    oldVerticalDir.push_front(verticalDir);
+    oldHorizontalDir.pop_back();
+    oldVerticalDir.pop_back();
+
+    V3D oldDirection = V3D(oldHorizontalDir[3], 0, oldVerticalDir[3]).normalized();
+    V3D newDirection = V3D(horizontalDir, 0, verticalDir).normalized();
+    
+    oldSpeed.push_front(velDesired.norm());
+    oldSpeed.pop_back();
+
+    forceMatch = MxMUtils::angleBetweenVectors(oldDirection, newDirection) > M_PI_4/2.0; //Force Match angle is 22.5 degrees 
+    forceMatch = forceMatch || abs(oldSpeed[0] - oldSpeed[3]) > runSpeed/16.0; 
+
+    if(forceMatch) {
+        for (int i = 0; i < 4; i++) {
+            oldHorizontalDir[i] = horizontalDir;
+            oldVerticalDir[i] = verticalDir;
+            oldSpeed[i] = velDesired.norm();
+        }
+    }
+
 }
 
 // updates the controller position and rotation using the spring-damper model

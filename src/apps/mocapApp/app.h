@@ -213,6 +213,7 @@ public:
            ImGui::Checkbox("Animation Trajectory", &drawAnimationTrajectory);
            ImGui::SliderFloat("Max Walk Speed", &controller.walkSpeed, 0.5f, 2.0f, "%.2f"); 
            ImGui::SliderFloat("Max Run Speed", &controller.runSpeed, 2.0f, 7.0f, "%.2f");
+           ImGui::SliderFloat("Synchronization Factor", &controller.syncFactor, 0.0f, 1.0f, "%.2f");
            ImGui::SliderInt("Match after Frames", &controller.motionMatchingRate, 3, 30);
            ImGui::Checkbox("Inertialization", &controller.useInertialization);
            ImGui::SliderFloat("Transition time", &controller.transitionTime, 0.1f, 1.0f, "%.2f");

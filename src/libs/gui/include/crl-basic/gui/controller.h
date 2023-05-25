@@ -51,6 +51,7 @@ private:
 public:
     float walkSpeed = 1.1f;
     float runSpeed = 3.3f;
+    float syncFactor = 0.2f;
     int motionMatchingRate = 6;
     float transitionTime = 0.4f;
     bool useInertialization = true;
@@ -73,6 +74,7 @@ private:
     V3D velDesired;
     std::deque<float> oldVerticalDir;
     std::deque<float> oldHorizontalDir;
+    std::deque<float> oldSpeed;
 
     bool strafe = false;
     bool run = false;

@@ -91,6 +91,41 @@ public:
         }
         return localTrajDir;
     }
+
+    static inline float lerpf(float x, float y, float a)
+    {
+        return (1.0f - a) * x + a * y;
+    }
+
+    static crl::P3D lerp(crl::P3D v, crl::P3D w, float alpha)
+    {
+        return v * (1.0f - alpha) + w * alpha;
+    }
+
+    static crl::Quaternion quaternionLerp(crl::Quaternion q, crl::Quaternion p, float alpha)
+    {
+        return crl::Quaternion(
+                lerpf(q.w(), p.w(), alpha),
+                lerpf(q.x(), p.x(), alpha),
+                lerpf(q.y(), p.y(), alpha),
+                lerpf(q.z(), p.z(), alpha)
+            ).normalized();
+    }
+
+    static float quatDot(crl::Quaternion q, crl::Quaternion p)
+    {
+        return q.w()*p.w() + q.x()*p.x() + q.y()*p.y() + q.z()*p.z();
+    }
+
+    static crl::Quaternion quatNlerpShortest(crl::Quaternion q, crl::Quaternion p, float alpha)
+    {
+        if (quatDot(q, p) < 0.0f)
+        {
+            p = crl::Quaternion(-p.w(), -p.x(), -p.y(), -p.z());
+        }
+        
+        return quaternionLerp(q, p, alpha);
+    }
 };
 
 }  // namespace gui
