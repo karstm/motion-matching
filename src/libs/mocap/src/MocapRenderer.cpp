@@ -15,22 +15,24 @@ void MocapRenderer::drawMarker(const MocapMarker *joint, const crl::gui::Shader 
     drawSphere(joint->state.pos, linkCylinderRadius_ * 1.3, shader, jointDrawColor_);
 
     // bone ~ parent
-    if (joint->parent != NULL) {
+    if (joint->parent != NULL && joint->parent->parent != NULL) {
         P3D startPos = joint->parent->state.pos;
         P3D endPos = joint->state.pos;
         drawCapsule(startPos, endPos, linkCylinderRadius_, shader, drawColor);
     }
-    else{
+    else if(joint->parent == NULL){
         P3D startPos = joint->state.pos;
-        P3D endPos = startPos + joint->state.orientation * V3D(0.5, 0, 0);
-        drawCapsule(startPos, endPos, linkCylinderRadius_, shader, V3D(1, 0, 0));
+        V3D direction = joint->state.orientation * V3D(0.6, 0, 0);
+        drawArrow3d(startPos, direction, linkCylinderRadius_, shader, V3D(1, 0, 0));
     }
 
     // bone ~ children
     for (uint i = 0; i < joint->children.size(); i++) {
-        P3D startPos = joint->state.pos;
-        P3D endPos = joint->children[i]->state.pos;
-        drawCapsule(startPos, endPos, linkCylinderRadius_, shader, drawColor);
+        if(joint->parent != NULL) {
+            P3D startPos = joint->state.pos;
+            P3D endPos = joint->children[i]->state.pos;
+            drawCapsule(startPos, endPos, linkCylinderRadius_, shader, drawColor);
+        }
     }
 
     // bone ~ end effector
