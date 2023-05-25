@@ -31,7 +31,7 @@ def animation_mirror(i, j, lrot, lpos, names):
     return rot_mirror, pos_mirror, new_names
 
 """ Files to Process """
-folder_path = os.path.join(os.path.dirname(__file__), "..", "data", "mocap", "lafan1")
+folder_path = os.path.join(os.path.dirname(__file__), "..", "data", "mocap", "lafan1_selected")
 files = glob.glob(os.path.join(folder_path, "*"))
 
 """ Loop Over Files """
@@ -51,4 +51,4 @@ for filename in files:
 
             mirrored_file_name = filename[:-4] + '_mirror.bvh'
 
-            bvh.save(mirrored_file_name, bvh_data, frametime=bvh_data['frametime'])
+            bvh.save(mirrored_file_name, bvh_data, frametime=bvh_data['frametime'], flip=True)

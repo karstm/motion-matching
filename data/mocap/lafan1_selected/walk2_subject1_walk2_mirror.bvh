@@ -2,7 +2,7 @@ HIERARCHY
 ROOT Hips
 {
 	OFFSET -218.811600 91.910019 -434.508209
-	CHANNELS 6 Xposition Yposition Zposition Xrotation Yrotation Zrotation 
+	CHANNELS 6 Xposition Yposition Zposition Zrotation Yrotation Xrotation 
 	JOINT RightUpLeg
 	{
 		OFFSET 0.103459 1.857842 10.548500
