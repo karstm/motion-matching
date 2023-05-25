@@ -62,6 +62,12 @@ private:
 
     std::vector<P3D> controllerPos; // future positions arranged in chronological order (i.e. "future-r" positions at the back)
     std::vector<float> controllerRot; // future rotations about y-axis arranged in chronological order (0 degrees defined as z-axis)
+    P3D simulationPos;
+    Quaternion simulationRot;
+    P3D lastMatchAnimationPos;
+    Quaternion lastMatchAnimationRot;
+    P3D lastMatchSimulationPos;
+    Quaternion lastMatchSimulationRot;
     V3D vel;
     V3D acc;
     V3D velDesired;
@@ -72,9 +78,7 @@ private:
     float angVel;
     float rotDesired;
 
-
-    int lastMatchedFrameIdx = 85;
-    int clipIdx = 0, frameIdx = 86;
+    int clipIdx = 0, frameIdx = 1;
     int motionMatchingFrameCount = 0;
 
     float lambda = 4.0f;

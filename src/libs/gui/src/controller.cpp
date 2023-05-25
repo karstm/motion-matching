@@ -12,6 +12,8 @@ void Controller::init(KeyboardState *keyboardState, std::vector<std::unique_ptr<
         controllerPos.push_back(P3D(0, 0, 0));
         controllerRot.push_back(M_PI);
     }
+    simulationPos = controllerPos[0];
+    simulationRot = getRotationQuaternion(PI/2.0, V3D(0, 1, 0));
     vel = V3D(0, 0, 0);
     acc = V3D(0, 0, 0);
     angVel = 0.0;
@@ -27,8 +29,16 @@ void Controller::init(KeyboardState *keyboardState, std::vector<std::unique_ptr<
 
     // initialize states
     for (int i = 0; i < 3 ; i++) {
-        motionStates.push_front(clips->at(clipIdx)->getState(frameIdx++));
+        mocap::MocapSkeletonState state = clips->at(0)->getState(frameIdx++);
+        state.setRootPosition(simulationPos);
+        state.setRootOrientation(simulationRot);
+        motionStates.push_front(state);
     }
+    lastMatchAnimationPos = clips->at(0)->getState(frameIdx - 1).getRootPosition();
+    lastMatchAnimationRot = clips->at(0)->getState(frameIdx - 1).getRootOrientation();
+
+    lastMatchSimulationPos = simulationPos;
+    lastMatchSimulationRot = simulationRot;
 
     // initialize time
     prevTime = std::chrono::steady_clock::now();
@@ -46,8 +56,17 @@ void Controller::update(TrackingCamera &camera, Database &database) {
     bool transition = false; //a transition only occurs if the motion matching algorithm changes the clip or frame index
     if(motionMatchingFrameCount >= motionMatchingRate){
         // prepare query
-        std::vector<P3D> trajectoryPos = MxMUtils::worldToLocalPositions(controllerPos, controllerRot[0]);
-        std::vector<float> trajectoryAngle = MxMUtils::worldToLocalDirectionsAngle(controllerRot);
+        std::vector<P3D> simulationPositions = {simulationPos, controllerPos[1], controllerPos[2], controllerPos[3]};
+        std::vector<P3D> trajectoryPos = MxMUtils::worldToLocalPositions(simulationPositions, getRotationQuaternion(M_PI_2, V3D(0,1,0)) * simulationRot);
+
+        double alpha, beta, gamma;
+        V3D side = V3D(1,0,0);
+        V3D up = V3D(0,1,0);
+        V3D front = V3D(0,0,1);
+        computeEulerAnglesFromQuaternion(getRotationQuaternion(-M_PI_2, V3D(0,1,0)) * simulationRot, front, side, up, alpha, beta, gamma);
+        gamma = gamma+M_PI;
+        std::vector<float> simulationAngles = {(float)gamma, controllerRot[1], controllerRot[2], controllerRot[3]};
+        std::vector<float> trajectoryAngle = MxMUtils::worldToLocalDirectionsAngle(simulationAngles);
         std::vector<V3D> trajectoryDir;
         for (int i = 0; i < trajectoryAngle.size(); i++) {
             trajectoryDir.push_back(V3D(sin(trajectoryAngle[i]), 0, cos(trajectoryAngle[i])));
@@ -72,12 +91,28 @@ void Controller::update(TrackingCamera &camera, Database &database) {
     // copy the state for the current clip and frame
     mocap::MocapSkeletonState state = clips->at(clipIdx)->getState(frameIdx);
 
+
+    if(transition)
+    {   
+        lastMatchSimulationPos = motionStates[0].getRootPosition();
+        lastMatchSimulationRot = motionStates[0].getRootOrientation();
+        lastMatchAnimationPos = clips->at(clipIdx)->getState(frameIdx).getRootPosition();
+        lastMatchAnimationRot = clips->at(clipIdx)->getState(frameIdx).getRootOrientation();
+    }
+
+    simulationRot = lastMatchSimulationRot * lastMatchAnimationRot.inverse() * state.getRootOrientation();
+    simulationPos = lastMatchSimulationPos + lastMatchSimulationRot * lastMatchAnimationRot.inverse() * (V3D(lastMatchAnimationPos, state.getRootPosition()));
+
+    state.setRootOrientation(simulationRot);
+    state.setRootPosition(simulationPos);
+    
+
     // set root position and orientation to the controller
-    state.setRootPosition(P3D(controllerPos[0][0], state.getRootPosition().y, controllerPos[0][2]));
-    crl::Quaternion orient = state.getRootOrientation();
-    crl::Quaternion negYrotation = MxMUtils::getYrotation(orient, true);
-    Quaternion desiredOrientation = getRotationQuaternion(controllerRot[0] + PI/2.0, V3D(0, 1, 0));
-    state.setRootOrientation(desiredOrientation * negYrotation * orient);
+    // state.setRootPosition(P3D(controllerPos[0][0], state.getRootPosition().y, controllerPos[0][2]));
+    //crl::Quaternion orient = state.getRootOrientation();
+    //crl::Quaternion negYrotation = MxMUtils::getYrotation(orient, true);
+    //Quaternion desiredOrientation = getRotationQuaternion(controllerRot[0] + PI/2.0, V3D(0, 1, 0));
+    //state.setRootOrientation(desiredOrientation * negYrotation * orient);
 
     // update the state queue
     // 0 = current state, 1 = previous state, 2 = previous previous state
@@ -103,11 +138,12 @@ void Controller::update(TrackingCamera &camera, Database &database) {
 
     // setting the root position and orientation to the controller again after inertialization
     // this seems wrong but without this we get weird stutters
-    motionStates[0].setRootPosition(P3D(controllerPos[0][0], motionStates[0].getRootPosition().y, controllerPos[0][2]));
-    orient = motionStates[0].getRootOrientation();
-    negYrotation = MxMUtils::getYrotation(orient, true);
-    desiredOrientation = getRotationQuaternion(controllerRot[0] + PI/2.0, V3D(0, 1, 0));
-    motionStates[0].setRootOrientation(desiredOrientation * negYrotation * orient);
+    // motionStates[0].setRootPosition(P3D(controllerPos[0][0], motionStates[0].getRootPosition().y, controllerPos[0][2]));
+    // orient = motionStates[0].getRootOrientation();
+    // negYrotation = MxMUtils::getYrotation(orient, true);
+    // desiredOrientation = getRotationQuaternion(controllerRot[0] + PI/2.0, V3D(0, 1, 0));
+    // motionStates[0].setRootOrientation(desiredOrientation * negYrotation * orient);
+
 
     // update frame
     frameIdx++;
@@ -123,7 +159,8 @@ void Controller::drawTrajectory(const Shader &shader, Database &database, bool d
     // compute trajectory
     float dbEntry[27];
     database.getEntry(clipIdx, frameIdx, dbEntry);
-    P3D p0 = controllerPos[0];
+    //P3D p0 = controllerPos[0];
+    P3D p0 = simulationPos;
     V3D p1 = V3D(dbEntry[0], 0, dbEntry[1]);
     V3D p2 = V3D(dbEntry[2], 0, dbEntry[3]);
     V3D p3 = V3D(dbEntry[4], 0, dbEntry[5]);

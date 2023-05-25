@@ -187,7 +187,7 @@ bool Database::getClipAndFrame(int lineNumber, int& clip_id, int& frame) {
     // search on the frameSums to find the clip id
     // decided against binary search since array is only about 60 entries max
     clip_id = 0;
-    while (lineNumber > frameSums[clip_id + 1])
+    while (lineNumber >= frameSums[clip_id + 1])
         clip_id++;
 
     //find the frame number
