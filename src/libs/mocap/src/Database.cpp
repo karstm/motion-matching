@@ -1,6 +1,9 @@
+#undef NDEBUG
+
 #include "mocap/Database.h"
 #include "crl-basic/gui/mxm_utils.h"
 #include <algorithm>
+#include <cassert>
 
 // Empty constructor to allow for member initialization
 Database::Database() {
@@ -121,6 +124,7 @@ void Database::match(std::vector<crl::P3D>& trajectoryPositions, std::vector<crl
     // get the line number from the nearest neighbor
     lineNumber = closest[0];
     getClipAndFrame(lineNumber, clip_id, frame);
+    assert(frame <= frameSums[clip_id + 1] - frameSums[clip_id] - endFramesWhereIgnoreMatching);
 }
 
 void Database::getEntry(int clip_id, int frame, float* entry)

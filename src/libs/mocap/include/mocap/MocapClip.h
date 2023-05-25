@@ -39,7 +39,7 @@ public:
     }
 
     StateType &getState(uint frameIdx) {
-        return motions_[frameIdx];
+        return motions_.at(frameIdx);
     }
 
     uint getFrameCount() const {
