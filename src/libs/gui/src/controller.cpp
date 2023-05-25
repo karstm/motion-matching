@@ -13,7 +13,7 @@ void Controller::init(KeyboardState *keyboardState, std::vector<std::unique_ptr<
         controllerRot.push_back(M_PI);
     }
     simulationPos = controllerPos[0];
-    simulationRot = getRotationQuaternion(PI/2.0, V3D(0, 1, 0));
+    simulationRot = getRotationQuaternion(M_PI_2, V3D(0, 1, 0));
     vel = V3D(0, 0, 0);
     acc = V3D(0, 0, 0);
     angVel = 0.0;
@@ -151,7 +151,6 @@ void Controller::drawTrajectory(const Shader &shader, Database &database, bool d
     // compute trajectory
     float dbEntry[27];
     database.getEntry(clipIdx, frameIdx, dbEntry);
-    //P3D p0 = controllerPos[0];
     P3D p0 = simulationPos;
     V3D p1 = V3D(dbEntry[0], 0, dbEntry[1]);
     V3D p2 = V3D(dbEntry[2], 0, dbEntry[3]);
