@@ -3,9 +3,11 @@
 namespace crl {
 namespace gui {
 
-void Controller::init(KeyboardState *keyboardState, std::vector<std::unique_ptr<crl::mocap::BVHClip>> *clips) {
+void Controller::init(KeyboardState *keyboardState, std::vector<std::unique_ptr<crl::mocap::BVHClip>> *clips, int targetFramerate) {
     this->keyboardState = keyboardState;
     this->clips = clips;
+    this->targetFramerate = targetFramerate;
+    motionMatchingRate = targetFramerate/5;
 
     // initialize controller
     for (int i = 0; i < 4; i++) {
@@ -17,7 +19,7 @@ void Controller::init(KeyboardState *keyboardState, std::vector<std::unique_ptr<
     vel = V3D(0, 0, 0);
     acc = V3D(0, 0, 0);
     angVel = 0.0;
-    for (int i=0; i<4; i++)
+    for (int i=0; i<(targetFramerate/10)+1; i++)
     {
         oldVerticalDir.push_back(0.0);
         oldHorizontalDir.push_back(0.0);
@@ -253,17 +255,17 @@ void Controller::getInput(TrackingCamera &camera){
     oldHorizontalDir.pop_back();
     oldVerticalDir.pop_back();
 
-    V3D oldDirection = V3D(oldHorizontalDir[3], 0, oldVerticalDir[3]).normalized();
+    V3D oldDirection = V3D(oldHorizontalDir.back(), 0, oldVerticalDir.back()).normalized();
     V3D newDirection = V3D(horizontalDir, 0, verticalDir).normalized();
     
     oldSpeed.push_front(velDesired.norm());
     oldSpeed.pop_back();
 
     forceMatch = MxMUtils::angleBetweenVectors(oldDirection, newDirection) > M_PI_4/2.0; //Force Match angle is 22.5 degrees 
-    forceMatch = forceMatch || abs(oldSpeed[0] - oldSpeed[3]) > runSpeed/16.0; 
+    forceMatch = forceMatch || abs(oldSpeed.front() - oldSpeed.back()) > runSpeed/16.0; 
 
     if(forceMatch) {
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < oldDirection.size(); i++) {
             oldHorizontalDir[i] = horizontalDir;
             oldVerticalDir[i] = verticalDir;
             oldSpeed[i] = velDesired.norm();

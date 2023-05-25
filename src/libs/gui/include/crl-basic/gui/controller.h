@@ -37,7 +37,7 @@ class Controller {
 // Methods
 public:
     Controller(){};
-    void init(KeyboardState *keyboardState, std::vector<std::unique_ptr<crl::mocap::BVHClip>> *clips);
+    void init(KeyboardState *keyboardState, std::vector<std::unique_ptr<crl::mocap::BVHClip>> *clips, int targetFramerate);
     
     void update(TrackingCamera &camera, Database &database);
     void drawSkeleton(const Shader &shader);
@@ -82,6 +82,7 @@ private:
     float angVel;
     float rotDesired;
 
+    int targetFramerate;
     int clipIdx = 0, frameIdx = 1;
     int motionMatchingFrameCount = 0;
     bool forceMatch = false;
