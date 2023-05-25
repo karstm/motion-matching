@@ -29,7 +29,7 @@ void Database::initializeAnnoy()
     char **error = (char**)malloc(sizeof(char*));
     
     for (int clipId = 0; clipId < frameSums.size() - 1; clipId++) {
-        for (int frame = frameSums[clipId]; frame < frameSums[clipId + 1] - endFramesWhereIgnoreMatching; frame++) {
+        for (int frame = frameSums[clipId] + 1; frame < frameSums[clipId + 1] - endFramesWhereIgnoreMatching; frame++) {
             annoyIndex->add_item(frame, data + frame * noFeatures, error);
         }
     }

@@ -51,6 +51,7 @@ private:
 public:
     float walkSpeed = 1.1f;
     float runSpeed = 3.3f;
+    float syncFactor = 0.2f;
     int motionMatchingRate = 6;
     float transitionTime = 0.4f;
     bool useInertialization = true;
@@ -62,9 +63,18 @@ private:
 
     std::vector<P3D> controllerPos; // future positions arranged in chronological order (i.e. "future-r" positions at the back)
     std::vector<float> controllerRot; // future rotations about y-axis arranged in chronological order (0 degrees defined as z-axis)
+    P3D simulationPos;
+    Quaternion simulationRot;
+    P3D lastMatchAnimationPos;
+    Quaternion lastMatchAnimationRot;
+    P3D lastMatchSimulationPos;
+    Quaternion lastMatchSimulationRot;
     V3D vel;
     V3D acc;
     V3D velDesired;
+    std::deque<float> oldVerticalDir;
+    std::deque<float> oldHorizontalDir;
+    std::deque<float> oldSpeed;
 
     bool strafe = false;
     bool run = false;
@@ -72,10 +82,9 @@ private:
     float angVel;
     float rotDesired;
 
-
-    int lastMatchedFrameIdx = 0;
-    int clipIdx = 0, frameIdx = 0;
+    int clipIdx = 0, frameIdx = 1;
     int motionMatchingFrameCount = 0;
+    bool forceMatch = false;
 
     float lambda = 4.0f;
     float lambdaRot = 6.0f;

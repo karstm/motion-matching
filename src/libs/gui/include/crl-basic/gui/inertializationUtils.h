@@ -96,7 +96,7 @@ public:
                                         double t, double dt) {
         mocap::MocapSkeletonState inertializedState = state;
         // root
-        {
+        if(false){
             // position
             V3D rootPosition = V3D(state.getRootPosition());
 
