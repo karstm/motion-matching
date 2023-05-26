@@ -112,7 +112,10 @@ void Controller::update(TrackingCamera &camera, Database &database) {
     // set root position and orientation to the lerp between controller position and simulation position
     P3D finalPos = MxMUtils::lerp(simulationPos, controllerPos[0], syncFactor);
     Quaternion controllerOrientation = getRotationQuaternion(controllerRot[0] - M_PI_2, V3D(0, 1, 0));
-    Quaternion finalRot = MxMUtils::quatLerpY(simulationRot, controllerOrientation, syncFactor);
+    
+    // FIXME: this is skipping when the shortest angle suddenly changes
+    //Quaternion finalRot = MxMUtils::quatNlerpShortest(simulationRot, controllerOrientation, syncFactor);
+    Quaternion finalRot = simulationRot;
 
     state.setRootOrientation(finalRot);
     state.setRootPosition(finalPos);
