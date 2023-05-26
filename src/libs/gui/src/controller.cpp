@@ -435,8 +435,14 @@ void Controller::updateFootLocking() {
 
     footLockingStates.push_front(footLockingState);
     footLockingStates.pop_back();
+
+    // contact transition happens only only one frame after the contact is made
+    bool transition = !lFootInContact && contactHistories[0].at(0);
+    transition = transition || (!rFootInContact && contactHistories[1].at(0));
+    transition = transition || (!contactHistories[0].at(1) && contactHistories[0].at(0));
+    transition = transition || (!contactHistories[1].at(1) && contactHistories[1].at(0));
     
-    if ((rFootInContact != contactHistories[1].at(0)) || (lFootInContact != contactHistories[0].at(0))) {
+    if (transition) {
         // set inertialization info
         InertializationUtils::computeInertializationInfo(rootPosInertializationInfo_footLocking, 
                                                          rootOrientInertializationInfo_footLocking, 
