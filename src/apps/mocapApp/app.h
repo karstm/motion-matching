@@ -216,6 +216,7 @@ public:
            ImGui::SliderFloat("Synchronization Factor", &controller.syncFactor, 0.0f, 1.0f, "%.2f");
            ImGui::SliderInt("Match after Frames", &controller.motionMatchingRate, 3, 60);
            ImGui::Checkbox("Inertialization", &controller.useInertialization);
+           ImGui::Checkbox("Foot Locking", &controller.useFootLocking);
            ImGui::SliderFloat("Transition time", &controller.transitionTime, 0.1f, 1.0f, "%.2f");
         }
 

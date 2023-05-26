@@ -42,11 +42,27 @@ void Controller::init(KeyboardState *keyboardState, std::vector<std::unique_ptr<
         state.setRootOrientation(simulationRot);
         motionStates.push_front(state);
     }
+
     lastMatchAnimationPos = clips->at(0)->getState(frameIdx - 1).getRootPosition();
     lastMatchAnimationRot = clips->at(0)->getState(frameIdx - 1).getRootOrientation();
 
     lastMatchSimulationPos = simulationPos;
     lastMatchSimulationRot = simulationRot;
+
+    // initialize foot locking
+    for (int i = 0; i < 3 ; i++) {
+        mocap::MocapSkeletonState state = clips->at(0)->getState(frameIdx-3+i);
+        state.setRootPosition(simulationPos);
+        state.setRootOrientation(simulationRot);
+        footLockedStates.push_front(state);
+    }
+    for(int i = 0; i < footMarkerNames.size(); i++){
+        std::deque<bool> cHistory;
+        contactHistories.push_back(cHistory);
+        for(int j = 0; j < (targetFramerate/6)+1; j++){
+            contactHistories[i].push_front(true);
+        }
+    }
 
     // initialize time
     prevTime = std::chrono::steady_clock::now();
@@ -128,7 +144,7 @@ void Controller::update(TrackingCamera &camera, Database &database) {
         InertializationUtils::computeInertializationInfo(rootPosInertializationInfo, rootOrientInertializationInfo, jointPositionInertializationInfos, jointOrientInertializationInfos, numMarkers, motionStates[2], motionStates[1], motionStates[0], transitionTime, dt); //here we use the old dt
         t = 0;
     }
-    
+
     // time keeping
     t += dt;
     currTime = std::chrono::steady_clock::now();
@@ -138,6 +154,13 @@ void Controller::update(TrackingCamera &camera, Database &database) {
     // inertialization
     if(useInertialization)
         motionStates[0] = InertializationUtils::inertializeState(rootPosInertializationInfo, rootOrientInertializationInfo, jointPositionInertializationInfos, jointOrientInertializationInfos, numMarkers, motionStates[0], motionStates[1], t, dt); // here we use the new dt
+    
+    if(useFootLocking){
+        updateFootLocking();
+    } else{
+        footLockedStates.push_front(motionStates[0]);
+        footLockedStates.pop_back();
+    }
 
     // update frame
     frameIdx++;
@@ -146,7 +169,7 @@ void Controller::update(TrackingCamera &camera, Database &database) {
 
 void Controller::drawSkeleton(const Shader &shader)
 {
-    clips->at(clipIdx)->drawState(shader, &motionStates[0]);
+    clips->at(clipIdx)->drawState(shader, &footLockedStates[0]);
 }
 
 void Controller::drawTrajectory(const Shader &shader, Database &database, bool drawControllerTrajectory, bool drawAnimationTrajectory) {
@@ -316,5 +339,25 @@ void Controller::updateControllerTrajectory()
     }
 
 }
+
+void Controller::updateFootLocking() {
+    crl::mocap::MocapSkeleton *sk = clips->at(clipIdx)->getModel();
+    crl::mocap::MocapSkeletonState st = motionStates[0];
+
+    sk->setState(&motionStates[0]);
+    for (int i = 0; i < footMarkerNames.size(); i++) {
+        bool isInContact = FootlockingUtils::isInContact(sk, footMarkerNames[i]);
+        Logger::consolePrint("%s: %d; ", footMarkerNames[i], isInContact);
+        contactHistories[i].push_front(isInContact);
+        contactHistories[i].pop_back();
+    }
+    Logger::consolePrint("\n");
+
+    // FIXME:
+    footLockedStates.push_front(motionStates[0]);
+    footLockedStates.pop_back();
+}
+
+
 }  // namespace gui
 }  // namespace crl
