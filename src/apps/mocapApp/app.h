@@ -377,7 +377,7 @@ public:
                        hipVelocityWeight,
                        &bvhClips, targetFramerate);
         footLocking.init(&bvhClips);
-        controller.init(&keyboardState, &bvhClips, &footLocking, targetFramerate);
+        controller.init(&keyboardState, &bvhClips, &footLocking, CRL_MOCAP_DATA_FOLDER, targetFramerate);
     }
 
 private:

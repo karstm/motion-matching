@@ -70,7 +70,7 @@ private:
         V3D eevel =  V3D(currPos, prevPos) / dt;
         bool isInContact = currPos.y < footHeightThreshold && eevel.norm() < footSpeedThreshold;
 
-        Logger::consolePrint("%s: %f, %f, %d; \n", jointName, currPos.y, eevel.norm(), isInContact);
+        Logger::consolePrint("%s: %f, %f, %d; \n", jointName.c_str(), currPos.y, eevel.norm(), isInContact);
         return isInContact;
     }
 

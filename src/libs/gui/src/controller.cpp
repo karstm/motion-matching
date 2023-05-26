@@ -4,7 +4,7 @@
 namespace crl {
 namespace gui {
 
-void Controller::init(KeyboardState *keyboardState, std::vector<std::unique_ptr<crl::mocap::BVHClip>> *clips, Footlocking *footLocking, int targetFramerate) {
+void Controller::init(KeyboardState *keyboardState, std::vector<std::unique_ptr<crl::mocap::BVHClip>> *clips, Footlocking *footLocking, const char *dataPath, int targetFramerate) {
     this->keyboardState = keyboardState;
     this->clips = clips;
     this->footLocking = footLocking;
@@ -65,11 +65,20 @@ void Controller::init(KeyboardState *keyboardState, std::vector<std::unique_ptr<
             contactHistories[i].push_front(true);
         }
     }
-    // crl::mocap::MocapSkeleton sk = crl::mocap::MocapSkeleton(*(clips->at(0)->getModel()));
-    playerSkeleton = std::make_unique<crl::mocap::MocapSkeleton>(crl::mocap::MocapSkeleton(*(clips->at(0)->getModel())));
+
+    if(playerSkeleton != nullptr)
+        delete playerSkeleton;
+    
+    std::string mocapPath = fs::path(dataPath).append("lafan1_filtered_60fps/aiming1_subject1_walk2_filtered.bvh").string();
+    playerSkeleton = new crl::mocap::MocapSkeleton(mocapPath.c_str());
+    playerSkeleton->setState(&motionStates[0]);
 
     // initialize time
     prevTime = std::chrono::steady_clock::now();
+}
+
+Controller::~Controller() {
+    delete playerSkeleton;
 }
 
 void Controller::update(TrackingCamera &camera, Database &database) {
@@ -161,7 +170,9 @@ void Controller::update(TrackingCamera &camera, Database &database) {
     // inertialization
     if(useInertialization)
         motionStates[0] = InertializationUtils::inertializeState(rootPosInertializationInfo, rootOrientInertializationInfo, jointPositionInertializationInfos, jointOrientInertializationInfos, numMarkers, motionStates[0], motionStates[1], t, dt); // here we use the new dt
-    
+
+    playerSkeleton->setState(&motionStates[0]);
+
     if(useFootLocking){
         updateFootLocking();
     } else{
@@ -176,7 +187,6 @@ void Controller::update(TrackingCamera &camera, Database &database) {
 
 void Controller::drawSkeleton(const Shader &shader)
 {
-    playerSkeleton->setState(&footLockedStates[0]);
     playerSkeleton->draw(shader);
     // clips->at(clipIdx)->drawState(shader, &footLockedStates[0]);
 }
@@ -350,6 +360,7 @@ void Controller::updateControllerTrajectory()
 }
 
 void Controller::updateFootLocking() {
+    
     crl::mocap::MocapSkeleton *sk = clips->at(clipIdx)->getModel();
     //crl::mocap::MocapSkeletonState stPrev = clips->at(clipIdx)->getState(frameIdx-1);
     crl::mocap::MocapSkeletonState stCurr = clips->at(clipIdx)->getState(frameIdx);
@@ -362,9 +373,20 @@ void Controller::updateFootLocking() {
     std::tie(lFootInContact, rFootInContact) = footLocking->isFootInContact(clipIdx, frameIdx);
 
     if (lFootInContact && !lFootInContactPrev) {
-        crl::mocap::MocapMarker *lFootMarker = sk->getMarkerByName(footLocking->lFoot.c_str());
+        crl::mocap::MocapMarker *lFootMarker = playerSkeleton->getMarkerByName(footLocking->lFoot.c_str());
         lFootLockedPos = lFootMarker->state.pos;
         //stCurr.get
+    } else if (lFootInContact && lFootInContactPrev) {
+        playerSkeleton->getMarkerByName(footLocking->lFoot.c_str())->state.pos = lFootLockedPos;
+    }
+
+    if (rFootInContact && !rFootInContactPrev) {
+        crl::mocap::MocapMarker *rFootMarker = playerSkeleton->getMarkerByName(footLocking->rFoot.c_str());
+        rFootLockedPos = rFootMarker->state.pos;
+        //stCurr.get
+    } else if (rFootInContact && rFootInContactPrev) {
+        
+        playerSkeleton->getMarkerByName(footLocking->rFoot.c_str())->state.pos = rFootLockedPos;
     }
 
      

@@ -37,8 +37,11 @@ class Controller {
 
 // Methods
 public:
-    Controller() {};
-    void init(KeyboardState *keyboardState, std::vector<std::unique_ptr<crl::mocap::BVHClip>> *clips, Footlocking *footLocking, int targetFramerate);
+    Controller() {
+        playerSkeleton = nullptr;
+    };
+    ~Controller();
+    void init(KeyboardState *keyboardState, std::vector<std::unique_ptr<crl::mocap::BVHClip>> *clips, Footlocking *footLocking, const char* dataPath, int targetFramerate);
     
     void update(TrackingCamera &camera, Database &database);
     void drawSkeleton(const Shader &shader);
@@ -60,7 +63,7 @@ public:
     bool useFootLocking = true;
  
 private:
-    std::unique_ptr<crl::mocap::MocapSkeleton> playerSkeleton;
+    crl::mocap::MocapSkeleton *playerSkeleton = nullptr;
     KeyboardState *keyboardState;
     std::vector<std::unique_ptr<crl::mocap::BVHClip>> *clips = nullptr;
     Footlocking *footLocking;
