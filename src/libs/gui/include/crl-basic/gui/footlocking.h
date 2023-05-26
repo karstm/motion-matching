@@ -4,6 +4,7 @@
 #include <tuple>
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include <deque>
 
 #include <crl-basic/gui/camera.h>
 #include <imgui_widgets/imGuIZMOquat.h>
@@ -33,6 +34,8 @@ public:
                 lContactInfo.push_back(isInContact(sk, stPrev, stCurr, lFoot, 1 / 60.0));
                 rContactInfo.push_back(isInContact(sk, stPrev, stCurr, rFoot, 1 / 60.0));
             }
+            orgLContactInfos.push_back(lContactInfo);
+            orgRContactInfos.push_back(rContactInfo);
             lContactInfo = filterContacts(lContactInfo, 5);
             rContactInfo = filterContacts(rContactInfo, 5);
             lContactInfos.push_back(lContactInfo);
@@ -40,11 +43,15 @@ public:
         }
     }
 
-    std::tuple<bool, bool> isFootInContact(int clipIdx, int frameIdx){
-        return {
-            lContactInfos.at(clipIdx).at(frameIdx),
-            rContactInfos.at(clipIdx).at(frameIdx)
-        };
+    std::tuple<bool, bool> isFootInContact(int clipIdx, int frameIdx) {
+        //bool b2 = orgLContactInfos.at(clipIdx).at(frameIdx);
+        //bool b4 = orgRContactInfos.at(clipIdx).at(frameIdx);
+
+        bool lContact = lContactInfos.at(clipIdx).at(frameIdx);
+        bool rContact = rContactInfos.at(clipIdx).at(frameIdx);
+        //Logger::consolePrint("left: %d; orgLeft, %d; right: %d; orgRight, %d;  \n", lContact, b2, rContact, b4);
+
+        return { lContact , rContact };
     }
 
 private:
@@ -86,9 +93,10 @@ private:
     }
 // Members
 public:
-    std::string lFoot = "LeftToe";
-    std::string rFoot = "RightToe";
+    const std::string lFoot = "LeftToe";
+    const std::string rFoot = "RightToe";
     std::vector<std::vector<bool>> lContactInfos, rContactInfos;
+    std::vector<std::vector<bool>> orgLContactInfos, orgRContactInfos;
 
     float footSpeedThreshold = 0.45f;
     float footHeightThreshold = 0.055f;

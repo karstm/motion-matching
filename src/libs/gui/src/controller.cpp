@@ -61,10 +61,12 @@ void Controller::init(KeyboardState *keyboardState, std::vector<std::unique_ptr<
     for(int i = 0; i < footMarkerNames.size(); i++){
         std::deque<bool> cHistory;
         contactHistories.push_back(cHistory);
-        for(int j = 0; j < (targetFramerate/6)+1; j++){
+        for(int j = 0; j < 2; j++){
             contactHistories[i].push_front(true);
         }
     }
+    // crl::mocap::MocapSkeleton sk = crl::mocap::MocapSkeleton(*(clips->at(0)->getModel()));
+    playerSkeleton = std::make_unique<crl::mocap::MocapSkeleton>(crl::mocap::MocapSkeleton(*(clips->at(0)->getModel())));
 
     // initialize time
     prevTime = std::chrono::steady_clock::now();
@@ -174,7 +176,9 @@ void Controller::update(TrackingCamera &camera, Database &database) {
 
 void Controller::drawSkeleton(const Shader &shader)
 {
-    clips->at(clipIdx)->drawState(shader, &footLockedStates[0]);
+    playerSkeleton->setState(&footLockedStates[0]);
+    playerSkeleton->draw(shader);
+    // clips->at(clipIdx)->drawState(shader, &footLockedStates[0]);
 }
 
 void Controller::drawTrajectory(const Shader &shader, Database &database, bool drawControllerTrajectory, bool drawAnimationTrajectory) {
@@ -346,18 +350,31 @@ void Controller::updateControllerTrajectory()
 }
 
 void Controller::updateFootLocking() {
-    //crl::mocap::MocapSkeleton *sk = clips->at(clipIdx)->getModel();
+    crl::mocap::MocapSkeleton *sk = clips->at(clipIdx)->getModel();
     //crl::mocap::MocapSkeletonState stPrev = clips->at(clipIdx)->getState(frameIdx-1);
-    //crl::mocap::MocapSkeletonState stCurr = clips->at(clipIdx)->getState(frameIdx);
+    crl::mocap::MocapSkeletonState stCurr = clips->at(clipIdx)->getState(frameIdx);
+    sk->setState(&stCurr);
     //footLocking->isInContact(sk, &stPrev, &stCurr, "LeftToe", 1/60.0);
 
-     bool lFootInContact, rFootInContact;
-     std::tie(lFootInContact, rFootInContact) = footLocking->isFootInContact(clipIdx, frameIdx);
-     Logger::consolePrint("left: %d; right, %d; \n", lFootInContact, rFootInContact);
-    // contactHistories[0].push_front(lFoot);
-    // contactHistories[0].pop_back();
-    // contactHistories[1].push_front(isFootInContact[1]);
-    // contactHistories[1].pop_back();
+    bool lFootInContactPrev, rFootInContactPrev;
+    bool lFootInContact, rFootInContact;
+    std::tie(lFootInContactPrev, rFootInContactPrev) = footLocking->isFootInContact(clipIdx, frameIdx-1);
+    std::tie(lFootInContact, rFootInContact) = footLocking->isFootInContact(clipIdx, frameIdx);
+
+    if (lFootInContact && !lFootInContactPrev) {
+        crl::mocap::MocapMarker *lFootMarker = sk->getMarkerByName(footLocking->lFoot.c_str());
+        lFootLockedPos = lFootMarker->state.pos;
+        //stCurr.get
+    }
+
+     
+     //Logger::consolePrint("left: %d; right, %d; \n", lFootInContact, rFootInContact);
+
+
+    contactHistories[0].push_front(lFootInContact);
+    contactHistories[0].pop_back();
+    contactHistories[1].push_front(rFootInContact);
+    contactHistories[1].pop_back();
 
     // FIXME:
     footLockedStates.push_front(motionStates[0]);

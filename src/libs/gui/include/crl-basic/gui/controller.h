@@ -60,6 +60,7 @@ public:
     bool useFootLocking = true;
  
 private:
+    std::unique_ptr<crl::mocap::MocapSkeleton> playerSkeleton;
     KeyboardState *keyboardState;
     std::vector<std::unique_ptr<crl::mocap::BVHClip>> *clips = nullptr;
     Footlocking *footLocking;
@@ -109,6 +110,7 @@ private:
     std::vector<std::string> footMarkerNames = {"LeftToe", "RightToe"};
     std::vector<std::deque<bool>> contactHistories;
     std::deque<mocap::MocapSkeletonState> footLockedStates;
+    P3D lFootLockedPos, rFootLockedPos;
 
 };
 
