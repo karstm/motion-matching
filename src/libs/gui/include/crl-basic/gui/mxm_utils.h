@@ -117,14 +117,19 @@ public:
         return q.w()*p.w() + q.x()*p.x() + q.y()*p.y() + q.z()*p.z();
     }
 
-    static crl::Quaternion quatNlerpShortest(crl::Quaternion q, crl::Quaternion p, float alpha)
+    static crl::Quaternion quatLerpY(crl::Quaternion q, crl::Quaternion p, float factor)
     {
-        if (quatDot(q, p) < 0.0f)
-        {
-            p = crl::Quaternion(-p.w(), -p.x(), -p.y(), -p.z());
-        }
+        double alpha, beta, gamma;
+        double alpha2, beta2, gamma2;
+        V3D side = V3D(1,0,0);
+        V3D up = V3D(0,1,0);
+        V3D front = V3D(0,0,1);
+        computeEulerAnglesFromQuaternion(q, front, side, up, alpha, beta, gamma);
+        computeEulerAnglesFromQuaternion(p, front, side, up, alpha2, beta2, gamma2);
+        lerpf(gamma, gamma2, factor);
+        return getRotationQuaternion(gamma, up);
+
         
-        return quaternionLerp(q, p, alpha);
     }
 };
 
