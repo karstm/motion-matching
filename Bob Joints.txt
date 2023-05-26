@@ -36,8 +36,8 @@ upperneck_y		32
 lShoulder_torsion	33
 rShoulder_torsion	34
 upperneck_z		35
-“”			36
-“”			37
+lElbowFlexionExtension	36
+RElbowFlexionExtension	37
 lElbow_torsion		38
 rElbow_torsion		39
 lWrist_x		40

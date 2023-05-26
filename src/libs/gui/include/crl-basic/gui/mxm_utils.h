@@ -86,16 +86,10 @@ public:
         return localTrajDir;
     }
 
-    static void printGamma(float gamma, int i){
-        if(gamma <= -2.5 || gamma >= 2.5){
-            crl::Logger::consolePrint("Rot %d: %f\n", i, gamma);
-        }
-    }
     static std::vector<float> worldToLocalDirectionsAngle(std::vector<float> rot) {
         std::vector<float> localTrajDir;
         for (int i = 1; i < rot.size(); i++) {
             localTrajDir.push_back(minusPiToPi(rot[i] - rot[0]));
-            printGamma(rot[i] - rot[0], i);
         }
         return localTrajDir;
     }
