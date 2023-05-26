@@ -28,10 +28,12 @@ def animation_mirror(i, j, lrot, lpos, names):
     for idx in joints_mirror:
         new_names.append(names[idx])
 
+    new_names = names
+
     return rot_mirror, pos_mirror, new_names
 
 """ Files to Process """
-folder_path = os.path.join(os.path.dirname(__file__), "..", "data", "mocap", "lafan1_selected")
+folder_path = os.path.join(os.path.dirname(__file__), "..", "data", "mocap", "lafan1")
 files = glob.glob(os.path.join(folder_path, "*"))
 
 """ Loop Over Files """

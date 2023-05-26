@@ -5,7 +5,7 @@ from scipy.interpolate import griddata
 import numpy as np
 import glob
 
-upsample = False
+upsample = True
 
 import os
 os.chdir(os.path.dirname(__file__))
