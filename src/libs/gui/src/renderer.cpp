@@ -208,7 +208,7 @@ void SizableGroundModel::draw(const Shader &shader, const double &intensity, con
             drawRectangle(P3D(0.0, 0.001, (double)i), V3D(0.0, 1.0, 0.0), 0.0, Vector2d((double)size * 2.0, gridThickness), shader, gridColor);
         }
     } else {
-        checkerboard.draw(shader, V3D(0.75,0.75,0.75));
+        checkerboard.draw(shader, V3D(0.85,0.85,0.85));
         checkerboard2.draw(shader, V3D(0.95,0.95,0.95));
     }
 }

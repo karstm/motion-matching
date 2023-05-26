@@ -5,7 +5,7 @@ from scipy.interpolate import griddata
 import numpy as np
 import glob
 
-upsample = True
+upsample = False
 
 import os
 os.chdir(os.path.dirname(__file__))
@@ -66,12 +66,15 @@ def generate_sim_bone(bvh=None):
     positions[:,0:1] = quat.mul_vec(quat.inv(sim_rotation), positions[:,0:1] - sim_position)
     rotations[:,0:1] = quat.mul(quat.inv(sim_rotation), rotations[:,0:1])
     
+    sim_rotation = quat.update_rows(np.degrees(quat.to_euler(sim_rotation, order='xyz')))
+    rotations = np.degrees(quat.to_euler(rotations, order='xyz'))
+
     positions = np.concatenate([sim_position, positions], axis=1)
     rotations = np.concatenate([sim_rotation, rotations], axis=1)
     
     # Save positions and rotations
     bvh['positions'] = positions
-    bvh['rotations'] = np.degrees(quat.to_euler(rotations, order='xyz'))
+    bvh['rotations'] = rotations
     
     # Add offsets of new bone and adjust hips offset
     bvh['offsets'] = np.concatenate([[[0.0, 0.0, 0.0]], np.array(bvh['offsets'])], axis=0)
@@ -85,10 +88,12 @@ def generate_sim_bone(bvh=None):
 
 
 """ Loop Over Files """
+save_folder = "lafan1_filtered" + ("_60fps" if upsample else "")
+print(save_folder)
 for filename in files:
     if ('filtered' in filename): continue
     print('Loading "%s" ...' % (filename))
     bvh_data = generate_sim_bone(bvh=bvh.load(filename))  
     new_filename = os.path.basename(filename)[:-4]+ '_filtered.bvh'
-    new_file_name = os.path.join(os.path.dirname(__file__), "..", "data", "mocap", "lafan1_filtered_60fps", new_filename)
+    new_file_name = os.path.join(os.path.dirname(__file__), "..", "data", "mocap", save_folder, new_filename)
     bvh.save(new_file_name, bvh_data, frametime=bvh_data['frametime'], save_hip_position=True)
