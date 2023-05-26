@@ -13,7 +13,8 @@ Database::Database() {
 // Destructor frees the data array
 Database::~Database() {
     delete[] data;
-    delete annoyIndex;
+    if (annoyIndex != nullptr)
+        delete annoyIndex;
 }
 
 void Database::initializeAnnoy() 
