@@ -157,7 +157,7 @@ public:
     std::vector<std::vector<bool>> orgLContactInfos, orgRContactInfos;
 
     float footSpeedThreshold = 0.45f;
-    float footHeightThreshold = 0.055f;
+    float footHeightThreshold = 0.08f;
 
 private:
 

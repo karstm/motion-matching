@@ -36,6 +36,12 @@ void Controller::init(KeyboardState *keyboardState, std::vector<std::unique_ptr<
         jointPositionInertializationInfos.push_back(InertializationInfo());
         jointOrientInertializationInfos.push_back(InertializationInfo());
     }
+    rootPosInertializationInfo_footLocking = InertializationInfo();
+    rootOrientInertializationInfo_footLocking = InertializationInfo();
+    for (uint i = 0; i < numMarkers; i++) {
+        jointPositionInertializationInfos_footLocking.push_back(InertializationInfo());
+        jointOrientInertializationInfos_footLocking.push_back(InertializationInfo());
+    }
 
     // initialize states
     for (int i = 0; i < 3 ; i++) {
@@ -56,6 +62,7 @@ void Controller::init(KeyboardState *keyboardState, std::vector<std::unique_ptr<
         mocap::MocapSkeletonState state = clips->at(0)->getState(frameIdx-3+i);
         state.setRootPosition(simulationPos);
         state.setRootOrientation(simulationRot);
+        footLockingStates.push_front(state);
     }
     for(int i = 0; i < footMarkerNames.size(); i++){
         std::deque<bool> cHistory;
@@ -426,8 +433,39 @@ void Controller::updateFootLocking() {
         // playerSkeleton->getMarkerByName(footLocking->rFoot.c_str())->state.pos = rFootLockedPos;
     }
 
+    footLockingStates.push_front(footLockingState);
+    footLockingStates.pop_back();
+    
+    if ((rFootInContact != contactHistories[1].at(0)) || (lFootInContact != contactHistories[0].at(0))) {
+        // set inertialization info
+        InertializationUtils::computeInertializationInfo(rootPosInertializationInfo_footLocking, 
+                                                         rootOrientInertializationInfo_footLocking, 
+                                                         jointPositionInertializationInfos_footLocking, 
+                                                         jointOrientInertializationInfos_footLocking, 
+                                                         numMarkers, 
+                                                         footLockingStates[2], 
+                                                         footLockingStates[1], 
+                                                         footLockingStates[0], 
+                                                         transitionTime/2.0, 
+                                                         dt); //here we use the old dt
+        t_footLocking = 0;
+    }
+
+    if(useInertialization)
+        footLockingStates[0] = InertializationUtils::inertializeState(rootPosInertializationInfo_footLocking,
+                                                                      rootOrientInertializationInfo_footLocking, 
+                                                                      jointPositionInertializationInfos_footLocking, 
+                                                                      jointOrientInertializationInfos_footLocking, 
+                                                                      numMarkers, 
+                                                                      footLockingStates[0], 
+                                                                      footLockingStates[1], 
+                                                                      t_footLocking, 
+                                                                      dt); // here we use the new dt
+
+    t_footLocking += dt;
      
      //Logger::consolePrint("left: %d; right, %d; \n", lFootInContact, rFootInContact);
+
 
 
     contactHistories[0].push_front(lFootInContact);
@@ -435,7 +473,7 @@ void Controller::updateFootLocking() {
     contactHistories[1].push_front(rFootInContact);
     contactHistories[1].pop_back();
 
-    playerSkeleton->setState(&footLockingState);
+    playerSkeleton->setState(&footLockingStates[0]);
 
 }
 
