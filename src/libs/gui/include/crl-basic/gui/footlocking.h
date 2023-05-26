@@ -54,6 +54,64 @@ public:
         return { lContact , rContact };
     }
 
+    void ikTwoBone( 
+        Quaternion &boneRootLr,
+        Quaternion &boneMidLr,
+        const V3D boneRoot,
+        const V3D boneMid, 
+        const V3D boneEnd, 
+        const V3D target, 
+        const V3D fwd,
+        const Quaternion boneRootGr, 
+        const Quaternion boneMidGr,
+        const Quaternion boneParGr,
+        const float maxLengthBuffer
+        ){
+        V3D midToRoot = boneMid - boneRoot;
+        V3D endToMid = boneEnd - boneMid;
+        float maxExtension = midToRoot.norm() + endToMid.norm() - maxLengthBuffer;
+        
+        V3D targetClamp = target;
+        if ((target - boneRoot).norm() > maxExtension)
+        {
+            targetClamp = boneRoot + maxExtension*(target - boneRoot).normalized();
+        }
+        
+        V3D endToRoot = boneEnd - boneRoot;
+        V3D axisDwn = endToRoot.normalized();
+        V3D axisRot = (axisDwn.cross(fwd)).normalized();
+
+        V3D targetToRoot = targetClamp - boneRoot;
+        float lMidToRoot = midToRoot.norm();
+        float lEndToMid = endToMid.norm();
+        float lTargetToRoot = targetToRoot.norm();
+
+        float temp = endToRoot.normalized().dot(midToRoot.normalized());
+        float rootToEnd_rootToMid_0 = std::acosf(std::clamp(temp, -1.0f, 1.0f));
+
+        V3D rootToMid = -midToRoot;
+        temp = rootToMid.normalized().dot(endToMid.normalized());
+        float midToRoot_midToEnd_0 = std::acosf(std::clamp(temp, -1.0f, 1.0f));
+
+        temp = lMidToRoot * lMidToRoot + lTargetToRoot * lTargetToRoot - lEndToMid * lEndToMid;
+        float rootToEnd_rootToMid_1 = std::acosf(std::clamp(temp / (2.0f * lMidToRoot * lTargetToRoot), -1.0f, 1.0f));
+        temp = lMidToRoot * lMidToRoot - lTargetToRoot * lTargetToRoot + lEndToMid * lEndToMid;
+        float midToRoot_midToEnd_1 = std::acosf(std::clamp(temp / (2.0f * lMidToRoot * lEndToMid), -1.0f, 1.0f));
+
+        Quaternion r0 = getRotationQuaternion(rootToEnd_rootToMid_1 - rootToEnd_rootToMid_0, axisRot);
+        Quaternion r1 = getRotationQuaternion(midToRoot_midToEnd_1 - midToRoot_midToEnd_0, axisRot);
+
+        V3D endToRootNormalized = endToRoot.normalized();
+        V3D targetToRootNormalized = targetToRoot.normalized();
+
+        float rotationAngle2 = std::acosf(std::clamp((float)endToRootNormalized.dot(targetToRootNormalized), -1.0f, 1.0f)); 
+        V3D rotationAxis2 = (endToRootNormalized.cross(targetToRootNormalized)).normalized();
+        Quaternion r2 = getRotationQuaternion(rotationAngle2, rotationAxis2);
+        
+        boneRootLr = boneParGr.inverse() * (r2 * (r0 * boneRootGr));
+        boneMidLr = boneRootGr.inverse() *(r1 * boneMidGr);
+    }
+
 private:
     bool isInContact(crl::mocap::MocapSkeleton *sk,
                     crl::mocap::MocapSkeletonState *statePrev, crl::mocap::MocapSkeletonState *stateCurrent,

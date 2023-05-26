@@ -56,7 +56,6 @@ void Controller::init(KeyboardState *keyboardState, std::vector<std::unique_ptr<
         mocap::MocapSkeletonState state = clips->at(0)->getState(frameIdx-3+i);
         state.setRootPosition(simulationPos);
         state.setRootOrientation(simulationRot);
-        footLockedStates.push_front(state);
     }
     for(int i = 0; i < footMarkerNames.size(); i++){
         std::deque<bool> cHistory;
@@ -175,9 +174,6 @@ void Controller::update(TrackingCamera &camera, Database &database) {
 
     if(useFootLocking){
         updateFootLocking();
-    } else{
-        footLockedStates.push_front(motionStates[0]);
-        footLockedStates.pop_back();
     }
 
     // update frame
@@ -372,22 +368,62 @@ void Controller::updateFootLocking() {
     std::tie(lFootInContactPrev, rFootInContactPrev) = footLocking->isFootInContact(clipIdx, frameIdx-1);
     std::tie(lFootInContact, rFootInContact) = footLocking->isFootInContact(clipIdx, frameIdx);
 
+    mocap::MocapSkeletonState footLockingState = motionStates[0];
+
     if (lFootInContact && !contactHistories[0].at(0)) {
         crl::mocap::MocapMarker *lFootMarker = playerSkeleton->getMarkerByName(footLocking->lFoot.c_str());
         lFootLockedPos = lFootMarker->state.pos;
+        lFootLockedPos[1] = 0;
         //stCurr.get
     } else if (lFootInContact && contactHistories[0].at(0)) {
-        playerSkeleton->getMarkerByName(footLocking->lFoot.c_str())->state.pos = lFootLockedPos;
+        Quaternion lHipRot, lKneeRot;
+        V3D lHeelPos = V3D(playerSkeleton->getMarkerByName("LeftFoot")->state.pos);
+        Quaternion lKneeRotOrg = playerSkeleton->getMarkerByName("LeftLeg")->state.orientation;
+        footLocking->ikTwoBone(
+            lHipRot, lKneeRot,
+            V3D(playerSkeleton->getMarkerByName("LeftUpLeg")->state.pos),
+            V3D(playerSkeleton->getMarkerByName("LeftLeg")->state.pos),
+            V3D(playerSkeleton->getMarkerByName("LeftFoot")->state.pos),
+            V3D(lFootLockedPos) + lHeelPos - V3D(playerSkeleton->getMarkerByName(footLocking->lFoot.c_str())->state.pos),
+            lKneeRotOrg * V3D(0, 1, 0),
+            playerSkeleton->getMarkerByName("LeftUpLeg")->state.orientation,
+            lKneeRotOrg,
+            playerSkeleton->getMarkerByName("Hips")->state.orientation,
+            0.015f
+        );
+
+        footLockingState.setJointRelativeOrientation(lHipRot, 2);
+        footLockingState.setJointRelativeOrientation(lKneeRot, 3);
+        // playerSkeleton->getMarkerByName(footLocking->lFoot.c_str())->state.pos = lFootLockedPos;
     }
 
     if (rFootInContact && !contactHistories[1].at(0)) {
-        crl::mocap::MocapMarker *rFootMarker = playerSkeleton->getMarkerByName(footLocking->rFoot.c_str());
+        crl::mocap::MocapMarker *rFootMarker = playerSkeleton->getMarkerByName(footLocking->rFoot.c_str());     
         rFootLockedPos = rFootMarker->state.pos;
         rFootLockedPos[1] = 0;
         //stCurr.get
     } else if (rFootInContact && contactHistories[1].at(0)) {
+        Quaternion rHipRot, rKneeRot;
+        V3D rHeelPos = V3D(playerSkeleton->getMarkerByName("RightFoot")->state.pos);
+        Quaternion rKneeRotOrg = playerSkeleton->getMarkerByName("RightLeg")->state.orientation;
+
+        footLocking->ikTwoBone(
+            rHipRot, rKneeRot,
+            V3D(playerSkeleton->getMarkerByName("RightUpLeg")->state.pos),
+            V3D(playerSkeleton->getMarkerByName("RightLeg")->state.pos),
+            V3D(playerSkeleton->getMarkerByName("RightFoot")->state.pos),
+            V3D(rFootLockedPos) + rHeelPos - V3D(playerSkeleton->getMarkerByName(footLocking->rFoot.c_str())->state.pos),
+            rKneeRotOrg * V3D(0, 1, 0),
+            playerSkeleton->getMarkerByName("RightUpLeg")->state.orientation,
+            rKneeRotOrg,
+            playerSkeleton->getMarkerByName("Hips")->state.orientation,
+            0.015f
+        );
         
-        playerSkeleton->getMarkerByName(footLocking->rFoot.c_str())->state.pos = rFootLockedPos;
+        footLockingState.setJointRelativeOrientation(rHipRot, 6);
+        footLockingState.setJointRelativeOrientation(rKneeRot, 7);
+
+        // playerSkeleton->getMarkerByName(footLocking->rFoot.c_str())->state.pos = rFootLockedPos;
     }
 
      
@@ -399,9 +435,7 @@ void Controller::updateFootLocking() {
     contactHistories[1].push_front(rFootInContact);
     contactHistories[1].pop_back();
 
-    // FIXME:
-    footLockedStates.push_front(motionStates[0]);
-    footLockedStates.pop_back();
+    playerSkeleton->setState(&footLockingState);
 
 }
 

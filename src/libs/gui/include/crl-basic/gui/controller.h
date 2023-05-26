@@ -112,7 +112,6 @@ private:
     // Foot locking
     std::vector<std::string> footMarkerNames = {"LeftToe", "RightToe"};
     std::vector<std::deque<bool>> contactHistories;
-    std::deque<mocap::MocapSkeletonState> footLockedStates;
     P3D lFootLockedPos, rFootLockedPos;
 
 };
