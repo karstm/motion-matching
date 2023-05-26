@@ -13,7 +13,7 @@
 #include <crl-basic/gui/shadow_map_fbo.h>
 #include <crl-basic/gui/mxm_utils.h>
 #include <crl-basic/gui/inertializationUtils.h>
-#include <crl-basic/gui/footlockingUtils.h>
+#include <crl-basic/gui/footlocking.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <imgui_widgets/imGuIZMOquat.h>
@@ -38,7 +38,7 @@ class Controller {
 // Methods
 public:
     Controller() {};
-    void init(KeyboardState *keyboardState, std::vector<std::unique_ptr<crl::mocap::BVHClip>> *clips, int targetFramerate);
+    void init(KeyboardState *keyboardState, std::vector<std::unique_ptr<crl::mocap::BVHClip>> *clips, Footlocking *footLocking, int targetFramerate);
     
     void update(TrackingCamera &camera, Database &database);
     void drawSkeleton(const Shader &shader);
@@ -62,6 +62,7 @@ public:
 private:
     KeyboardState *keyboardState;
     std::vector<std::unique_ptr<crl::mocap::BVHClip>> *clips = nullptr;
+    Footlocking *footLocking;
     std::deque<mocap::MocapSkeletonState> motionStates;
 
     std::vector<P3D> controllerPos; // future positions arranged in chronological order (i.e. "future-r" positions at the back)

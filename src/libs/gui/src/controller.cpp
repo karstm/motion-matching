@@ -1,11 +1,13 @@
+#include <tuple>
 #include "crl-basic/gui/controller.h"
 
 namespace crl {
 namespace gui {
 
-void Controller::init(KeyboardState *keyboardState, std::vector<std::unique_ptr<crl::mocap::BVHClip>> *clips, int targetFramerate) {
+void Controller::init(KeyboardState *keyboardState, std::vector<std::unique_ptr<crl::mocap::BVHClip>> *clips, Footlocking *footLocking, int targetFramerate) {
     this->keyboardState = keyboardState;
     this->clips = clips;
+    this->footLocking = footLocking;
     this->targetFramerate = targetFramerate;
     motionMatchingRate = targetFramerate/5;
 
@@ -344,17 +346,18 @@ void Controller::updateControllerTrajectory()
 }
 
 void Controller::updateFootLocking() {
-    crl::mocap::MocapSkeleton *sk = clips->at(clipIdx)->getModel();
-    crl::mocap::MocapSkeletonState st = motionStates[0];
+    //crl::mocap::MocapSkeleton *sk = clips->at(clipIdx)->getModel();
+    //crl::mocap::MocapSkeletonState stPrev = clips->at(clipIdx)->getState(frameIdx-1);
+    //crl::mocap::MocapSkeletonState stCurr = clips->at(clipIdx)->getState(frameIdx);
+    //footLocking->isInContact(sk, &stPrev, &stCurr, "LeftToe", 1/60.0);
 
-    sk->setState(&motionStates[0]);
-    for (int i = 0; i < footMarkerNames.size(); i++) {
-        bool isInContact = FootlockingUtils::isInContact(sk, footMarkerNames[i]);
-        Logger::consolePrint("%s: %d; ", footMarkerNames[i], isInContact);
-        contactHistories[i].push_front(isInContact);
-        contactHistories[i].pop_back();
-    }
-    Logger::consolePrint("\n");
+     bool lFootInContact, rFootInContact;
+     std::tie(lFootInContact, rFootInContact) = footLocking->isFootInContact(clipIdx, frameIdx);
+     Logger::consolePrint("left: %d; right, %d; \n", lFootInContact, rFootInContact);
+    // contactHistories[0].push_front(lFoot);
+    // contactHistories[0].pop_back();
+    // contactHistories[1].push_front(isFootInContact[1]);
+    // contactHistories[1].pop_back();
 
     // FIXME:
     footLockedStates.push_front(motionStates[0]);
