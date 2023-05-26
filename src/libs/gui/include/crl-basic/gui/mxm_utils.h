@@ -117,15 +117,15 @@ public:
         return q.w()*p.w() + q.x()*p.x() + q.y()*p.y() + q.z()*p.z();
     }
 
-    static crl::Quaternion quatNlerpShortest(crl::Quaternion q, crl::Quaternion p, float alpha)
-    {
-        if (quatDot(q, p) < 0.0f)
-        {
-            p = crl::Quaternion(-p.w(), -p.x(), -p.y(), -p.z());
-        }
-        
-        return quaternionLerp(q, p, alpha);
-    }
+   static crl::Quaternion quatNlerpShortest(crl::Quaternion q, crl::Quaternion p, float alpha)
+     {
+         if (quatDot(q, p) < 0.0f)
+         {
+             p = crl::Quaternion(-p.w(), -p.x(), -p.y(), -p.z());
+         }
+
+         return quaternionLerp(q, p, alpha);
+     }
 };
 
 }  // namespace gui

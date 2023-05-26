@@ -156,7 +156,7 @@ public:
 
     //--- World
     double world_frame_length = 1.0, world_frame_radius = 0.01;
-    bool show_world_frame = true;
+    bool show_world_frame = false;
 
     //--- Shaders
     Shader shadowShader = Shader(CRL_SHADER_FOLDER "/basic_lighting.vert", CRL_SHADER_FOLDER "/basic_shadow_lighting.frag");

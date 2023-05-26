@@ -194,7 +194,7 @@ public:
         crl::gui::ShadowApplication::drawImGui();
 
         ImGui::Begin("Main Menu");
-        if(ImGui::CollapsingHeader("Animation Player", ImGuiTreeNodeFlags_DefaultOpen)){
+        if(ImGui::CollapsingHeader("Animation Player", ImGuiTreeNodeFlags_OpenOnArrow)){
             ImGui::Checkbox("Activate Animation Player", &animationPlayer);
             ImGui::Checkbox("Follow Character", &followCharacter);
             if (selectedBvhClipIdx > -1)
@@ -207,7 +207,7 @@ public:
             ImGui::SliderInt("Frame", &frameIdx, 0, maxFrameIdx-1, "%d");
         }
 
-        if(ImGui::CollapsingHeader("Controller", ImGuiTreeNodeFlags_DefaultOpen))
+        if(ImGui::CollapsingHeader("Controller", ImGuiTreeNodeFlags_OpenOnArrow))
         {
            ImGui::Checkbox("Controller Trajectory", &drawControllerTrajectory);
            ImGui::Checkbox("Animation Trajectory", &drawAnimationTrajectory);
@@ -298,7 +298,7 @@ public:
             }
         }
 
-        if (ImGui::CollapsingHeader("Post Processing", ImGuiTreeNodeFlags_DefaultOpen)) {
+        if (ImGui::CollapsingHeader("Post Processing", ImGuiTreeNodeFlags_OpenOnArrow)) {
             if (ImGui::SliderDouble("Foot Height Threshold", &footHeightThreshold, 0.0, 0.2, "%.2f")) {
                 processBVHClip();
                 processC3DClip();

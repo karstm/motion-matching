@@ -237,4 +237,14 @@ def to_euler(x, order='xyz'):
             
     else:
         raise NotImplementedError('Cannot convert from ordering %s' % order)
+    
+def update_rows(array):
+    array = np.array(array)
+    mask = np.logical_and(array[:, :, 0] == 180.0, array[:, :, -1] == 180.0)
+
+    array[mask, 1] = 180.0 - array[mask, 1]
+    array[mask, 2] = 0.0
+    array[mask, 0] = 0.0
+
+    return array
         

@@ -113,7 +113,7 @@ void Controller::update(TrackingCamera &camera, Database &database) {
     // copy the state for the current clip and frame
     mocap::MocapSkeletonState state = clips->at(clipIdx)->getState(frameIdx);
 
-
+    // compute simulation bone position and orientation
     if(transition)
     {   
         lastMatchSimulationPos = simulationPos;
@@ -125,11 +125,14 @@ void Controller::update(TrackingCamera &camera, Database &database) {
     simulationRot = lastMatchSimulationRot * lastMatchAnimationRot.inverse() * state.getRootOrientation();
     simulationPos = lastMatchSimulationPos + lastMatchSimulationRot * lastMatchAnimationRot.inverse() * (V3D(lastMatchAnimationPos, state.getRootPosition()));
 
-    // set root position and orientation to the controller
+    // set root position and orientation to the lerp between controller position and simulation position
     P3D finalPos = MxMUtils::lerp(simulationPos, controllerPos[0], syncFactor);
     Quaternion controllerOrientation = getRotationQuaternion(controllerRot[0] - M_PI_2, V3D(0, 1, 0));
-    Quaternion finalRot = MxMUtils::quatNlerpShortest(simulationRot, controllerOrientation, syncFactor);
     
+    // FIXME: this is skipping when the shortest angle suddenly changes
+    //Quaternion finalRot = MxMUtils::quatNlerpShortest(simulationRot, controllerOrientation, syncFactor);
+    Quaternion finalRot = simulationRot;
+
     state.setRootOrientation(finalRot);
     state.setRootPosition(finalPos);
 
