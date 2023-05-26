@@ -372,19 +372,20 @@ void Controller::updateFootLocking() {
     std::tie(lFootInContactPrev, rFootInContactPrev) = footLocking->isFootInContact(clipIdx, frameIdx-1);
     std::tie(lFootInContact, rFootInContact) = footLocking->isFootInContact(clipIdx, frameIdx);
 
-    if (lFootInContact && !lFootInContactPrev) {
+    if (lFootInContact && !contactHistories[0].at(0)) {
         crl::mocap::MocapMarker *lFootMarker = playerSkeleton->getMarkerByName(footLocking->lFoot.c_str());
         lFootLockedPos = lFootMarker->state.pos;
         //stCurr.get
-    } else if (lFootInContact && lFootInContactPrev) {
+    } else if (lFootInContact && contactHistories[0].at(0)) {
         playerSkeleton->getMarkerByName(footLocking->lFoot.c_str())->state.pos = lFootLockedPos;
     }
 
-    if (rFootInContact && !rFootInContactPrev) {
+    if (rFootInContact && !contactHistories[1].at(0)) {
         crl::mocap::MocapMarker *rFootMarker = playerSkeleton->getMarkerByName(footLocking->rFoot.c_str());
         rFootLockedPos = rFootMarker->state.pos;
+        rFootLockedPos[1] = 0;
         //stCurr.get
-    } else if (rFootInContact && rFootInContactPrev) {
+    } else if (rFootInContact && contactHistories[1].at(0)) {
         
         playerSkeleton->getMarkerByName(footLocking->rFoot.c_str())->state.pos = rFootLockedPos;
     }
@@ -401,6 +402,7 @@ void Controller::updateFootLocking() {
     // FIXME:
     footLockedStates.push_front(motionStates[0]);
     footLockedStates.pop_back();
+
 }
 
 
