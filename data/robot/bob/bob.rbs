@@ -104,7 +104,13 @@ RB
 /End_RB
 
 RB
-	name lScapula_tmp
+	name lScapula_tmp1
+	mass	0.35					
+	moi	0.0003	0.0003	0.0003	0	0	0
+/End_RB
+
+RB
+	name lScapula_tmp2
 	mass	0.35					
 	moi	0.0003	0.0003	0.0003	0	0	0
 /End_RB
@@ -175,7 +181,13 @@ RB
 /End_RB
 
 RB
-	name rScapula_tmp
+	name rScapula_tmp1
+	mass	0.35					
+	moi	0.0003	0.0003	0.0003	0	0	0
+/End_RB
+
+RB
+	name rScapula_tmp2
 	mass	0.35					
 	moi	0.0003	0.0003	0.0003	0	0	0
 /End_RB
@@ -514,19 +526,29 @@ RBJoint
 /End_Joint
 
 RBJoint
-	jointAxis 0 1 0
-	name lScapula_y
+	jointAxis 1 0 0
+	name lScapula_x
 	parent torso
-	child lScapula_tmp
+	child lScapula_tmp1
 	jointCPos 0 0 0
 	jointPPos 0.028125 0.1125 0.05625
-	jointLimits -0.8 0.2
+	jointLimits -1 1
 /End_Joint
 
 RBJoint
 	jointAxis 0 0 1
 	name lScapula_z
-	parent lScapula_tmp
+	parent lScapula_tmp1
+	child lScapula_tmp2
+	jointCPos 0 0 0
+	jointPPos 0 0 0
+	jointLimits -0.8 0.2
+/End_Joint
+
+RBJoint
+	jointAxis 0 1 0
+	name lScapula_y
+	parent lScapula_tmp2
 	child lScapula
 	jointCPos -0.05625 0 0.084375
 	jointPPos 0 0 0
@@ -611,19 +633,29 @@ RBJoint
 
 
 RBJoint
-	jointAxis 0 1 0
-	name rScapula_y
+	jointAxis 1 0 0
+	name rScapula_x
 	parent torso
-	child rScapula_tmp
+	child rScapula_tmp1
 	jointCPos 0 0 0
 	jointPPos -0.028125 0.1125 0.05625
-	jointLimits -0.2 0.8
+	jointLimits -1 1
 /End_Joint
 
 RBJoint
 	jointAxis 0 0 1
 	name rScapula_z
-	parent rScapula_tmp
+	parent rScapula_tmp1
+	child rScapula_tmp2
+	jointCPos 0 0 0
+	jointPPos 0 0 0
+	jointLimits -0.2 0.8
+/End_Joint
+
+RBJoint
+	jointAxis 0 1 0
+	name rScapula_y
+	parent rScapula_tmp2
 	child rScapula
 	jointCPos 0.05625 0 0.084375
 	jointPPos 0 0 0
