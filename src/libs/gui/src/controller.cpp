@@ -88,10 +88,6 @@ Controller::~Controller() {
 }
 
 void Controller::update(TrackingCamera &camera, Database &database) {
-    // input handling
-    camera.processRotation(dt);
-    camera.target = MxMUtils::V3Dtovec3(V3D(controllerPos[0]));
-
     // Motion Matching
     bool transition = false; //a transition only occurs if the motion matching algorithm changes the clip or frame index
     if(motionMatchingFrameCount >= motionMatchingRate || forceMatch) {
@@ -99,13 +95,8 @@ void Controller::update(TrackingCamera &camera, Database &database) {
         std::vector<P3D> simulationPositions = {simulationPos, controllerPos[1], controllerPos[2], controllerPos[3]};
         std::vector<P3D> trajectoryPos = MxMUtils::worldToLocalPositions(simulationPositions, getRotationQuaternion(M_PI_2, V3D(0,1,0)) * simulationRot);
 
-        double alpha, beta, gamma;
-        V3D side = V3D(1,0,0);
-        V3D up = V3D(0,1,0);
-        V3D front = V3D(0,0,1);
-        computeEulerAnglesFromQuaternion(getRotationQuaternion(-M_PI_2, V3D(0,1,0)) * simulationRot, front, side, up, alpha, beta, gamma);
-        gamma = gamma+M_PI;
-        std::vector<float> simulationAngles = {(float)gamma, controllerRot[1], controllerRot[2], controllerRot[3]};
+        float simulationAngle = MxMUtils::getYrotationRadians(simulationRot) + M_PI_2;
+        std::vector<float> simulationAngles = {simulationAngle, controllerRot[1], controllerRot[2], controllerRot[3]};
         std::vector<float> trajectoryAngle = MxMUtils::worldToLocalDirectionsAngle(simulationAngles);
         std::vector<V3D> trajectoryDir;
         for (int i = 0; i < trajectoryAngle.size(); i++) {
@@ -127,30 +118,31 @@ void Controller::update(TrackingCamera &camera, Database &database) {
         // reset the frame count
         motionMatchingFrameCount = 0;
     }
+    // input handling
     getInput(camera);
     updateControllerTrajectory();
+    camera.processRotation(dt);
+    camera.target = MxMUtils::V3Dtovec3(V3D(controllerPos[0]));
+  
     // copy the state for the current clip and frame
+    mocap::MocapSkeletonState prevState = clips->at(clipIdx)->getState(frameIdx-1);
     mocap::MocapSkeletonState state = clips->at(clipIdx)->getState(frameIdx);
 
     // compute simulation bone position and orientation
-    if(transition)
-    {   
-        lastMatchSimulationPos = simulationPos;
-        lastMatchSimulationRot = simulationRot;
-        lastMatchAnimationPos = clips->at(clipIdx)->getState(frameIdx-1).getRootPosition();
-        lastMatchAnimationRot = clips->at(clipIdx)->getState(frameIdx-1).getRootOrientation();
-    }
-
-    simulationRot = lastMatchSimulationRot * lastMatchAnimationRot.inverse() * state.getRootOrientation();
-    simulationPos = lastMatchSimulationPos + lastMatchSimulationRot * lastMatchAnimationRot.inverse() * (V3D(lastMatchAnimationPos, state.getRootPosition()));
+    simulationRot = simulationRot * prevState.getRootOrientation().inverse() * state.getRootOrientation();
+    simulationPos = simulationPos + simulationRot * prevState.getRootOrientation().inverse() * (V3D(prevState.getRootPosition(), state.getRootPosition()));
 
     // set root position and orientation to the lerp between controller position and simulation position
-    P3D finalPos = MxMUtils::lerp(simulationPos, controllerPos[0], syncFactor);
+    P3D finalPos = MxMUtils::lerp(simulationPos, controllerPos[0], syncFactor*syncFactor*syncFactor*syncFactor);
     Quaternion controllerOrientation = getRotationQuaternion(controllerRot[0] - M_PI_2, V3D(0, 1, 0));
     
     // FIXME: this is skipping when the shortest angle suddenly changes
-    //Quaternion finalRot = MxMUtils::quatNlerpShortest(simulationRot, controllerOrientation, syncFactor);
-    Quaternion finalRot = simulationRot;
+    Quaternion finalRot = MxMUtils::quatNlerpShortest(simulationRot, controllerOrientation, syncFactor*syncFactor*syncFactor*syncFactor);
+    simulationRot = finalRot;
+    simulationPos = finalPos;
+
+    
+    
 
     state.setRootOrientation(finalRot);
     state.setRootPosition(finalPos);
@@ -218,20 +210,22 @@ void Controller::drawTrajectory(const Shader &shader, Database &database, bool d
     animationDirections.push_back(q0 * d2);
     animationDirections.push_back(q0 * d3);
     std::vector<float> trajectoryAngle = MxMUtils::worldToLocalDirectionsAngle(controllerRot);
-    std::vector<V3D> directions(trajectoryAngle.size());
+    std::vector<V3D> directions(trajectoryAngle.size()+1);
+    directions[0] = q0 * V3D(0,0,1);
     for (int i = 0; i < trajectoryAngle.size(); i++) {
-        directions[i] = q0 * V3D(sin(trajectoryAngle[i]), 0, cos(trajectoryAngle[i]));
+        directions[i + 1] = q0 * V3D(sin(trajectoryAngle[i]), 0, cos(trajectoryAngle[i]));
     }
 
     // draw trajectory
     crl::gui::drawSphere(controllerPos[0], 0.05, shader, V3D(1, 0.5, 0), 1.0);
+    crl::gui::drawArrow3d(controllerPos[0], directions[0]*0.75, 0.005, shader, V3D(1, 0, 1), 0.5);
     for (int i = 0; i < controllerPos.size() - 1; i++) {
         if(drawControllerTrajectory)
         {
             
             crl::gui::drawSphere(controllerPos[i+1], 0.03, shader, V3D(1, 0.5, 0), 1.0);
             crl::gui::drawCapsule(controllerPos[i], controllerPos[i + 1], 0.01, shader, V3D(1, 0.5, 0), 1.0);
-            crl::gui::drawArrow3d(controllerPos[i+1], directions[i]*0.75, 0.005, shader, V3D(1, 0, 1), 0.5);
+            crl::gui::drawArrow3d(controllerPos[i+1], directions[i+1] * 0.75, 0.005, shader, V3D(1, 0, 1), 0.5);
         }
 
         if(drawAnimationTrajectory)
@@ -382,7 +376,8 @@ void Controller::updateFootLocking() {
         lFootLockedPos = lFootMarker->state.pos;
         lFootLockedPos[1] = 0;
         //stCurr.get
-    } else if (lFootInContact && contactHistories[0].at(0)) {
+    }
+    if (lFootInContact) {
         Quaternion lHipRot, lKneeRot;
         V3D lHeelPos = V3D(playerSkeleton->getMarkerByName("LeftFoot")->state.pos);
         Quaternion lKneeRotOrg = playerSkeleton->getMarkerByName("LeftLeg")->state.orientation;
@@ -409,7 +404,8 @@ void Controller::updateFootLocking() {
         rFootLockedPos = rFootMarker->state.pos;
         rFootLockedPos[1] = 0;
         //stCurr.get
-    } else if (rFootInContact && contactHistories[1].at(0)) {
+    }
+    if (rFootInContact) {
         Quaternion rHipRot, rKneeRot;
         V3D rHeelPos = V3D(playerSkeleton->getMarkerByName("RightFoot")->state.pos);
         Quaternion rKneeRotOrg = playerSkeleton->getMarkerByName("RightLeg")->state.orientation;
@@ -437,10 +433,7 @@ void Controller::updateFootLocking() {
     footLockingStates.pop_back();
 
     // contact transition happens only only one frame after the contact is made
-    bool transition = !lFootInContact && contactHistories[0].at(0);
-    transition = transition || (!rFootInContact && contactHistories[1].at(0));
-    transition = transition || (!contactHistories[0].at(1) && contactHistories[0].at(0));
-    transition = transition || (!contactHistories[1].at(1) && contactHistories[1].at(0));
+    bool transition = lFootInContact != contactHistories[0].at(0) || rFootInContact != contactHistories[1].at(0);
     
     if (transition) {
         // set inertialization info

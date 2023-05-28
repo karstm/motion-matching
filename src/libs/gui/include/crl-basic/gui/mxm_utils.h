@@ -31,15 +31,23 @@ public:
         return vec;
     }
 
-    static Quaternion getYrotation(Quaternion q, bool inverse = true){
+    static Quaternion getYrotation(Quaternion q, bool inverse = false){
         double alpha, beta, gamma;
-        V3D side = V3D(1,0,0);
-        V3D up = V3D(0,1,0);
-        V3D front = V3D(0,0,1);
-        computeEulerAnglesFromQuaternion(q, front, side, up, alpha, beta, gamma);
-        gamma = gamma+M_PI;
-        Quaternion negYrotation = getRotationQuaternion(inverse? -gamma : gamma, up);
+        V3D x = V3D(1,0,0);
+        V3D y = V3D(0,1,0);
+        V3D z = V3D(0,0,1);
+        computeEulerAnglesFromQuaternion(q, y, x, z, alpha, beta, gamma);
+        Quaternion negYrotation = getRotationQuaternion(inverse? -gamma : gamma, y);
         return negYrotation;
+    }
+
+    static float getYrotationRadians(Quaternion q, bool inverse = false){
+        double alpha, beta, gamma;
+        V3D x = V3D(1,0,0);
+        V3D y = V3D(0,1,0);
+        V3D z = V3D(0,0,1);
+        computeEulerAnglesFromQuaternion(q, y, x, z, alpha, beta, gamma);
+        return inverse? -alpha : alpha;
     }
 
     // returns the angle between 2 vectors on the x-z plane from -pi to pi

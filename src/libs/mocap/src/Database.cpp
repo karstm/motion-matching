@@ -8,6 +8,7 @@
 // Empty constructor to allow for member initialization
 Database::Database() {
     data = nullptr;
+    annoyIndex = nullptr;
 }
 
 // Destructor frees the data array
@@ -255,8 +256,8 @@ void Database::readFrameSums(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* 
 //TODO: implement this
 void Database::getTrajectoryPositions(crl::mocap::MocapSkeleton *sk, const crl::mocap::MocapSkeletonState *sk1, const crl::mocap::MocapSkeletonState *sk2, const crl::mocap::MocapSkeletonState *sk3,  int offset) {
     crl::P3D p0 = sk->root->state.pos;
-    crl::Quaternion q0Inverse = crl::gui::MxMUtils::getYrotation(sk->root->state.orientation, true);
-    crl::Quaternion nintyDegreeRotation = crl::getRotationQuaternion(M_PI_2, crl::V3D(0, 1, 0));
+    crl::Quaternion q0Inverse = sk->root->state.orientation.inverse();
+    crl::Quaternion nintyDegreeRotation = crl::getRotationQuaternion(-M_PI_2, crl::V3D(0, 1, 0));
     q0Inverse = q0Inverse * nintyDegreeRotation;
     crl::V3D p1 = q0Inverse*crl::V3D(p0, sk1->getRootPosition());
     crl::V3D p2 = q0Inverse*crl::V3D(p0, sk2->getRootPosition());
@@ -273,10 +274,10 @@ void Database::getTrajectoryPositions(crl::mocap::MocapSkeleton *sk, const crl::
 // Compute the trajectory direction data
 // TODO: implement this
 void Database::getTrajectoryDirections(crl::mocap::MocapSkeleton *sk, const crl::mocap::MocapSkeletonState *sk1, const crl::mocap::MocapSkeletonState *sk2, const crl::mocap::MocapSkeletonState *sk3, int offset) {
-    crl::Quaternion q0Inverse = crl::gui::MxMUtils::getYrotation(sk->root->state.orientation);
-    crl::Quaternion q1 = crl::gui::MxMUtils::getYrotation(sk1->getRootOrientation(), false);
-    crl::Quaternion q2 = crl::gui::MxMUtils::getYrotation(sk2->getRootOrientation(), false);
-    crl::Quaternion q3 = crl::gui::MxMUtils::getYrotation(sk3->getRootOrientation(), false);
+    crl::Quaternion q0Inverse = sk->root->state.orientation.inverse();
+    crl::Quaternion q1 = sk1->getRootOrientation();
+    crl::Quaternion q2 = sk2->getRootOrientation();
+    crl::Quaternion q3 = sk3->getRootOrientation();
 
     crl::V3D trajectory_dir0 = q0Inverse*(q1* crl::V3D(0, 0, 1));
     crl::V3D trajectory_dir1 = q0Inverse*(q2* crl::V3D(0, 0, 1));
