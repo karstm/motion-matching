@@ -219,33 +219,33 @@ public:
      */
     inline void draw(const gui::Shader &rbShader) {
         // Draw abstract view first
-        if (true)
+        if (false)
             for (uint i = 0; i < rbList.size(); i++)
                 RBRenderer::drawSkeletonView(rbList[i], rbShader, showJointAxes,
                                              showJointLimits, showJointAngles);
 
         // Then draw meshes (because of blending)
-        if (false)
+        if (true)
             for (uint i = 0; i < rbList.size(); i++)
                 RBRenderer::drawMeshes(rbList[i], rbShader);
 
         // Then draw collsion spheres
-        if (showCollisionSpheres)
+        if (false)
             for (uint i = 0; i < rbList.size(); i++)
                 RBRenderer::drawCollisionSpheres(rbList[i], rbShader);
 
         // Then draw end effectors
-        if (showEndEffectors)
+        if (false)
             for (uint i = 0; i < rbList.size(); i++)
                 RBRenderer::drawEndEffectors(rbList[i], rbShader);
 
         // and now MOIs
-        if (showMOI)
+        if (false)
             for (uint i = 0; i < rbList.size(); i++)
                 RBRenderer::drawMOI(rbList[i], rbShader);
 
         // and now coordinate frames
-        if (showCoordFrame) {
+        if (false) {
             for (uint i = 0; i < rbList.size(); i++)
                 RBRenderer::drawCoordFrame(rbList[i], rbShader);
         }
