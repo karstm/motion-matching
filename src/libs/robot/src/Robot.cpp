@@ -76,7 +76,7 @@ void Robot::setZeroState() {
 
 void Robot::setState(RobotState *state) {
     // kinda ugly code....
-    root->state.pos = state->getPosition() + V3D(1,0,0);
+    root->state.pos = state->getPosition()  ;
     root->state.orientation = state->getOrientation();
     root->state.orientation.normalize();
 
@@ -210,9 +210,15 @@ void Robot::setMocapState(crl::mocap::MocapSkeletonState *state) {
     //right shoulder
     q = state->getJointRelativeOrientation(19);
     computeEulerAnglesFromQuaternion(q, y, x, z, alpha, beta, gamma);
-    rs.setJointRelativeOrientation(crl::getRotationQuaternion(-beta, jointList[37]->rotationAxis), 37); //y
-    rs.setJointRelativeOrientation(crl::getRotationQuaternion(-alpha - M_PI_2, jointList[34]->rotationAxis), 34); //z
-    rs.setJointRelativeOrientation(crl::getRotationQuaternion(gamma + M_PI / 8.0, jointList[31]->rotationAxis), 31); //x
+    Quaternion yRot = getRotationQuaternion(alphaSlider2, y);
+    Quaternion xRot = getRotationQuaternion(betaSlider2, x);
+    Quaternion zRot = getRotationQuaternion(gammaSlider2, z);
+    Quaternion q2 = zRot * yRot * xRot;
+    state->setJointRelativeOrientation(q2, 19);
+
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(gammaSlider, jointList[37]->rotationAxis), 37); //y
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(alphaSlider, jointList[34]->rotationAxis), 34); //z
+    rs.setJointRelativeOrientation(crl::getRotationQuaternion(betaSlider, jointList[31]->rotationAxis), 31); //x
 
     //left elbow
     q = state->getJointRelativeOrientation(16);

@@ -199,6 +199,24 @@ public:
     void drawImGui() override {
         crl::gui::ShadowApplication::drawImGui();
 
+        if(ImGui::SliderFloat("alpha", &robot->alphaSlider, -M_PI,  M_PI, "%.2f"))
+            robot->setMocapState(controller.getCurrentState());
+        if(ImGui::SliderFloat("beta", &robot->betaSlider, -M_PI, M_PI, "%.2f"))
+            robot->setMocapState(controller.getCurrentState());
+        if(ImGui::SliderFloat("gamma", &robot->gammaSlider, -M_PI, M_PI, "%.2f"))
+            robot->setMocapState(controller.getCurrentState());
+
+        if(ImGui::SliderFloat("alpha", &robot->alphaSlider2, -M_PI,  M_PI, "%.2f"))
+            robot->setMocapState(controller.getCurrentState());
+        if(ImGui::SliderFloat("beta", &robot->betaSlider2, -M_PI, M_PI, "%.2f"))
+            robot->setMocapState(controller.getCurrentState());
+        if(ImGui::SliderFloat("gamma", &robot->gammaSlider2, -M_PI, M_PI, "%.2f"))
+            robot->setMocapState(controller.getCurrentState());
+
+
+        
+
+
         ImGui::Begin("Main Menu");
         ImGui::Checkbox("Follow Character", &followCharacter);
 

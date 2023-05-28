@@ -21,6 +21,9 @@ class Robot {
     friend class GeneralizedCoordinatesRobotRepresentation;
 
 public:
+
+    float alphaSlider, betaSlider, gammaSlider;
+    float alphaSlider2, betaSlider2, gammaSlider2;
     // root configuration
     RB *root = nullptr;
     // keep lists of all the joints and all the RBs of the robot, for easy
@@ -216,13 +219,13 @@ public:
      */
     inline void draw(const gui::Shader &rbShader) {
         // Draw abstract view first
-        if (showSkeleton)
+        if (true)
             for (uint i = 0; i < rbList.size(); i++)
                 RBRenderer::drawSkeletonView(rbList[i], rbShader, showJointAxes,
                                              showJointLimits, showJointAngles);
 
         // Then draw meshes (because of blending)
-        if (showMeshes)
+        if (false)
             for (uint i = 0; i < rbList.size(); i++)
                 RBRenderer::drawMeshes(rbList[i], rbShader);
 
