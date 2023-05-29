@@ -51,7 +51,7 @@ public:
         bool lContact = lContactInfos.at(clipIdx).at(frameIdx);
         bool rContact = rContactInfos.at(clipIdx).at(frameIdx);
 
-        return {lContact, rContact};
+        return { lContact, rContact };
     }
 
     void ikLookAt(Quaternion &boneRotation,
@@ -124,7 +124,7 @@ public:
 private:
     bool isInContact(crl::mocap::MocapSkeleton *sk,
                     crl::mocap::MocapSkeletonState *statePrev, crl::mocap::MocapSkeletonState *stateCurrent,
-                     const std::string &jointName, float dt) {
+                    const std::string &jointName, float dt) {
         sk->setState(statePrev);
         const auto jointPrev = sk->getMarkerByName(jointName.c_str());
         P3D prevPos = jointPrev->state.getWorldCoordinates(jointPrev->endSites[0].endSiteOffset);
