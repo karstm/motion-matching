@@ -9,7 +9,14 @@ V3D MocapRenderer::defaultEndSiteLinkColor_ = V3D(0.5, 0.0, 0.0);    // Red
 V3D MocapRenderer::selectedEndSiteLinkColor_ = V3D(0.9, 0.85, 0.0);  // Gold
 V3D MocapRenderer::endSiteContactColor_ = V3D(0.0, 0.9, 0.0);        // Green
 
-void MocapRenderer::drawMarker(const MocapMarker *joint, const crl::gui::Shader &shader) {
+void MocapRenderer::drawMarker(MocapMarker *joint, const crl::gui::Shader &shader) {
+    if (joint->model)
+    {
+        joint->model->orientation = joint->state.orientation;
+        joint->model->position = joint->state.pos;
+        joint->model->draw(shader, V3D(0.7, 0.7, 0.3));
+    }
+
     V3D drawColor = joint->selected ? selectedLinkDrawColor_ : defaultLinkDrawColor_;
 
     drawSphere(joint->state.pos, linkCylinderRadius_ * 1.3, shader, jointDrawColor_);

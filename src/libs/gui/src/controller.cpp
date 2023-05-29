@@ -79,6 +79,29 @@ void Controller::init(KeyboardState *keyboardState, std::vector<std::unique_ptr<
     playerSkeleton = new crl::mocap::MocapSkeleton(mocapPath.c_str());
     playerSkeleton->setState(&motionStates[0]);
 
+    // load models
+    playerSkeleton->getMarkerByName("Hips")->model = new gui::Model(CRL_DATA_FOLDER "/robot/bob/Hips.obj");
+    playerSkeleton->getMarkerByName("LeftUpLeg")->model = new gui::Model(CRL_DATA_FOLDER "/robot/bob/LeftUpLeg.obj");
+    playerSkeleton->getMarkerByName("LeftLeg")->model = new gui::Model(CRL_DATA_FOLDER "/robot/bob/LeftLeg.obj");
+    playerSkeleton->getMarkerByName("LeftFoot")->model = new gui::Model(CRL_DATA_FOLDER "/robot/bob/LeftFoot.obj");
+    playerSkeleton->getMarkerByName("LeftToe")->model = new gui::Model(CRL_DATA_FOLDER "/robot/bob/LeftToe.obj");
+    playerSkeleton->getMarkerByName("RightUpLeg")->model = new gui::Model(CRL_DATA_FOLDER "/robot/bob/RightUpLeg.obj");
+    playerSkeleton->getMarkerByName("RightLeg")->model = new gui::Model(CRL_DATA_FOLDER "/robot/bob/RightLeg.obj");
+    playerSkeleton->getMarkerByName("RightFoot")->model = new gui::Model(CRL_DATA_FOLDER "/robot/bob/RightFoot.obj");
+    playerSkeleton->getMarkerByName("RightToe")->model = new gui::Model(CRL_DATA_FOLDER "/robot/bob/RightToe.obj");
+    playerSkeleton->getMarkerByName("Spine")->model = new gui::Model(CRL_DATA_FOLDER "/robot/bob/Spine.obj");
+    playerSkeleton->getMarkerByName("Spine2")->model = new gui::Model(CRL_DATA_FOLDER "/robot/bob/Torso.obj");
+    playerSkeleton->getMarkerByName("Neck")->model = new gui::Model(CRL_DATA_FOLDER "/robot/bob/Neck.obj");
+    playerSkeleton->getMarkerByName("Head")->model = new gui::Model(CRL_DATA_FOLDER "/robot/bob/Head.obj");
+    playerSkeleton->getMarkerByName("LeftShoulder")->model = new gui::Model(CRL_DATA_FOLDER "/robot/bob/LeftShoulder.obj");
+    playerSkeleton->getMarkerByName("LeftArm")->model = new gui::Model(CRL_DATA_FOLDER "/robot/bob/LeftArm.obj");
+    playerSkeleton->getMarkerByName("LeftForeArm")->model = new gui::Model(CRL_DATA_FOLDER "/robot/bob/LeftForeArm.obj");
+    playerSkeleton->getMarkerByName("LeftHand")->model = new gui::Model(CRL_DATA_FOLDER "/robot/bob/LeftHand.obj");
+    playerSkeleton->getMarkerByName("RightShoulder")->model = new gui::Model(CRL_DATA_FOLDER "/robot/bob/RightShoulder.obj");
+    playerSkeleton->getMarkerByName("RightArm")->model = new gui::Model(CRL_DATA_FOLDER "/robot/bob/RightArm.obj");
+    playerSkeleton->getMarkerByName("RightForeArm")->model = new gui::Model(CRL_DATA_FOLDER "/robot/bob/RightForeArm.obj");
+    playerSkeleton->getMarkerByName("RightHand")->model = new gui::Model(CRL_DATA_FOLDER "/robot/bob/RightHand.obj");
+
     // initialize time
     prevTime = std::chrono::steady_clock::now();
 }

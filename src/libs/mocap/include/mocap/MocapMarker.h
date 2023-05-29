@@ -10,6 +10,7 @@
 #include "crl-basic/gui/renderer.h"
 #include "crl-basic/utils/geoms.h"
 #include "crl-basic/utils/mathDefs.h"
+#include "crl-basic/gui/mesh.h"
 #include "mocap/MocapMarkerState.h"
 
 namespace crl::mocap {
@@ -47,6 +48,8 @@ public:
 
     // props
     bool selected = false;
+
+    gui::Model *model= nullptr;
 
 public:
     Quaternion computeRelativeOrientation() {
