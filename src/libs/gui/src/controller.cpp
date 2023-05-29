@@ -63,6 +63,7 @@ void Controller::init(KeyboardState *keyboardState, std::vector<std::unique_ptr<
         state.setRootPosition(simulationPos);
         state.setRootOrientation(simulationRot);
         footLockingStates.push_front(state);
+        footLockingStatesNoInertialization.push_front(state);
     }
     for(int i = 0; i < footMarkerNames.size(); i++){
         std::deque<bool> cHistory;
@@ -182,11 +183,23 @@ void Controller::update(TrackingCamera &camera, Database &database) {
 
 void Controller::drawSkeleton(const Shader &shader)
 {
+    crl::mocap::MocapSkeletonState state = motionStates[0];
+    state.setRootPosition(state.getRootPosition() + V3D(-1, 0, 0));
+    playerSkeleton->setState(&state);
     playerSkeleton->draw(shader);
+    state = footLockingStatesNoInertialization[0];
+    playerSkeleton->setState(&state);
+    playerSkeleton->draw(shader);
+    state = footLockingStates[0];
+    state.setRootPosition(state.getRootPosition() + V3D(1, 0, 0));
+    playerSkeleton->setState(&state);
+    playerSkeleton->draw(shader);
+    playerSkeleton->setState(&footLockingStates[0]);
     // clips->at(clipIdx)->drawState(shader, &footLockedStates[0]);
 }
 
 void Controller::drawTrajectory(const Shader &shader, Database &database, bool drawControllerTrajectory, bool drawAnimationTrajectory) {
+    return;
     // compute trajectory
     float dbEntry[27];
     database.getEntry(clipIdx, frameIdx, dbEntry);
@@ -506,6 +519,9 @@ void Controller::updateFootLocking() {
 
     footLockingStates.push_front(footLockingState);
     footLockingStates.pop_back();
+
+    footLockingStatesNoInertialization.push_front(footLockingState);
+    footLockingStatesNoInertialization.pop_back();
 
     // contact transition happens only only one frame after the contact is made
     bool transition = usinglFootLocking != contactHistories[0].at(0) || usingrFootLocking != contactHistories[1].at(0);

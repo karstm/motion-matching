@@ -12,7 +12,8 @@ V3D MocapRenderer::endSiteContactColor_ = V3D(0.0, 0.9, 0.0);        // Green
 void MocapRenderer::drawMarker(const MocapMarker *joint, const crl::gui::Shader &shader) {
     V3D drawColor = joint->selected ? selectedLinkDrawColor_ : defaultLinkDrawColor_;
 
-    drawSphere(joint->state.pos, linkCylinderRadius_ * 1.3, shader, jointDrawColor_);
+    if( joint->parent != NULL)
+        drawSphere(joint->state.pos, linkCylinderRadius_ * 1.3, shader, jointDrawColor_);
 
     // bone ~ parent
     if (joint->parent != NULL && joint->parent->parent != NULL) {
@@ -20,7 +21,7 @@ void MocapRenderer::drawMarker(const MocapMarker *joint, const crl::gui::Shader 
         P3D endPos = joint->state.pos;
         drawCapsule(startPos, endPos, linkCylinderRadius_, shader, drawColor);
     }
-    else if(joint->parent == NULL){
+    else if(false && joint->parent == NULL){
         P3D startPos = joint->state.pos;
         V3D direction = joint->state.orientation * V3D(0.6, 0, 0);
         drawArrow3d(startPos, direction, linkCylinderRadius_, shader, V3D(1, 0, 0));

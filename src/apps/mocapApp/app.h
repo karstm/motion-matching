@@ -666,7 +666,7 @@ private:
     float hipVelocityWeight = 2.0;
 
     // plot and visualization
-    bool drawControllerTrajectory = true;
+    bool drawControllerTrajectory = false;
     bool drawAnimationTrajectory = false;
     bool followCharacter = true;
     bool showCoordinateFrames = false;

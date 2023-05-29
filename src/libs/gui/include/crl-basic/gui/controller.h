@@ -69,6 +69,7 @@ private:
     Footlocking *footLocking;
     std::deque<mocap::MocapSkeletonState> motionStates;
     std::deque<mocap::MocapSkeletonState> footLockingStates;
+    std::deque<mocap::MocapSkeletonState> footLockingStatesNoInertialization;
 
     std::vector<P3D> controllerPos; // future positions arranged in chronological order (i.e. "future-r" positions at the back)
     std::vector<float> controllerRot; // future rotations about y-axis arranged in chronological order (0 degrees defined as z-axis)
