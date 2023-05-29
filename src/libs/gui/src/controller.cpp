@@ -357,13 +357,6 @@ void Controller::updateControllerTrajectory()
 }
 
 void Controller::updateFootLocking() {
-    
-    crl::mocap::MocapSkeleton *sk = clips->at(clipIdx)->getModel();
-    //crl::mocap::MocapSkeletonState stPrev = clips->at(clipIdx)->getState(frameIdx-1);
-    crl::mocap::MocapSkeletonState stCurr = clips->at(clipIdx)->getState(frameIdx);
-    sk->setState(&stCurr);
-    //footLocking->isInContact(sk, &stPrev, &stCurr, "LeftToe", 1/60.0);
-
     bool lFootInContactPrev, rFootInContactPrev;
     bool lFootInContact, rFootInContact;
     std::tie(lFootInContactPrev, rFootInContactPrev) = footLocking->isFootInContact(clipIdx, frameIdx-1);
@@ -378,7 +371,7 @@ void Controller::updateFootLocking() {
         //stCurr.get
     }
     if (lFootInContact) {
-        Quaternion lHipRot, lKneeRot;
+        Quaternion lHipRot, lKneeRot, lHeelRot, lToeRot;
         V3D lHeelPos = V3D(playerSkeleton->getMarkerByName("LeftFoot")->state.pos);
         Quaternion lKneeRotOrg = playerSkeleton->getMarkerByName("LeftLeg")->state.orientation;
         footLocking->ikTwoBone(
@@ -396,7 +389,41 @@ void Controller::updateFootLocking() {
 
         footLockingState.setJointRelativeOrientation(lHipRot, 2);
         footLockingState.setJointRelativeOrientation(lKneeRot, 3);
-        // playerSkeleton->getMarkerByName(footLocking->lFoot.c_str())->state.pos = lFootLockedPos;
+
+        /* Fixing foot direction currently introduces some weird artefacts.
+        playerSkeleton->setState(&footLockingState);
+
+        footLocking->ikLookAt(
+            lHeelRot, 
+            playerSkeleton->getMarkerByName("LeftLeg")->state.orientation,
+            playerSkeleton->getMarkerByName("LeftFoot")->state.orientation,
+            V3D(playerSkeleton->getMarkerByName("LeftFoot")->state.pos),
+            V3D(playerSkeleton->getMarkerByName("LeftToe")->state.pos),
+            V3D(lFootLockedPos)
+        );
+
+        footLockingState.setJointRelativeOrientation(lHeelRot, 4);
+
+        playerSkeleton->setState(&footLockingState);
+
+        V3D toe_end_curr = playerSkeleton->getMarkerByName("LeftToe")->state.orientation * V3D(0.15f, 0.0f, 0.0f) + 
+                            V3D(playerSkeleton->getMarkerByName("LeftToe")->state.pos);
+                    
+        V3D toe_end_targ = toe_end_curr;
+        toe_end_targ[1] = std::max(toe_end_targ[1], 0.02);
+
+        footLocking->ikLookAt(
+            lToeRot,
+            playerSkeleton->getMarkerByName("LeftFoot")->state.orientation,
+            playerSkeleton->getMarkerByName("LeftToe")->state.orientation,
+            V3D(playerSkeleton->getMarkerByName("LeftToe")->state.pos),
+            toe_end_curr,
+            toe_end_targ
+        );
+
+        footLockingState.setJointRelativeOrientation(lToeRot, 5);
+        playerSkeleton->getMarkerByName(footLocking->lFoot.c_str())->state.pos = lFootLockedPos;
+        */
     }
 
     if (rFootInContact && !contactHistories[1].at(0)) {
@@ -406,7 +433,7 @@ void Controller::updateFootLocking() {
         //stCurr.get
     }
     if (rFootInContact) {
-        Quaternion rHipRot, rKneeRot;
+        Quaternion rHipRot, rKneeRot, rHeelRot, rToeRot;
         V3D rHeelPos = V3D(playerSkeleton->getMarkerByName("RightFoot")->state.pos);
         Quaternion rKneeRotOrg = playerSkeleton->getMarkerByName("RightLeg")->state.orientation;
 
@@ -426,7 +453,31 @@ void Controller::updateFootLocking() {
         footLockingState.setJointRelativeOrientation(rHipRot, 6);
         footLockingState.setJointRelativeOrientation(rKneeRot, 7);
 
-        // playerSkeleton->getMarkerByName(footLocking->rFoot.c_str())->state.pos = rFootLockedPos;
+        /* Fixing foot direction currently introduces some weird artefacts.
+        playerSkeleton->setState(&footLockingState);
+
+        footLocking->ikLookAt(rHeelRot, playerSkeleton->getMarkerByName("RightLeg")->state.orientation,
+                              playerSkeleton->getMarkerByName("RightFoot")->state.orientation, V3D(playerSkeleton->getMarkerByName("RightFoot")->state.pos),
+                              V3D(playerSkeleton->getMarkerByName("RightToe")->state.pos), V3D(rFootLockedPos));
+
+        footLockingState.setJointRelativeOrientation(rHeelRot, 8);
+
+        playerSkeleton->setState(&footLockingState);
+
+        V3D toe_end_curr =
+            playerSkeleton->getMarkerByName("RightToe")->state.orientation * V3D(0.15f, 0.0f, 0.0f) + V3D(playerSkeleton->getMarkerByName("RightToe")->state.pos);
+
+        V3D toe_end_targ = toe_end_curr;
+        toe_end_targ[1] = std::max(toe_end_targ[1], 0.02);
+
+        footLocking->ikLookAt(rToeRot, playerSkeleton->getMarkerByName("RightFoot")->state.orientation,
+                              playerSkeleton->getMarkerByName("RightToe")->state.orientation, V3D(playerSkeleton->getMarkerByName("RightToe")->state.pos),
+                              toe_end_curr, toe_end_targ);
+
+        footLockingState.setJointRelativeOrientation(rToeRot, 9);
+
+        playerSkeleton->getMarkerByName(footLocking->rFoot.c_str())->state.pos = rFootLockedPos;
+        */
     }
 
     footLockingStates.push_front(footLockingState);
