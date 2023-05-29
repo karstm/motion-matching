@@ -135,15 +135,12 @@ void Controller::update(TrackingCamera &camera, Database &database) {
     // set root position and orientation to the lerp between controller position and simulation position
     P3D finalPos = MxMUtils::lerp(simulationPos, controllerPos[0], syncFactor*syncFactor*syncFactor*syncFactor);
     Quaternion controllerOrientation = getRotationQuaternion(controllerRot[0] - M_PI_2, V3D(0, 1, 0));
-    
-    // FIXME: this is skipping when the shortest angle suddenly changes
     Quaternion finalRot = MxMUtils::quatNlerpShortest(simulationRot, controllerOrientation, syncFactor*syncFactor*syncFactor*syncFactor);
+    
     simulationRot = finalRot;
     simulationPos = finalPos;
 
-    
-    
-
+    // Setting the possibly synchronized root position and orientation
     state.setRootOrientation(finalRot);
     state.setRootPosition(finalPos);
 
@@ -168,9 +165,13 @@ void Controller::update(TrackingCamera &camera, Database &database) {
     // inertialization
     if(useInertialization)
         motionStates[0] = InertializationUtils::inertializeState(rootPosInertializationInfo, rootOrientInertializationInfo, jointPositionInertializationInfos, jointOrientInertializationInfos, numMarkers, motionStates[0], motionStates[1], t, dt); // here we use the new dt
-
+    
+    // Finally the state is set for the skeleton
+    // If footlocking is not used then we end the state computation here
+    // Else we set the inertialized state here to use it for footlocking and IK
     playerSkeleton->setState(&motionStates[0]);
 
+    // Update Footlocking and use partial IK
     if(useFootLocking){
         updateFootLocking();
     }
@@ -222,7 +223,6 @@ void Controller::drawTrajectory(const Shader &shader, Database &database, bool d
     for (int i = 0; i < controllerPos.size() - 1; i++) {
         if(drawControllerTrajectory)
         {
-            
             crl::gui::drawSphere(controllerPos[i+1], 0.03, shader, V3D(1, 0.5, 0), 1.0);
             crl::gui::drawCapsule(controllerPos[i], controllerPos[i + 1], 0.01, shader, V3D(1, 0.5, 0), 1.0);
             crl::gui::drawArrow3d(controllerPos[i+1], directions[i+1] * 0.75, 0.005, shader, V3D(1, 0, 1), 0.5);
@@ -368,7 +368,6 @@ void Controller::updateFootLocking() {
         crl::mocap::MocapMarker *lFootMarker = playerSkeleton->getMarkerByName(footLocking->lFoot.c_str());
         lFootLockedPos = lFootMarker->state.pos;
         lFootLockedPos[1] = 0;
-        //stCurr.get
     }
     if (lFootInContact) {
         Quaternion lHipRot, lKneeRot, lHeelRot, lToeRot;

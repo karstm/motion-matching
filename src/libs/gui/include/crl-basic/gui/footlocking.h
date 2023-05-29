@@ -12,6 +12,12 @@
 namespace crl {
 namespace gui {
 
+/*
+ * Tools for Foot-Locking
+ * Adapted from Orangeduck's motion matching system.
+ * https://theorangeduck.com/page/code-vs-data-driven-displacement#footlocking
+ */
+
 class Footlocking {
 // Methods
 public:

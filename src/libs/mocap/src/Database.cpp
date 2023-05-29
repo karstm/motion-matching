@@ -13,7 +13,8 @@ Database::Database() {
 
 // Destructor frees the data array
 Database::~Database() {
-    delete[] data;
+    if(data != nullptr)
+        delete[] data;
     if (annoyIndex != nullptr)
         delete annoyIndex;
 }
@@ -88,7 +89,6 @@ void Database::build(float trajectoryPositionWeight, float trajectoryFacingWeigh
 }
 
 // Matches the given query to the mocap database and returns the clip id and frame number
-// TODO: implement this
 void Database::match(std::vector<crl::P3D>& trajectoryPositions, std::vector<crl::V3D>& trajectoryDirections,
                     int& clip_id, int& frame) 
 {
@@ -96,6 +96,8 @@ void Database::match(std::vector<crl::P3D>& trajectoryPositions, std::vector<crl
     int kNearest = 1;
 
     // arange the query in array
+    // x-z-coordinates for trajectory position for 3 frames
+    // x-z-coordinates for trajectory direction for 3 frames
     // crl::P3D& leftFootPosition;
     // crl::P3D& rightFootPosition;
     // crl::V3D& leftFootVelocity,
@@ -121,7 +123,7 @@ void Database::match(std::vector<crl::P3D>& trajectoryPositions, std::vector<crl
         query[i] = currentInfo[i];
     }
 
-    //TODO: get the line number of the nearest neighbor in the database
+    // Find most fitting clip with Spotifiy's Annoy seach-algorithm
     std::vector<int> closest;
     annoyIndex->get_nns_by_vector(query, kNearest, -1, &closest, NULL);
 
@@ -131,6 +133,7 @@ void Database::match(std::vector<crl::P3D>& trajectoryPositions, std::vector<crl
     assert(frame <= frameSums[clip_id + 1] - frameSums[clip_id] - endFramesWhereIgnoreMatching);
 }
 
+// This is used for trajectory generation in the controller
 void Database::getEntry(int clip_id, int frame, float* entry)
 {
     int line = (frameSums[clip_id] + frame)*noFeatures;
@@ -144,7 +147,6 @@ void Database::getEntry(int clip_id, int frame, float* entry)
 }
 
 // Normalizes the given data array and applies the weights
-// TODO: test this
 void Database::normalize(float* data) 
 {
     for (int i = 0; i < noFeatures; i++) 
@@ -186,8 +188,7 @@ void Database::denormalize(float* entry)
     }
 }
 
-// Converts a line number to a clip id and frame number using a binary search on the frameSums vector
-//TODO: test this, this might be off by 1, haven't tested it yet
+// Converts a line number to a clip id and frame number of the frameSums vector
 bool Database::getClipAndFrame(int lineNumber, int& clip_id, int& frame) {
     if (lineNumber < 0 || lineNumber >= frameSums.back())
         return false;
@@ -205,7 +206,6 @@ bool Database::getClipAndFrame(int lineNumber, int& clip_id, int& frame) {
 }
 
 // Finds the data in the BVH clips and stores it in the data array
-//TODO: test this
 void Database::readData(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhClips) 
 {
     for (int clipId  = 0; clipId < bvhClips->size(); clipId++) 
@@ -253,7 +253,6 @@ void Database::readFrameSums(std::vector<std::unique_ptr<crl::mocap::BVHClip>>* 
 }
 
 // Compute the trajectory position data 
-//TODO: implement this
 void Database::getTrajectoryPositions(crl::mocap::MocapSkeleton *sk, const crl::mocap::MocapSkeletonState *sk1, const crl::mocap::MocapSkeletonState *sk2, const crl::mocap::MocapSkeletonState *sk3,  int offset) {
     crl::P3D p0 = sk->root->state.pos;
     crl::Quaternion q0Inverse = sk->root->state.orientation.inverse();
@@ -272,7 +271,6 @@ void Database::getTrajectoryPositions(crl::mocap::MocapSkeleton *sk, const crl::
 }
 
 // Compute the trajectory direction data
-// TODO: implement this
 void Database::getTrajectoryDirections(crl::mocap::MocapSkeleton *sk, const crl::mocap::MocapSkeletonState *sk1, const crl::mocap::MocapSkeletonState *sk2, const crl::mocap::MocapSkeletonState *sk3, int offset) {
     crl::Quaternion q0Inverse = sk->root->state.orientation.inverse();
     crl::Quaternion q1 = sk1->getRootOrientation();
@@ -297,7 +295,6 @@ void Database::getFootPosition(crl::mocap::MocapSkeleton *sk, int foot, int offs
         const auto& name = footMarkerNames[foot];
         const auto joint = sk->getMarkerByName(name.c_str());
 
-        //TODO: eepos seem to be correct needs to be tested further
         crl::P3D eepos = joint->state.getLocalCoordinates(sk->root->state.getWorldCoordinates(crl::P3D(0,0,0)));
 
         data[offset + 0] = eepos.x;
@@ -311,7 +308,7 @@ void Database::getFootVelocity(crl::mocap::MocapSkeleton *sk, int foot, int offs
         const auto& name = footMarkerNames[foot];
         const auto joint = sk->getMarkerByName(name.c_str());
 
-        //TODO: eevel seems to be correct needs to be tested further
+        // eevel seems to be not perfectly correct, but good enough
         crl::V3D eevel = joint->state.getVelocityForPoint_local(joint->endSites[0].endSiteOffset);
 
         data[offset + 0] = eevel(0);
@@ -320,7 +317,6 @@ void Database::getFootVelocity(crl::mocap::MocapSkeleton *sk, int foot, int offs
 }
 
 // Compute the hip velocity
-// TODO: test this
 void Database::getHipVelocity(crl::mocap::MocapSkeleton *sk, int offset) {
     double roll = 0, pitch = 0, yaw = 0;
     crl::computeEulerAnglesFromQuaternion(sk->root->state.orientation,                                     //
@@ -337,7 +333,6 @@ void Database::getHipVelocity(crl::mocap::MocapSkeleton *sk, int offset) {
 }
 
 // Computes the means for each feature and stores them in the means vector
-//TODO: test this
 void Database::computeMeans() 
 {
     means = std::vector<float>(noFeatures, 0);
@@ -353,7 +348,6 @@ void Database::computeMeans()
 }
 
 // Computes the standard deviations for each feature and stores them in the standardDeviations vector
-// TODO: test this
 void Database::computeStandardDeviations()
 {
     standardDeviations = std::vector<float>(noFeatures, 0);
