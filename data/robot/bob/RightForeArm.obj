@@ -1,6 +1,5 @@
 # Blender 3.5.0
 # www.blender.org
-mtllib RightForeArm.mtl
 o lower_arm_right.001
 v 0.168891 0.010038 -0.010623
 v 0.221036 0.007838 -0.009882

@@ -1,6 +1,5 @@
 # Blender 3.5.0
 # www.blender.org
-mtllib Hips.mtl
 o hips.001
 v -0.011589 -0.051798 0.005460
 v -0.007682 -0.054812 0.003760

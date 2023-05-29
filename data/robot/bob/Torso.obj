@@ -1,6 +1,5 @@
 # Blender 3.5.0
 # www.blender.org
-mtllib Torso.mtl
 o torso.001
 v -0.006725 0.033189 -0.077822
 v -0.013591 0.040293 -0.066644

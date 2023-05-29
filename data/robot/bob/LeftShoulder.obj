@@ -1,6 +1,5 @@
 # Blender 3.5.0
 # www.blender.org
-mtllib LeftShoulder.mtl
 o shoulder_left.002
 v -0.025904 -0.109879 0.003030
 v -0.023620 -0.109702 0.002877

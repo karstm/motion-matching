@@ -1,6 +1,5 @@
 # Blender 3.5.0
 # www.blender.org
-mtllib LeftLeg.mtl
 o lower_leg_left.001
 v 0.011883 0.037958 0.000834
 v 0.012095 0.037752 0.007888

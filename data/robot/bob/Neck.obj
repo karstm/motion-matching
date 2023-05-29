@@ -1,6 +1,5 @@
 # Blender 3.5.0
 # www.blender.org
-mtllib Neck.mtl
 o neck.001
 v 0.124673 -0.000541 -0.000000
 v 0.121559 -0.007854 -0.000000

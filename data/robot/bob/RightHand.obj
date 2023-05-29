@@ -1,6 +1,5 @@
 # Blender 3.5.0
 # www.blender.org
-mtllib RightHand.mtl
 o hand_right.001
 v 0.131734 -0.018649 0.017745
 v 0.132822 -0.019749 0.017271

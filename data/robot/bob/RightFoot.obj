@@ -1,6 +1,5 @@
 # Blender 3.5.0
 # www.blender.org
-mtllib RightFoot.mtl
 o foot_right.001
 v 0.013042 0.015868 0.008363
 v 0.012468 0.015066 0.011158

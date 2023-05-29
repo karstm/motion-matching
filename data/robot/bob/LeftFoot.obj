@@ -1,6 +1,5 @@
 # Blender 3.5.0
 # www.blender.org
-mtllib LeftFoot.mtl
 o foot_left.001
 v 0.013049 0.015868 -0.008353
 v 0.012477 0.015066 -0.011149

@@ -1,6 +1,5 @@
 # Blender 3.5.0
 # www.blender.org
-mtllib RightArm.mtl
 o upper_arm_right.001
 v 0.305227 0.005763 -0.025131
 v 0.306691 -0.003247 -0.022123

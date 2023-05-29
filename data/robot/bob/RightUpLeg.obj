@@ -1,6 +1,5 @@
 # Blender 3.5.0
 # www.blender.org
-mtllib RightUpLeg.mtl
 o upper_leg_right.001
 v -0.021522 0.001299 -0.013780
 v -0.020617 -0.000086 -0.014909

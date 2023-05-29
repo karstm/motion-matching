@@ -1,6 +1,5 @@
 # Blender 3.5.0
 # www.blender.org
-mtllib RightToes.mtl
 o toes_right.001
 v 0.037276 0.027242 -0.016835
 v 0.036626 0.029787 -0.016709

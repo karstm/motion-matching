@@ -1,6 +1,5 @@
 # Blender 3.5.0
 # www.blender.org
-mtllib checkerboard2.mtl
 o Plane
 v -10.000000 0.000000 -9.607843
 v -10.000000 0.000000 -9.215687

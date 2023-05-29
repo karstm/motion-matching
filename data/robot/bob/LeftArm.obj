@@ -1,6 +1,5 @@
 # Blender 3.5.0
 # www.blender.org
-mtllib LeftArm.mtl
 o upper_arm_left.001
 v 0.305171 0.005759 0.025702
 v 0.306641 -0.003251 0.022695

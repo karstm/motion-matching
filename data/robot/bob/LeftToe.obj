@@ -1,6 +1,5 @@
 # Blender 3.5.0
 # www.blender.org
-mtllib LeftToes.mtl
 o toes_left.001
 v 0.037262 0.027242 0.016865
 v 0.036612 0.029788 0.016738

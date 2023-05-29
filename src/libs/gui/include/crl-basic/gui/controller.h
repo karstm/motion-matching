@@ -61,6 +61,11 @@ public:
     float transitionTime = 0.4f;
     bool useInertialization = true;
     bool useFootLocking = true;
+
+    bool drawSkeletonBones = true;
+    bool drawSimulationBone = true;
+    bool drawModel = false;
+    float modelColor[3] = {230/255.0, 175/255.0, 46/255.0};
  
 private:
     crl::mocap::MocapSkeleton *playerSkeleton = nullptr;
