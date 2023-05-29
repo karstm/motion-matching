@@ -619,8 +619,12 @@ void ShadowApplication::renderPass() {
 }
 
 void ShadowApplication::drawObjectsWithShadows(const Shader &shader) {
+    // if (showGround)
+    //     ground.draw(shader, groundIntensity, crl::gui::toV3D(groundColor));
+    // else
     if (showGround)
-        ground.draw(shader, groundIntensity, crl::gui::toV3D(groundColor));
+        terrain.draw(shader, crl::gui::toV3D(groundColor));
+    //robot->draw(shadowShader);
 
     if(show_world_frame){
         crl::gui::drawArrow3d(P3D(0,0,0), world_frame_length * V3D(1,0,0), world_frame_radius, shader, V3D(0.75, 0.25, 0.25), 1.0);
