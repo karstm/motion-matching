@@ -415,8 +415,8 @@ void Controller::updateFootLocking() {
 
         playerSkeleton->setState(&footLockingState);
 
-        V3D toe_end_curr = playerSkeleton->getMarkerByName("LeftToe")->state.orientation * V3D(0.15f, 0.0f, 0.0f) + 
-                            V3D(playerSkeleton->getMarkerByName("LeftToe")->state.pos);
+        V3D toe_end_curr = playerSkeleton->getMarkerByName("LeftToe")->state.orientation * V3D(0.15f, 0.0f, 0.0f);
+        toe_end_curr += V3D(playerSkeleton->getMarkerByName("LeftToe")->state.pos);
                     
         V3D toe_end_targ = toe_end_curr;
         toe_end_targ[1] = std::max(toe_end_targ[1], 0.02);
@@ -484,8 +484,8 @@ void Controller::updateFootLocking() {
 
         playerSkeleton->setState(&footLockingState);
 
-        V3D toe_end_curr =
-            playerSkeleton->getMarkerByName("RightToe")->state.orientation * V3D(0.15f, 0.0f, 0.0f) + V3D(playerSkeleton->getMarkerByName("RightToe")->state.pos);
+        V3D toe_end_curr = playerSkeleton->getMarkerByName("RightToe")->state.orientation * V3D(0.15f, 0.0f, 0.0f);
+        toe_end_curr += V3D(playerSkeleton->getMarkerByName("RightToe")->state.pos);
 
         V3D toe_end_targ = toe_end_curr;
         toe_end_targ[1] = std::max(toe_end_targ[1], 0.02);
@@ -520,7 +520,7 @@ void Controller::updateFootLocking() {
                                                          footLockingStates[2], 
                                                          footLockingStates[1], 
                                                          footLockingStates[0], 
-                                                         transitionTime/2.0, 
+                                                         transitionTime, 
                                                          dt); //here we use the old dt
         t_footLocking = 0;
     }
