@@ -363,7 +363,6 @@ void Controller::updateFootLocking() {
     bool lFootInContact, rFootInContact;
     std::tie(lFootInContactPrev, rFootInContactPrev) = footLocking->isFootInContact(clipIdx, frameIdx-1);
     std::tie(lFootInContact, rFootInContact) = footLocking->isFootInContact(clipIdx, frameIdx);
-    float unlockRadius = 0.3f;
 
     mocap::MocapSkeletonState footLockingState = motionStates[0];
     P3D orgLFootPos = playerSkeleton->getMarkerByName(footLocking->lFoot.c_str())->state.pos;
@@ -377,7 +376,7 @@ void Controller::updateFootLocking() {
     }
 
     float lDist = V3D(lFootLockedPos, orgLFootPos).norm();
-    bool usinglFootLocking = lFootInContact;// && lDist < unlockRadius;
+    bool usinglFootLocking = lFootInContact  && lDist < unlockRadius;
 
     if (usinglFootLocking) {
         Quaternion lHipRot, lKneeRot;
@@ -444,7 +443,7 @@ void Controller::updateFootLocking() {
     }
 
     float rDist = V3D(rFootLockedPos, orgRFootPos).norm();
-    bool usingrFootLocking = rFootInContact;// && rDist < unlockRadius;
+    bool usingrFootLocking = rFootInContact && rDist < unlockRadius;
     
     if (usingrFootLocking) {
         Quaternion rHipRot, rKneeRot;
