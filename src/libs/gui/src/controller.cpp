@@ -191,7 +191,11 @@ void Controller::update(TrackingCamera &camera, Database &database) {
     // inertialization
     if(useInertialization)
         motionStates[0] = InertializationUtils::inertializeState(rootPosInertializationInfo, rootOrientInertializationInfo, jointPositionInertializationInfos, jointOrientInertializationInfos, numMarkers, motionStates[0], motionStates[1], t, dt); // here we use the new dt
-
+    if(!flatTerrain){
+        P3D oldPos = motionStates[0].getRootPosition();
+        oldPos.y = sBoneTerrainPos.y;
+        motionStates[0].setRootPosition(oldPos);
+    }
     playerSkeleton->setState(&motionStates[0]);
 
     if(useFootLocking){
@@ -365,6 +369,9 @@ void Controller::updateControllerTrajectory()
             }
         }
 
+        // CHECK Updated
+        controllerPos[t][1] = flatTerrain ? 0 : sBoneTerrainPos[1];
+
         // rotation
         float expLambdaRotT = exp(-lambdaRot * T);
         float j0Rot = MxMUtils::minusPiToPi(rotPrev - rotDesired);
@@ -389,7 +396,7 @@ void Controller::updateFootLocking() {
     if (lFootInContact && !contactHistories[0].at(0)) {
         crl::mocap::MocapMarker *lFootMarker = playerSkeleton->getMarkerByName(footLocking->lFoot.c_str());
         lFootLockedPos = lFootMarker->state.pos;
-        lFootLockedPos[1] = 0;
+        lFootLockedPos[1] = flatTerrain ? 0 : lFootTerrainPos.y;
         //stCurr.get
     }
     if (lFootInContact) {
@@ -451,7 +458,7 @@ void Controller::updateFootLocking() {
     if (rFootInContact && !contactHistories[1].at(0)) {
         crl::mocap::MocapMarker *rFootMarker = playerSkeleton->getMarkerByName(footLocking->rFoot.c_str());     
         rFootLockedPos = rFootMarker->state.pos;
-        rFootLockedPos[1] = 0;
+        rFootLockedPos[1] = flatTerrain ? 0 : rFootTerrainPos.y;
         //stCurr.get
     }
     if (rFootInContact) {
@@ -549,6 +556,20 @@ void Controller::updateFootLocking() {
 
 }
 
+crl::P3D Controller::getPosByName(const char *name){
+    if (playerSkeleton != nullptr) 
+        return playerSkeleton->getMarkerByName(name)->state.pos + P3D(0, -5, 0);
+    else
+        return P3D();
+}
+
+void Controller::posTerrainAdjust(P3D simBonePos, P3D lFootPos, P3D rFootPos){
+    if (playerSkeleton != nullptr){
+        lFootTerrainPos = lFootPos;
+        rFootTerrainPos = rFootPos;
+        sBoneTerrainPos = simBonePos;
+    }
+}
 
 }  // namespace gui
 }  // namespace crl

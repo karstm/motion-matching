@@ -105,6 +105,7 @@ public:
         if (!animationPlayer && 0 < bvhClips.size()) {
             controller.drawSkeleton(shader);
             controller.drawTrajectory(shader, database, drawControllerTrajectory, drawAnimationTrajectory);
+            
         } else if (selectedBvhClipIdx > -1) {
             bvhClips[selectedBvhClipIdx]->draw(shader, frameIdx);
         }

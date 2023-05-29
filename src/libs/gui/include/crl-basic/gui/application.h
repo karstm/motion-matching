@@ -154,8 +154,6 @@ public:
     double groundIntensity = 1.5;
     float groundColor[3] = {1.0, 1.0, 1.0};
 
-    Model terrain = Model(CRL_DATA_FOLDER "/meshes/terrain/terrain.obj");
-
     //--- World
     double world_frame_length = 1.0, world_frame_radius = 0.01;
     bool show_world_frame = false;

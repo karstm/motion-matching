@@ -34,8 +34,6 @@ public:
                 lContactInfo.push_back(isInContact(sk, stPrev, stCurr, lFoot, 1 / 60.0));
                 rContactInfo.push_back(isInContact(sk, stPrev, stCurr, rFoot, 1 / 60.0));
             }
-            orgLContactInfos.push_back(lContactInfo);
-            orgRContactInfos.push_back(rContactInfo);
             lContactInfo = filterContacts(lContactInfo, 5);
             rContactInfo = filterContacts(rContactInfo, 5);
             lContactInfos.push_back(lContactInfo);
@@ -44,12 +42,9 @@ public:
     }
 
     std::tuple<bool, bool> isFootInContact(int clipIdx, int frameIdx) {
-        //bool b2 = orgLContactInfos.at(clipIdx).at(frameIdx);
-        //bool b4 = orgRContactInfos.at(clipIdx).at(frameIdx);
 
         bool lContact = lContactInfos.at(clipIdx).at(frameIdx);
         bool rContact = rContactInfos.at(clipIdx).at(frameIdx);
-        //Logger::consolePrint("left: %d; orgLeft, %d; right: %d; orgRight, %d;  \n", lContact, b2, rContact, b4);
 
         return { lContact , rContact };
     }

@@ -46,6 +46,9 @@ public:
     void update(TrackingCamera &camera, Database &database);
     void drawSkeleton(const Shader &shader);
     void drawTrajectory(const Shader &shader, Database &database, bool drawControllerTrajectory, bool drawAnimationTrajectory);
+    
+    crl::P3D getPosByName(const char *name);
+    void posTerrainAdjust(P3D simBonePos, P3D lFootPos, P3D rFootPos);
 
 private:
     void updateControllerTrajectory();
@@ -125,6 +128,10 @@ private:
     InertializationInfo rootOrientInertializationInfo_footLocking;
     std::vector<InertializationInfo> jointPositionInertializationInfos_footLocking;
     std::vector<InertializationInfo> jointOrientInertializationInfos_footLocking;
+
+    // Terrain adjustment
+    P3D lFootTerrainPos, rFootTerrainPos, sBoneTerrainPos;
+    bool flatTerrain = false;
 
 };
 
