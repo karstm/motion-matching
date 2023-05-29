@@ -46,6 +46,9 @@ public:
     void update(TrackingCamera &camera, Database &database);
     void drawSkeleton(const Shader &shader);
     void drawTrajectory(const Shader &shader, Database &database, bool drawControllerTrajectory, bool drawAnimationTrajectory);
+    
+    crl::P3D getPosByName(const char *name);
+    void posTerrainAdjust(P3D simBonePos, P3D lFootPos, P3D rFootPos);
 
 private:
     void updateControllerTrajectory();
@@ -62,6 +65,11 @@ public:
     bool useInertialization = true;
     bool useFootLocking = true;
     float unlockRadius = 0.2f;
+
+    bool drawSkeletonBones = true;
+    bool drawSimulationBone = true;
+    bool drawModel = false;
+    float modelColor[3] = {230/255.0, 175/255.0, 46/255.0};
  
 private:
     crl::mocap::MocapSkeleton *playerSkeleton = nullptr;
@@ -121,6 +129,10 @@ private:
     InertializationInfo rootOrientInertializationInfo_footLocking;
     std::vector<InertializationInfo> jointPositionInertializationInfos_footLocking;
     std::vector<InertializationInfo> jointOrientInertializationInfos_footLocking;
+
+    // Terrain adjustment
+    P3D lFootTerrainPos, rFootTerrainPos, sBoneTerrainPos;
+    bool flatTerrain = false;
 
 };
 

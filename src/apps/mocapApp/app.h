@@ -105,6 +105,7 @@ public:
         if (!animationPlayer && 0 < bvhClips.size()) {
             controller.drawSkeleton(shader);
             controller.drawTrajectory(shader, database, drawControllerTrajectory, drawAnimationTrajectory);
+            
         } else if (selectedBvhClipIdx > -1) {
             bvhClips[selectedBvhClipIdx]->draw(shader, frameIdx);
         }
@@ -207,9 +208,18 @@ public:
                 frameIdx++;
             ImGui::SliderInt("Frame", &frameIdx, 0, maxFrameIdx-1, "%d");
         }
+        if(ImGui::CollapsingHeader("Drawing", ImGuiTreeNodeFlags_OpenOnArrow))
+        {
+            ImGui::Checkbox("Skeleton", &controller.drawSkeletonBones);
+            ImGui::Checkbox("Simultation Bone", &controller.drawSimulationBone);
+            ImGui::Checkbox("Model", &controller.drawModel);
+            if(controller.drawModel)
+                ImGui::ColorPicker3("ModelColor", &controller.modelColor[0]);
+        }
 
         if(ImGui::CollapsingHeader("Controller", ImGuiTreeNodeFlags_OpenOnArrow))
         {
+          
            ImGui::Checkbox("Controller Trajectory", &drawControllerTrajectory);
            ImGui::Checkbox("Animation Trajectory", &drawAnimationTrajectory);
            ImGui::SliderFloat("Max Walk Speed", &controller.walkSpeed, 0.5f, 2.0f, "%.2f"); 
