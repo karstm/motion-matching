@@ -67,6 +67,7 @@ private:
     KeyboardState *keyboardState;
     std::vector<std::unique_ptr<crl::mocap::BVHClip>> *clips = nullptr;
     Footlocking *footLocking;
+   std::deque<mocap::MocapSkeletonState> uninertializedStates; 
     std::deque<mocap::MocapSkeletonState> motionStates;
     std::deque<mocap::MocapSkeletonState> footLockingStates;
 

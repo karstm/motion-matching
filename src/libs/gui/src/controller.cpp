@@ -49,6 +49,7 @@ void Controller::init(KeyboardState *keyboardState, std::vector<std::unique_ptr<
         state.setRootPosition(simulationPos);
         state.setRootOrientation(simulationRot);
         motionStates.push_front(state);
+        uninertializedStates.push_front(state);
     }
 
     lastMatchAnimationPos = clips->at(0)->getState(frameIdx - 1).getRootPosition();
@@ -165,6 +166,7 @@ void Controller::update(TrackingCamera &camera, Database &database) {
     dt = (std::chrono::duration_cast<std::chrono::milliseconds> (currTime - prevTime)).count()/1000.0f;
     prevTime = currTime;
 
+    uninertializedStates[0] = motionStates[0];
     // inertialization
     if(useInertialization)
         motionStates[0] = InertializationUtils::inertializeState(rootPosInertializationInfo, rootOrientInertializationInfo, jointPositionInertializationInfos, jointOrientInertializationInfos, numMarkers, motionStates[0], motionStates[1], t, dt); // here we use the new dt
@@ -174,6 +176,7 @@ void Controller::update(TrackingCamera &camera, Database &database) {
     if(useFootLocking){
         updateFootLocking();
     }
+    motionStates[0].setRootPosition(motionStates[0].getRootPosition() + V3D(1.3, 0, 0));
 
     // update frame
     frameIdx++;
@@ -183,6 +186,11 @@ void Controller::update(TrackingCamera &camera, Database &database) {
 void Controller::drawSkeleton(const Shader &shader)
 {
     playerSkeleton->draw(shader);
+    uninertializedStates[0].setRootPosition(uninertializedStates[0].getRootPosition() + V3D(-1.3, 0, 0));
+    playerSkeleton->setState(&uninertializedStates[0]);
+    playerSkeleton->draw(shader);
+    playerSkeleton->setState(&motionStates[0]);
+
     // clips->at(clipIdx)->drawState(shader, &footLockedStates[0]);
 }
 
@@ -217,8 +225,10 @@ void Controller::drawTrajectory(const Shader &shader, Database &database, bool d
     }
 
     // draw trajectory
-    crl::gui::drawSphere(controllerPos[0], 0.05, shader, V3D(1, 0.5, 0), 1.0);
-    crl::gui::drawArrow3d(controllerPos[0], directions[0]*0.75, 0.005, shader, V3D(1, 0, 1), 0.5);
+    if (drawAnimationTrajectory || drawControllerTrajectory) {
+        crl::gui::drawSphere(controllerPos[0], 0.05, shader, V3D(1, 0.5, 0), 1.0);
+        crl::gui::drawArrow3d(controllerPos[0], directions[0]*0.75, 0.005, shader, V3D(1, 0, 1), 0.5);
+    }
     for (int i = 0; i < controllerPos.size() - 1; i++) {
         if(drawControllerTrajectory)
         {

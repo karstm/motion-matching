@@ -84,7 +84,7 @@ public:
 
     void drawShadowCastingObjects(const crl::gui::Shader &shader) override {
         if (!animationPlayer && 0 < bvhClips.size()) {
-            controller.drawSkeleton(shader);
+            //controller.drawSkeleton(shader);
         } else  if (selectedBvhClipIdx > -1) {
             bvhClips[selectedBvhClipIdx]->draw(shader, frameIdx);
         }
