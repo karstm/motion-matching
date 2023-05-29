@@ -53,9 +53,9 @@ public:
         return markers[i];
     }
 
-    virtual void draw(const gui::Shader &shader, float alpha = 1.0) const {
+    virtual void draw(const gui::Shader &shader, float alpha = 1.0, bool drawSkeleton=true, bool drawModel=false, bool drawSimulationBone=true, V3D modelColor=V3D(0.2,0.2,0.2)) const {
         for (uint i = 0; i < markers.size(); i++)
-            MocapRenderer::drawMarker(markers[i], shader);
+            MocapRenderer::drawMarker(markers[i], shader, drawSkeleton, drawModel, drawSimulationBone, modelColor);
 
         if (showCoordFrame) {
             for (uint i = 0; i < markers.size(); i++)

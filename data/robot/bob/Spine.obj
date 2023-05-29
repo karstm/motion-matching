@@ -1,6 +1,5 @@
 # Blender 3.5.0
 # www.blender.org
-mtllib Spine.mtl
 o spine.001
 v -0.021699 0.029116 -0.000163
 v -0.017033 0.021044 -0.017377

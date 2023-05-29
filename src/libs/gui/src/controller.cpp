@@ -205,8 +205,7 @@ void Controller::update(TrackingCamera &camera, Database &database) {
 
 void Controller::drawSkeleton(const Shader &shader)
 {
-    playerSkeleton->draw(shader);
-    // clips->at(clipIdx)->drawState(shader, &footLockedStates[0]);
+    playerSkeleton->draw(shader, 1.0f, drawSkeletonBones, drawModel, drawSimulationBone, V3D(modelColor[0], modelColor[1], modelColor[2]));
 }
 
 void Controller::drawTrajectory(const Shader &shader, Database &database, bool drawControllerTrajectory, bool drawAnimationTrajectory) {

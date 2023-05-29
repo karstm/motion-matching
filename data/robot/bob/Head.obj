@@ -1,6 +1,5 @@
 # Blender 3.5.0
 # www.blender.org
-mtllib Head.mtl
 o head.001
 v -0.079251 0.075309 -0.032961
 v -0.069134 0.079142 -0.038882

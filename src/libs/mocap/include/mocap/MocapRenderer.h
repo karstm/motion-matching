@@ -26,7 +26,7 @@ public:
     static V3D endSiteContactColor_;
 
 public:
-    static void drawMarker(MocapMarker *joint, const crl::gui::Shader &shader);
+    static void drawMarker(MocapMarker *joint, const crl::gui::Shader &shader, bool drawSkeleton=true, bool drawModel=false, bool drawSimulationBone=true, V3D modelColor=crl::V3D(0.2, 0.2, 0.2));
 
     static void drawCoordFrame(const MocapMarker *joint, const gui::Shader &shader);
 
