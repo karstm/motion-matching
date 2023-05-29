@@ -13,6 +13,7 @@
 #include <crl-basic/gui/shadow_map_fbo.h>
 #include <crl-basic/gui/mxm_utils.h>
 #include <crl-basic/gui/inertializationUtils.h>
+#include <crl-basic/gui/footlocking.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <imgui_widgets/imGuIZMOquat.h>
@@ -36,8 +37,11 @@ class Controller {
 
 // Methods
 public:
-    Controller(){};
-    void init(KeyboardState *keyboardState, std::vector<std::unique_ptr<crl::mocap::BVHClip>> *clips, int targetFramerate);
+    Controller() {
+        playerSkeleton = nullptr;
+    };
+    ~Controller();
+    void init(KeyboardState *keyboardState, std::vector<std::unique_ptr<crl::mocap::BVHClip>> *clips, Footlocking *footLocking, const char* dataPath, int targetFramerate);
     
     void update(TrackingCamera &camera, Database &database);
     void drawSkeleton(const Shader &shader);
@@ -46,6 +50,7 @@ public:
 private:
     void updateControllerTrajectory();
     void getInput(TrackingCamera &camera);
+    void updateFootLocking();
 
 // Members
 public:
@@ -55,11 +60,15 @@ public:
     int motionMatchingRate = 6;
     float transitionTime = 0.4f;
     bool useInertialization = true;
-    
+    bool useFootLocking = true;
+ 
 private:
+    crl::mocap::MocapSkeleton *playerSkeleton = nullptr;
     KeyboardState *keyboardState;
     std::vector<std::unique_ptr<crl::mocap::BVHClip>> *clips = nullptr;
+    Footlocking *footLocking;
     std::deque<mocap::MocapSkeletonState> motionStates;
+    std::deque<mocap::MocapSkeletonState> footLockingStates;
 
     std::vector<P3D> controllerPos; // future positions arranged in chronological order (i.e. "future-r" positions at the back)
     std::vector<float> controllerRot; // future rotations about y-axis arranged in chronological order (0 degrees defined as z-axis)
@@ -100,6 +109,18 @@ private:
     InertializationInfo rootOrientInertializationInfo;
     std::vector<InertializationInfo> jointPositionInertializationInfos;
     std::vector<InertializationInfo> jointOrientInertializationInfos;
+
+    // Foot locking
+    std::vector<std::string> footMarkerNames = {"LeftToe", "RightToe"};
+    std::vector<std::deque<bool>> contactHistories;
+    P3D lFootLockedPos, rFootLockedPos;
+
+    float t_footLocking;
+    InertializationInfo rootPosInertializationInfo_footLocking;
+    InertializationInfo rootOrientInertializationInfo_footLocking;
+    std::vector<InertializationInfo> jointPositionInertializationInfos_footLocking;
+    std::vector<InertializationInfo> jointOrientInertializationInfos_footLocking;
+
 };
 
 }  // namespace gui

@@ -11,6 +11,7 @@
 #include "mocap/TimelineUtils.h"
 
 #include "mocap/Database.h"
+#include "crl-basic/gui/footlocking.h"
 
 namespace mocapApp {
 
@@ -216,6 +217,7 @@ public:
            ImGui::SliderFloat("Synchronization Factor", &controller.syncFactor, 0.0f, 1.0f, "%.2f");
            ImGui::SliderInt("Match after Frames", &controller.motionMatchingRate, 3, 60);
            ImGui::Checkbox("Inertialization", &controller.useInertialization);
+           ImGui::Checkbox("Foot Locking", &controller.useFootLocking);
            ImGui::SliderFloat("Transition time", &controller.transitionTime, 0.1f, 1.0f, "%.2f");
         }
 
@@ -298,13 +300,15 @@ public:
         }
 
         if (ImGui::CollapsingHeader("Post Processing", ImGuiTreeNodeFlags_OpenOnArrow)) {
-            if (ImGui::SliderDouble("Foot Height Threshold", &footHeightThreshold, 0.0, 0.2, "%.2f")) {
-                processBVHClip();
-                processC3DClip();
+            if (ImGui::SliderFloat("Foot Height Threshold", &footLocking.footHeightThreshold, 0.0, 0.2, "%.2f")) {
+                footLocking.init(&bvhClips);
+                // processBVHClip();
+                // processC3DClip();
             }
-            if (ImGui::SliderDouble("Foot Velocity Threshold", &footVelocityThreshold, 0.0, 2.0, "%.2f")) {
-                processBVHClip();
-                processC3DClip();
+            if (ImGui::SliderFloat("Foot Velocity Threshold", &footLocking.footSpeedThreshold, 0.0, 2.0, "%.2f")) {
+                footLocking.init(&bvhClips);
+                // processBVHClip();
+                // processC3DClip();
             }
         }
 
@@ -372,7 +376,8 @@ public:
                        footPositionWeight, footVelocityWeight,
                        hipVelocityWeight,
                        &bvhClips, targetFramerate);
-        controller.init(&keyboardState, &bvhClips, targetFramerate);
+        footLocking.init(&bvhClips);
+        controller.init(&keyboardState, &bvhClips, &footLocking, CRL_MOCAP_DATA_FOLDER, targetFramerate);
     }
 
 private:
@@ -632,6 +637,7 @@ private:
 
 private:
     Database database;
+    crl::gui::Footlocking footLocking;
 
     ImGui::FileBrowser fileDialog;
     std::vector<std::unique_ptr<crl::mocap::BVHClip>> bvhClips;
