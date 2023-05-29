@@ -56,11 +56,12 @@ private:
 public:
     float walkSpeed = 1.1f;
     float runSpeed = 3.3f;
-    float syncFactor = 0.2f;
+    float syncFactor = 0.5f;
     int motionMatchingRate = 6;
     float transitionTime = 0.4f;
     bool useInertialization = true;
-    bool useFootLocking = true;
+    bool useFootLocking = false;
+    std::vector<P3D> controllerPos; // future positions arranged in chronological order (i.e. "future-r" positions at the back)
  
 private:
     crl::mocap::MocapSkeleton *playerSkeleton = nullptr;
@@ -70,7 +71,6 @@ private:
     std::deque<mocap::MocapSkeletonState> motionStates;
     std::deque<mocap::MocapSkeletonState> footLockingStates;
 
-    std::vector<P3D> controllerPos; // future positions arranged in chronological order (i.e. "future-r" positions at the back)
     std::vector<float> controllerRot; // future rotations about y-axis arranged in chronological order (0 degrees defined as z-axis)
     P3D simulationPos;
     Quaternion simulationRot;

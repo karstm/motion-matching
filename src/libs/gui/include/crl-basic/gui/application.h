@@ -83,6 +83,8 @@ public:
     MouseState mouseState;
     KeyboardState keyboardState;
     Controller controller;
+    Controller controllerSync;
+    Controller controllerUnsync;
 
     //--- Framerate
     bool limitFramerate = true;

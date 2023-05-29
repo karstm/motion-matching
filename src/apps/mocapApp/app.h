@@ -35,6 +35,8 @@ public:
     void process() override {
         if(!bvhClips.empty()){
             controller.update(camera, database);
+            controllerUnsync.update(camera, database);
+            controllerSync.update(camera, database);
         }
 
         if (selectedBvhClipIdx == -1 && selectedC3dClipIdx == -1)
@@ -85,6 +87,8 @@ public:
     void drawShadowCastingObjects(const crl::gui::Shader &shader) override {
         if (!animationPlayer && 0 < bvhClips.size()) {
             controller.drawSkeleton(shader);
+            controllerSync.drawSkeleton(shader);
+            controllerUnsync.drawSkeleton(shader);
         } else  if (selectedBvhClipIdx > -1) {
             bvhClips[selectedBvhClipIdx]->draw(shader, frameIdx);
         }
@@ -104,7 +108,11 @@ public:
     void drawObjectsWithoutShadows(const crl::gui::Shader &shader) override {
         if (!animationPlayer && 0 < bvhClips.size()) {
             controller.drawSkeleton(shader);
+            controllerUnsync.drawSkeleton(shader);
+            controllerSync.drawSkeleton(shader);
             controller.drawTrajectory(shader, database, drawControllerTrajectory, drawAnimationTrajectory);
+            controllerUnsync.drawTrajectory(shader, database, drawControllerTrajectory, drawAnimationTrajectory);
+            controllerSync.drawTrajectory(shader, database, drawControllerTrajectory, drawAnimationTrajectory);
         } else if (selectedBvhClipIdx > -1) {
             bvhClips[selectedBvhClipIdx]->draw(shader, frameIdx);
         }
@@ -378,6 +386,14 @@ public:
                        &bvhClips, targetFramerate);
         footLocking.init(&bvhClips);
         controller.init(&keyboardState, &bvhClips, &footLocking, CRL_MOCAP_DATA_FOLDER, targetFramerate);
+        for(int i = 0; i < 4; i++)
+            controller.controllerPos[i] = crl::P3D(2.5,0,0);
+        controllerSync.init(&keyboardState, &bvhClips, &footLocking, CRL_MOCAP_DATA_FOLDER, targetFramerate);
+        controllerSync.syncFactor = 1.0;
+        controllerUnsync.init(&keyboardState, &bvhClips, &footLocking, CRL_MOCAP_DATA_FOLDER, targetFramerate);
+        for(int i = 0; i < 4; i++)
+            controllerUnsync.controllerPos[i] = crl::P3D(-2.5,0,0);
+        controllerUnsync.syncFactor = 0.0;
     }
 
 private:
