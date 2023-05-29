@@ -70,6 +70,8 @@ public:
     bool drawSimulationBone = true;
     bool drawModel = false;
     float modelColor[3] = {230/255.0, 175/255.0, 46/255.0};
+
+    bool flatTerrain = false;
  
 private:
     crl::mocap::MocapSkeleton *playerSkeleton = nullptr;
@@ -132,7 +134,6 @@ private:
 
     // Terrain adjustment
     P3D lFootTerrainPos, rFootTerrainPos, sBoneTerrainPos;
-    bool flatTerrain = false;
 
 };
 

@@ -13,7 +13,7 @@ void Controller::init(KeyboardState *keyboardState, std::vector<std::unique_ptr<
 
     // initialize controller
     for (int i = 0; i < 4; i++) {
-        controllerPos.push_back(P3D(0, 0, 0));
+        controllerPos.push_back(P3D(0, flatTerrain ? 0 : 0.624483, 0));
         controllerRot.push_back(M_PI);
     }
     simulationPos = controllerPos[0];
@@ -191,11 +191,12 @@ void Controller::update(TrackingCamera &camera, Database &database) {
     // inertialization
     if(useInertialization)
         motionStates[0] = InertializationUtils::inertializeState(rootPosInertializationInfo, rootOrientInertializationInfo, jointPositionInertializationInfos, jointOrientInertializationInfos, numMarkers, motionStates[0], motionStates[1], t, dt); // here we use the new dt
-    if(!flatTerrain){
-        P3D oldPos = motionStates[0].getRootPosition();
-        oldPos.y = sBoneTerrainPos.y;
-        motionStates[0].setRootPosition(oldPos);
-    }
+    
+    // Update the sim bone y position based on the terrain
+    P3D oldPos = motionStates[0].getRootPosition();
+    oldPos.y = flatTerrain ? 0 : sBoneTerrainPos.y;
+    motionStates[0].setRootPosition(oldPos);
+
     playerSkeleton->setState(&motionStates[0]);
 
     if(useFootLocking){
@@ -400,7 +401,7 @@ void Controller::updateFootLocking() {
     if (lFootInContact && !contactHistories[0].at(0)) {
         crl::mocap::MocapMarker *lFootMarker = playerSkeleton->getMarkerByName(footLocking->lFoot.c_str());
         lFootLockedPos = lFootMarker->state.pos;
-        lFootLockedPos[1] = 0;
+        lFootLockedPos[1] = flatTerrain ? 0 : lFootTerrainPos.y;
         //stCurr.get
     }
 
@@ -467,7 +468,7 @@ void Controller::updateFootLocking() {
     if (rFootInContact && !contactHistories[1].at(0)) {
         crl::mocap::MocapMarker *rFootMarker = playerSkeleton->getMarkerByName(footLocking->rFoot.c_str());     
         rFootLockedPos = rFootMarker->state.pos;
-        rFootLockedPos[1] = 0;
+        rFootLockedPos[1] = flatTerrain ? 0 : rFootTerrainPos.y;
         //stCurr.get
     }
 
