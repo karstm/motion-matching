@@ -218,6 +218,7 @@ public:
            ImGui::SliderInt("Match after Frames", &controller.motionMatchingRate, 3, 60);
            ImGui::Checkbox("Inertialization", &controller.useInertialization);
            ImGui::Checkbox("Foot Locking", &controller.useFootLocking);
+           ImGui::SliderFloat("Unlock Radius", &controller.unlockRadius, 0.05f, 0.5f, "%.05f");
            ImGui::SliderFloat("Transition time", &controller.transitionTime, 0.1f, 1.0f, "%.2f");
         }
 

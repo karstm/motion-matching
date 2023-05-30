@@ -61,6 +61,7 @@ public:
     float transitionTime = 0.4f;
     bool useInertialization = true;
     bool useFootLocking = true;
+    float unlockRadius = 0.2f;
  
 private:
     crl::mocap::MocapSkeleton *playerSkeleton = nullptr;
