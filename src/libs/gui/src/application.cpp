@@ -633,12 +633,12 @@ void ShadowApplication::drawTrajectory(const Shader &shader) {
     for (int i = 0; i < pos.size() - 1; i++) {
         // controller trajectory
         //crl::gui::drawArrow3d(pos[i], V3D(pos[i], pos[i + 1]), world_frame_radius, shader, V3D(1, 0.5, 0), 1.0);
-        crl::gui::drawArrow3d(pos[i], directions[i], world_frame_radius*4, shader, V3D(0, 0, 1), 1.0);
+        //crl::gui::drawArrow3d(pos[i], directions[i], world_frame_radius*4, shader, V3D(0, 0, 1), 1.0);
 
         
         // animation trajectory
         //crl::gui::drawArrow3d(actualPos[i], V3D(actualPos[i], actualPos[i + 1]), world_frame_radius, shader, V3D(1, 0.5, 1), 1.0);
-        crl::gui::drawArrow3d(actualPos[i], actualDirections[i], world_frame_radius*4, shader, V3D(1, 0, 1), 1.0);
+        //crl::gui::drawArrow3d(actualPos[i], actualDirections[i], world_frame_radius*4, shader, V3D(1, 0, 1), 1.0);
     }
 
     // for (int i = 0; i < posHist.size(); i++) {
