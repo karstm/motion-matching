@@ -234,14 +234,6 @@ public:
                 frameIdx++;
             ImGui::SliderInt("Frame", &frameIdx, 0, maxFrameIdx-1, "%d");
         }
-        if(ImGui::CollapsingHeader("Drawing", ImGuiTreeNodeFlags_OpenOnArrow))
-        {
-            ImGui::Checkbox("Skeleton", &controller.drawSkeletonBones);
-            ImGui::Checkbox("Simultation Bone", &controller.drawSimulationBone);
-            ImGui::Checkbox("Model", &controller.drawModel);
-            if(controller.drawModel)
-                ImGui::ColorPicker3("ModelColor", &controller.modelColor[0]);
-        }
 
         if(ImGui::CollapsingHeader("Controller", ImGuiTreeNodeFlags_OpenOnArrow))
         {
