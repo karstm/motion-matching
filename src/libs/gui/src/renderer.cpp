@@ -204,7 +204,7 @@ crl::gui::Model SizableGroundModel::getTerrain() const {
     return terrain;
 }
 
-void SizableGroundModel::draw(const Shader &shader, const double &intensity, const V3D &groundColor, const V3D &gridColor) {
+void SizableGroundModel::draw(const Shader &shader, const Shader &shaderImg, const double &intensity, const V3D &groundColor, const V3D &gridColor) {
     if (flatTerrain){
         if (showGrid) {
             ground.draw(shader, groundColor * intensity);
@@ -217,7 +217,7 @@ void SizableGroundModel::draw(const Shader &shader, const double &intensity, con
             checkerboard2.draw(shader, V3D(0.95,0.95,0.95));
         }
     } else
-        terrain.draw(shader, V3D(0.85, 0.85, 0.85));
+        terrain.draw(shaderImg, V3D(0.85, 0.85, 0.85));
 
 }
 

@@ -614,13 +614,13 @@ void ShadowApplication::renderPass() {
     // not remain forever shaded dark...
     //basicShader.setVec3("lightPos", camera.position());
 
-    drawObjectsWithShadows(shadowShader);
+    drawObjectsWithShadows(shadowShader, basicShader);
     drawObjectsWithoutShadows(basicShader);
 }
 
-void ShadowApplication::drawObjectsWithShadows(const Shader &shader) {
+void ShadowApplication::drawObjectsWithShadows(const Shader &shader, const Shader &shaderImg) {
     if (showGround)
-        ground.draw(shader, groundIntensity, crl::gui::toV3D(groundColor));
+        ground.draw(shader, shaderImg, groundIntensity, crl::gui::toV3D(groundColor));
 
         crl::gui::Model mesh_terrain = ground.getTerrain();
         P3D sBone, lFoot, rFoot;
