@@ -183,6 +183,7 @@ void Controller::update(TrackingCamera &camera, Database &database) {
 
 void Controller::drawSkeleton(const Shader &shader)
 {
+
     crl::mocap::MocapSkeletonState state = motionStates[0];
     state.setRootPosition(state.getRootPosition() + V3D(-1, 0, 0));
     playerSkeleton->setState(&state);
@@ -196,6 +197,13 @@ void Controller::drawSkeleton(const Shader &shader)
     playerSkeleton->draw(shader);
     playerSkeleton->setState(&footLockingStates[0]);
     // clips->at(clipIdx)->drawState(shader, &footLockedStates[0]);
+
+    if(contactHistories[1][0]) {
+        drawCircle(rFootLockedPos, V3D(0,1,0), 0.05, shader, V3D(1, 0, 0));
+        drawCircle(rFootLockedPos + V3D(-1, 0, 0), V3D(0,1,0), 0.05, shader, V3D(1, 0, 0));
+        drawCircle(rFootLockedPos + V3D(1, 0, 0), V3D(0,1,0), 0.05, shader, V3D(1, 0, 0));
+    }
+
 }
 
 void Controller::drawTrajectory(const Shader &shader, Database &database, bool drawControllerTrajectory, bool drawAnimationTrajectory) {
