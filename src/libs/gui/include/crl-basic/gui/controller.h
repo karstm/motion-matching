@@ -46,6 +46,9 @@ public:
     void update(TrackingCamera &camera, Database &database);
     void drawSkeleton(const Shader &shader);
     void drawTrajectory(const Shader &shader, Database &database, bool drawControllerTrajectory, bool drawAnimationTrajectory);
+    crl::mocap::MocapSkeletonState* getCurrentState(){
+        return &footLockingStates[0];
+    }
 
 private:
     void updateControllerTrajectory();

@@ -1,0 +1,22 @@
+Hips										0
+	LeftUpLeg								1
+		LeftLeg							2
+			LeftFoot						3
+				LeftToe					4
+	RightUpLeg								5
+		RightLeg							6
+			RightFoot						7
+				RightToe					8
+	Spine									9
+		Spine1							10
+			Spine2						11
+				Neck						12
+					Head					13
+				LeftShoulder					14
+					LeftArm				15
+						LeftForeArm			16
+							LeftHand		17
+				RightShoulder				18
+					RightArm				19
+						RightForeArm		20
+							RightHand		21

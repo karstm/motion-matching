@@ -174,6 +174,9 @@ void Controller::update(TrackingCamera &camera, Database &database) {
     // Update Footlocking and use partial IK
     if(useFootLocking){
         updateFootLocking();
+    }else{
+        footLockingStates.push_front(motionStates[0]);
+        footLockingStates.pop_back();
     }
 
     // update frame

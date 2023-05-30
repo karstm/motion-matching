@@ -54,6 +54,7 @@ list(
         PUBLIC "eigen" #
         PUBLIC "crl::utils" #
         PUBLIC "crl::mocap" #
+        PUBLIC "crl::robot" #
 )
 
 # compile definitions

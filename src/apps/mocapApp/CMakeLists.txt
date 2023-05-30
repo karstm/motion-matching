@@ -31,6 +31,8 @@ list(
         "crl::gui" #
         PUBLIC
         "crl::mocap" #
+        PUBLIC
+        "crl::robot" #
 )
 
 list(APPEND CRL_COMPILE_DEFINITIONS #
