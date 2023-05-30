@@ -31,15 +31,23 @@ public:
         return vec;
     }
 
-    static Quaternion getYrotation(Quaternion q, bool inverse = true){
+    static Quaternion getYrotation(Quaternion q, bool inverse = false){
         double alpha, beta, gamma;
-        V3D side = V3D(1,0,0);
-        V3D up = V3D(0,1,0);
-        V3D front = V3D(0,0,1);
-        computeEulerAnglesFromQuaternion(q, front, side, up, alpha, beta, gamma);
-
-        Quaternion negYrotation = getRotationQuaternion(inverse? -gamma : gamma, up);
+        V3D x = V3D(1,0,0);
+        V3D y = V3D(0,1,0);
+        V3D z = V3D(0,0,1);
+        computeEulerAnglesFromQuaternion(q, y, x, z, alpha, beta, gamma);
+        Quaternion negYrotation = getRotationQuaternion(inverse? -gamma : gamma, y);
         return negYrotation;
+    }
+
+    static float getYrotationRadians(Quaternion q, bool inverse = false){
+        double alpha, beta, gamma;
+        V3D x = V3D(1,0,0);
+        V3D y = V3D(0,1,0);
+        V3D z = V3D(0,0,1);
+        computeEulerAnglesFromQuaternion(q, y, x, z, alpha, beta, gamma);
+        return inverse? -alpha : alpha;
     }
 
     // returns the angle between 2 vectors on the x-z plane from -pi to pi
@@ -63,11 +71,9 @@ public:
     }
 
     // returns n-1 positions in local coordinates with respect to the 0th postion of a trajectory vector of length n
-    static std::vector<P3D> worldToLocalPositions(std::vector<P3D> traj, float yRotation) {
+    static std::vector<P3D> worldToLocalPositions(std::vector<P3D> traj, Quaternion yRotation) {
         std::vector<P3D> localTraj;
-        V3D up = V3D(0,1,0);
-        Quaternion currentOrient = getRotationQuaternion(yRotation, up);
-        Quaternion qInverse = currentOrient.inverse();
+        Quaternion qInverse = yRotation.inverse();
         for (int i = 1; i < traj.size(); i++) {
             V3D localDir = qInverse*V3D(traj[0], traj[i]);
             localTraj.push_back(P3D(localDir[0], localDir[1], localDir[2]));
@@ -94,61 +100,40 @@ public:
         return localTrajDir;
     }
 
-    // https://github.com/evbernardes/quaternion_to_euler/blob/main/euler_from_quat.py
-    // converts a quarternion to desired Euler angles
-    // i != j != k. i, j, k within {1, 2, 3} i.e. {x, y, z}
-    static std::vector<float> quarternionToAngles(crl::Quaternion quaternion, int i, int j, int k) {
-        std::vector<float> q;
-        q.push_back(quaternion.w());
-        q.push_back(quaternion.x());
-        q.push_back(quaternion.y());
-        q.push_back(quaternion.z());
-        float a;
-        float b;
-        float c;
-        float d;
-        std::vector<float> angles;
-        for (int i = 0; i < 3; i++) {
-            angles.push_back(0.0);
-        }
-
-        float sign = (float)((i - j) * (j - k) * (k - i) / 2);
-
-        a = q[0] - q[j];
-        b = q[i] + q[k] * sign;
-        c = q[j] + q[0];
-        d = q[k] * sign - q[i];
-
-        angles[1] = acos(2 * (pow(a, 2) + pow(b, 2)) / (pow(a, 2) + pow(b, 2) + pow(c, 2) + pow(d, 2)) - 1);
-        bool safe1 = abs(angles[1]) >= 1e-7;
-        bool safe2 = abs(angles[1] - M_PI / 2) >= 1e-7;
-        bool safe = safe1 && safe2;
-        
-        float aPlus = atan2(b, a);
-        float aMinus = atan2(-d, c);
-
-        if (safe) {
-            angles[0] = aPlus + aMinus;
-            angles[2] = aPlus - aMinus;
-        } else {
-            angles[2] = 0;
-            if (!safe1) {
-                angles[0] = 2 * aPlus;
-            } else if (!safe2) {
-                angles[0] = 2 * aMinus;
-            }
-        }
-
-        angles[2] = sign * angles[2];
-        angles[1] = angles[1] - M_PI_2;
-
-        for (int i = 0; i < 3; i++) {
-            angles[i] = minusPiToPi(angles[i]);
-        }
-
-        return angles;
+    static inline float lerpf(float x, float y, float a)
+    {
+        return (1.0f - a) * x + a * y;
     }
 
+    static crl::P3D lerp(crl::P3D v, crl::P3D w, float alpha)
+    {
+        return v * (1.0f - alpha) + w * alpha;
+    }
+
+    static crl::Quaternion quaternionLerp(crl::Quaternion q, crl::Quaternion p, float alpha)
+    {
+        return crl::Quaternion(
+                lerpf(q.w(), p.w(), alpha),
+                lerpf(q.x(), p.x(), alpha),
+                lerpf(q.y(), p.y(), alpha),
+                lerpf(q.z(), p.z(), alpha)
+            ).normalized();
+    }
+
+    static float quatDot(crl::Quaternion q, crl::Quaternion p)
+    {
+        return q.w()*p.w() + q.x()*p.x() + q.y()*p.y() + q.z()*p.z();
+    }
+
+   static crl::Quaternion quatNlerpShortest(crl::Quaternion q, crl::Quaternion p, float alpha)
+     {
+         if (quatDot(q, p) < 0.0f)
+         {
+             p = crl::Quaternion(-p.w(), -p.x(), -p.y(), -p.z());
+         }
+
+         return quaternionLerp(q, p, alpha);
+     }
 };
 
 }  // namespace gui

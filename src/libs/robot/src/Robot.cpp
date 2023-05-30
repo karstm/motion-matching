@@ -99,8 +99,9 @@ void Robot::setMocapState(crl::mocap::MocapSkeletonState *state) {
     }
 
     RobotState rs = RobotState(this, true);
-    rs.setPosition(state->getRootPosition());
-    rs.setOrientation(state->getRootOrientation() * getRotationQuaternion(-PI/2, V3D(0, 0, 1)) * getRotationQuaternion(-PI/2, V3D(0, 1, 0)));
+    rs.setPosition(state->getRootPosition() + state->getJointTranslation(1));
+    rs.setOrientation(state->getRootOrientation() * state->getJointRelativeOrientation(1) * getRotationQuaternion(-PI / 2, V3D(0, 0, 1)) *
+                      getRotationQuaternion(-PI / 2, V3D(0, 1, 0)));
 
     double alpha, beta, gamma;
     crl::V3D x = V3D(1, 0, 0);

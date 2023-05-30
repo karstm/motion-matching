@@ -12,6 +12,8 @@
 #include <crl-basic/gui/shadow_casting_light.h>
 #include <crl-basic/gui/shadow_map_fbo.h>
 #include <crl-basic/gui/mxm_utils.h>
+#include <crl-basic/gui/inertializationUtils.h>
+#include <crl-basic/gui/footlocking.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <imgui_widgets/imGuIZMOquat.h>
@@ -33,61 +35,96 @@ namespace gui {
 
 class Controller {
 
+// Methods
 public:
-    // Constructor
-    Controller(){};
-    void init(KeyboardState *keyboardState, std::vector<std::unique_ptr<crl::mocap::BVHClip>> *clips);
+    Controller() {
+        playerSkeleton = nullptr;
+    };
+    ~Controller();
+    void init(KeyboardState *keyboardState, std::vector<std::unique_ptr<crl::mocap::BVHClip>> *clips, Footlocking *footLocking, const char* dataPath, int targetFramerate);
     
-    // Methods
     void update(TrackingCamera &camera, Database &database);
-    void draw(const Shader &shader);
-    std::vector<P3D> getPos();
-    std::vector<P3D> getActualPos();
-    std::vector<P3D> getPosHist();
-    std::vector<float> getRot();
-    std::vector<float> getRotHist();
-    std::vector<V3D> getDirections();
-    std::vector<V3D> getActualDirections();
-    int getClipIdx() { return clipIdx; }
-    int getFrameIdx() { return frameIdx; }
-    crl::mocap::MocapSkeletonState *getCurrentState() { 
-        if(clips->size() == 0) return nullptr;
-        return &skeletonStates[0]; }
+    void drawSkeleton(const Shader &shader);
+    void drawTrajectory(const Shader &shader, Database &database, bool drawControllerTrajectory, bool drawAnimationTrajectory);
+    crl::mocap::MocapSkeletonState* getCurrentState(){
+        return &footLockingStates[0];
+    }
 
-    float walkSpeed = 1.14f;
-    float runSpeed = 3.5f;
-    
 private:
-    std::vector<std::unique_ptr<crl::mocap::BVHClip>> *clips = nullptr;
-    std::deque<mocap::MocapSkeletonState> skeletonStates;
+    void updateControllerTrajectory();
+    void getInput(TrackingCamera &camera);
+    void updateFootLocking();
 
-    std::vector<P3D> pos, actualPos; // future positions arranged in chronological order (i.e. "future-r" positions at the back)
-    std::vector<V3D> directions, actualDirections; // future directions arranged in chronological order (i.e. "future-r" directions at the back)
-    std::deque<P3D> posHist; // historical positions arranged in chronological order (i.e. "past-er" positions at the front)
+// Members
+public:
+    float walkSpeed = 1.1f;
+    float runSpeed = 3.3f;
+    float syncFactor = 0.2f;
+    int motionMatchingRate = 6;
+    float transitionTime = 0.4f;
+    bool useInertialization = true;
+    bool useFootLocking = true;
+    float unlockRadius = 0.2f;
+ 
+private:
+    crl::mocap::MocapSkeleton *playerSkeleton = nullptr;
+    KeyboardState *keyboardState;
+    std::vector<std::unique_ptr<crl::mocap::BVHClip>> *clips = nullptr;
+    Footlocking *footLocking;
+    std::deque<mocap::MocapSkeletonState> motionStates;
+    std::deque<mocap::MocapSkeletonState> footLockingStates;
+
+    std::vector<P3D> controllerPos; // future positions arranged in chronological order (i.e. "future-r" positions at the back)
+    std::vector<float> controllerRot; // future rotations about y-axis arranged in chronological order (0 degrees defined as z-axis)
+    P3D simulationPos;
+    Quaternion simulationRot;
+    P3D lastMatchAnimationPos;
+    Quaternion lastMatchAnimationRot;
+    P3D lastMatchSimulationPos;
+    Quaternion lastMatchSimulationRot;
     V3D vel;
     V3D acc;
     V3D velDesired;
+    std::deque<float> oldVerticalDir;
+    std::deque<float> oldHorizontalDir;
+    std::deque<float> oldSpeed;
 
     bool strafe = false;
     bool run = false;
 
-    std::vector<float> rot; // future rotations about y-axis arranged in chronological order (0 degrees defined as z-axis)
-    std::deque<float> rotHist; // historical rotations arranged in chronological order
     float angVel;
     float rotDesired;
-    int clipIdx = 0, frameIdx = 86;
-    int frameCount = 0;
-    const int targetFrameRate = 3;
+
+    int targetFramerate;
+    int clipIdx = 0, frameIdx = 1;
+    int motionMatchingFrameCount = 0;
+    bool forceMatch = false;
 
     float lambda = 4.0f;
     float lambdaRot = 6.0f;
     float dt;
-    KeyboardState *keyboardState;
     std::chrono::steady_clock::time_point prevTime;
     std::chrono::steady_clock::time_point currTime;
 
-    // Methods
-    void setInputDirection(TrackingCamera &camera);
+    // Inertialization
+    float t;
+    int numMarkers;
+    InertializationInfo rootPosInertializationInfo;
+    InertializationInfo rootOrientInertializationInfo;
+    std::vector<InertializationInfo> jointPositionInertializationInfos;
+    std::vector<InertializationInfo> jointOrientInertializationInfos;
+
+    // Foot locking
+    std::vector<std::string> footMarkerNames = {"LeftToe", "RightToe"};
+    std::vector<std::deque<bool>> contactHistories;
+    P3D lFootLockedPos, rFootLockedPos;
+
+    float t_footLocking;
+    InertializationInfo rootPosInertializationInfo_footLocking;
+    InertializationInfo rootOrientInertializationInfo_footLocking;
+    std::vector<InertializationInfo> jointPositionInertializationInfos_footLocking;
+    std::vector<InertializationInfo> jointOrientInertializationInfos_footLocking;
+
 };
 
 }  // namespace gui

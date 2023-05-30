@@ -86,7 +86,7 @@ public:
 
     //--- Framerate
     bool limitFramerate = true;
-    int targetFramerate = 30;
+    int targetFramerate = 60;
     float averageFPS = 0.f;
     float averagePercentTimeSpentProcessing = 0.f;
 
@@ -120,7 +120,6 @@ public:
     virtual void drawShadowCastingObjects(const Shader &shader) {}   // objects that will cast a shadow
     virtual void drawObjectsWithShadows(const Shader &shader);       // objects that will have a shadow cast on them
     virtual void drawObjectsWithoutShadows(const Shader &shader) {}  // objectst that will NOT have shadows cast on them
-    virtual void drawTrajectory(const Shader &shader); // draw trajectory
 
     virtual void draw() override;
     virtual void shadowPass();
@@ -157,7 +156,7 @@ public:
 
     //--- World
     double world_frame_length = 1.0, world_frame_radius = 0.01;
-    bool show_world_frame = true;
+    bool show_world_frame = false;
 
     //--- Shaders
     Shader shadowShader = Shader(CRL_SHADER_FOLDER "/basic_lighting.vert", CRL_SHADER_FOLDER "/basic_shadow_lighting.frag");

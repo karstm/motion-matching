@@ -15,7 +15,7 @@ class Database {
         void build(float trajectoryPositionWeight, float trajectoryFacingWeight,
                    float footPositionWeight, float footVelocityWeight,
                    float hipVelocityWeight,
-                   std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhClips);
+                   std::vector<std::unique_ptr<crl::mocap::BVHClip>>* bvhClips, int targetFramerate);
 
         void match(std::vector<crl::P3D> &trajectoryPositions, std::vector<crl::V3D> &trajectoryDirections,
                     int& clip_id, int& frame);
@@ -40,6 +40,7 @@ class Database {
 
     // Member Variables
     private:
+        int targetFramerate;
         // framesums[0] = 0
         // frameSums[i+1] = sum of frames in clips 0 to i
         std::vector<int> frameSums;
@@ -62,7 +63,7 @@ class Database {
         int noFeatures = numTrajPos + numTrajOrient + numFootPos + numFootVel + numHipVel;
         
         std::vector<std::string> footMarkerNames = {"LeftToe", "RightToe"};
-        int ignoredEndFrames = 60;
+        int endFramesWhereIgnoreMatching = 30;
 
         // weights
         float trajectoryPositionWeight;

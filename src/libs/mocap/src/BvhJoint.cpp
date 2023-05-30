@@ -20,7 +20,7 @@ void BvhJoint::addFrameMotionData(const std::vector<float> &data) {
 
     std::vector<float> scaled_data(data);
 
-    if (parent_ == nullptr) {
+    if (data.size() == 6) {
         scaled_data[0] *= 0.01;
         scaled_data[1] *= 0.01;
         scaled_data[2] *= 0.01;
@@ -45,6 +45,32 @@ void BvhJoint::addFrameMotionData(const std::vector<float> &data) {
 
         // FIXME: pre-allocation with assignment instead of push_back
         ltpTransforms_.push_back(ltp);
+        ltwTransforms_.push_back(ltw);
+    }
+    else if(data.size() == 6) {
+        Transform_t ltw;
+
+        // ltwTransform from the parent joint
+        unsigned this_frame_idx =
+            static_cast<unsigned>(channel_data_.size() - 1);
+        Transform_t pt = parent_->getLtwTransformAtFrame(this_frame_idx);
+
+        // Translation due to fixed offset
+        Transform_t offsetTransl;
+        offsetTransl = Eigen::Translation3d(offset_);
+
+        // Build local to parent transform from channel data
+        Transform_t ltp = getTransformFromMotionData(scaled_data[0], scaled_data[1], scaled_data[2],
+                                                     scaled_data[3], scaled_data[5], scaled_data[4]);
+
+        // Save ltp transform
+        ltpTransforms_.push_back(ltp);
+
+        // Chain transforms
+        ltw = pt * offsetTransl * ltp;
+
+        // Add to vector
+        // FIXME: pre-allocation with assignment instead of push_back
         ltwTransforms_.push_back(ltw);
     }
     // Any other joint
