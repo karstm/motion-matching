@@ -11,6 +11,7 @@
 #include "mocap/TimelineUtils.h"
 
 #include "mocap/Database.h"
+#include "robot/Robot.h"
 #include "crl-basic/gui/footlocking.h"
 
 namespace mocapApp {
@@ -28,6 +29,11 @@ public:
           contactsTimeline(footSteps) {
         fileDialog.SetPwd(fs::path(CRL_MOCAP_DATA_FOLDER));
         fileDialog.SetTitle("Mocap Directory");
+
+        fs::path robotPath = fs::path(CRL_MOCAP_DATA_FOLDER).append("../robot/bob/bob.rbs");
+        std::string robotPathStr = robotPath.string();
+        robot = new crl::Robot(robotPathStr.c_str());
+        
     }
 
     ~App() override {}
@@ -35,6 +41,7 @@ public:
     void process() override {
         if(!bvhClips.empty()){
             controller.update(camera, database);
+            robot->setMocapState(controller.getCurrentState());
         }
 
         if (selectedBvhClipIdx == -1 && selectedC3dClipIdx == -1)
@@ -83,6 +90,7 @@ public:
     }
 
     void drawShadowCastingObjects(const crl::gui::Shader &shader) override {
+        robot->draw(shader);
         if (!animationPlayer && 0 < bvhClips.size()) {
             controller.drawSkeleton(shader);
         } else  if (selectedBvhClipIdx > -1) {
@@ -102,6 +110,7 @@ public:
     }
 
     void drawObjectsWithoutShadows(const crl::gui::Shader &shader) override {
+        robot->draw(shader);
         if (!animationPlayer && 0 < bvhClips.size()) {
             controller.drawSkeleton(shader);
             controller.drawTrajectory(shader, database, drawControllerTrajectory, drawAnimationTrajectory);
@@ -194,6 +203,24 @@ public:
 
     void drawImGui() override {
         crl::gui::ShadowApplication::drawImGui();
+
+        if(ImGui::SliderFloat("alpha", &robot->alphaSlider, -M_PI,  M_PI, "%.2f"))
+            robot->setMocapState(controller.getCurrentState());
+        if(ImGui::SliderFloat("beta", &robot->betaSlider, -M_PI, M_PI, "%.2f"))
+            robot->setMocapState(controller.getCurrentState());
+        if(ImGui::SliderFloat("gamma", &robot->gammaSlider, -M_PI, M_PI, "%.2f"))
+            robot->setMocapState(controller.getCurrentState());
+
+        if(ImGui::SliderFloat("alpha", &robot->alphaSlider2, -M_PI,  M_PI, "%.2f"))
+            robot->setMocapState(controller.getCurrentState());
+        if(ImGui::SliderFloat("beta", &robot->betaSlider2, -M_PI, M_PI, "%.2f"))
+            robot->setMocapState(controller.getCurrentState());
+        if(ImGui::SliderFloat("gamma", &robot->gammaSlider2, -M_PI, M_PI, "%.2f"))
+            robot->setMocapState(controller.getCurrentState());
+
+
+        
+
 
         ImGui::Begin("Main Menu");
         if(ImGui::CollapsingHeader("Animation Player", ImGuiTreeNodeFlags_OpenOnArrow)){
@@ -689,6 +716,8 @@ private:
     crl::mocap::PlotLine2D<crl::dVector> feetVelocityPlot;
     crl::mocap::PlotLine2D<crl::dVector> feetAccelerationPlot;
     crl::mocap::Timeline contactsTimeline;
+
+    crl::Robot *robot;
 };
 
 }  // namespace mocapApp

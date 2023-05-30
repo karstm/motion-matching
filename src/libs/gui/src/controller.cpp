@@ -158,15 +158,12 @@ void Controller::update(TrackingCamera &camera, Database &database) {
     // set root position and orientation to the lerp between controller position and simulation position
     P3D finalPos = MxMUtils::lerp(simulationPos, controllerPos[0], syncFactor*syncFactor*syncFactor*syncFactor);
     Quaternion controllerOrientation = getRotationQuaternion(controllerRot[0] - M_PI_2, V3D(0, 1, 0));
-    
-    // FIXME: this is skipping when the shortest angle suddenly changes
     Quaternion finalRot = MxMUtils::quatNlerpShortest(simulationRot, controllerOrientation, syncFactor*syncFactor*syncFactor*syncFactor);
+    
     simulationRot = finalRot;
     simulationPos = finalPos;
 
-    
-    
-
+    // Setting the possibly synchronized root position and orientation
     state.setRootOrientation(finalRot);
     state.setRootPosition(finalPos);
 
@@ -197,10 +194,17 @@ void Controller::update(TrackingCamera &camera, Database &database) {
     oldPos.y = flatTerrain ? 0 : sBoneTerrainPos.y;
     motionStates[0].setRootPosition(oldPos);
 
+    // Finally the state is set for the skeleton
+    // If footlocking is not used then we end the state computation here
+    // Else we set the inertialized state here to use it for footlocking and IK
     playerSkeleton->setState(&motionStates[0]);
 
+    // Update Footlocking and use partial IK
     if(useFootLocking){
         updateFootLocking();
+    }else{
+        footLockingStates.push_front(motionStates[0]);
+        footLockingStates.pop_back();
     }
 
     // update frame
@@ -249,7 +253,6 @@ void Controller::drawTrajectory(const Shader &shader, Database &database, bool d
     for (int i = 0; i < controllerPos.size() - 1; i++) {
         if(drawControllerTrajectory)
         {
-            
             crl::gui::drawSphere(controllerPos[i+1], 0.03, shader, V3D(1, 0.5, 0), 1.0);
             crl::gui::drawCapsule(controllerPos[i], controllerPos[i + 1], 0.01, shader, V3D(1, 0.5, 0), 1.0);
             crl::gui::drawArrow3d(controllerPos[i+1], directions[i+1] * 0.75, 0.005, shader, V3D(1, 0, 1), 0.5);
@@ -402,7 +405,6 @@ void Controller::updateFootLocking() {
         crl::mocap::MocapMarker *lFootMarker = playerSkeleton->getMarkerByName(footLocking->lFoot.c_str());
         lFootLockedPos = lFootMarker->state.pos;
         lFootLockedPos[1] = flatTerrain ? 0 : lFootTerrainPos.y;
-        //stCurr.get
     }
 
     float lDist = V3D(lFootLockedPos, orgLFootPos).norm();
@@ -428,8 +430,9 @@ void Controller::updateFootLocking() {
         footLockingState.setJointRelativeOrientation(lHipRot, 2);
         footLockingState.setJointRelativeOrientation(lKneeRot, 3);
 
-        // Fixing foot direction currently introduces some weird artefacts.
+        // Setting the left foot orientation correctly
         playerSkeleton->setState(&footLockingState);
+
         Quaternion lHeelRot = footLockingState.getJointRelativeOrientation(4);
         footLocking->ikLookAt(
             lHeelRot, 
@@ -441,11 +444,9 @@ void Controller::updateFootLocking() {
         );
 
         footLockingState.setJointRelativeOrientation(lHeelRot, 4);
-
         playerSkeleton->setState(&footLockingState);
 
-        V3D toe_end_curr = playerSkeleton->getMarkerByName("LeftToe")->state.orientation * V3D(0.15f, 0.0f, 0.0f);
-        toe_end_curr += V3D(playerSkeleton->getMarkerByName("LeftToe")->state.pos);
+        V3D toe_end_curr = playerSkeleton->getMarkerByName("LeftToe")->state.orientation * V3D(0.15f, 0.0f, 0.0f) + V3D(playerSkeleton->getMarkerByName("LeftToe")->state.pos);
                     
         V3D toe_end_targ = toe_end_curr;
         toe_end_targ[1] = std::max(toe_end_targ[1], 0.02);
@@ -462,7 +463,6 @@ void Controller::updateFootLocking() {
 
         footLockingState.setJointRelativeOrientation(lToeRot, 5);
         playerSkeleton->getMarkerByName(footLocking->lFoot.c_str())->state.pos = lFootLockedPos;
-        
     }
 
     if (rFootInContact && !contactHistories[1].at(0)) {
@@ -496,7 +496,7 @@ void Controller::updateFootLocking() {
         footLockingState.setJointRelativeOrientation(rHipRot, 6);
         footLockingState.setJointRelativeOrientation(rKneeRot, 7);
 
-        // Fixing foot direction currently introduces some weird artefacts.
+        // Setting the right foot orientation correctly
         playerSkeleton->setState(&footLockingState);
 
         Quaternion rHeelRot = footLockingState.getJointRelativeOrientation(8);
@@ -510,11 +510,9 @@ void Controller::updateFootLocking() {
         );
 
         footLockingState.setJointRelativeOrientation(rHeelRot, 8);
-
         playerSkeleton->setState(&footLockingState);
 
-        V3D toe_end_curr = playerSkeleton->getMarkerByName("RightToe")->state.orientation * V3D(0.15f, 0.0f, 0.0f);
-        toe_end_curr += V3D(playerSkeleton->getMarkerByName("RightToe")->state.pos);
+        V3D toe_end_curr = playerSkeleton->getMarkerByName("RightToe")->state.orientation * V3D(0.15f, 0.0f, 0.0f) + V3D(playerSkeleton->getMarkerByName("RightToe")->state.pos);
 
         V3D toe_end_targ = toe_end_curr;
         toe_end_targ[1] = std::max(toe_end_targ[1], 0.02);
@@ -549,7 +547,7 @@ void Controller::updateFootLocking() {
                                                          footLockingStates[2], 
                                                          footLockingStates[1], 
                                                          footLockingStates[0], 
-                                                         transitionTime, 
+                                                         transitionTime/2.0, 
                                                          dt); //here we use the old dt
         t_footLocking = 0;
     }
@@ -567,9 +565,7 @@ void Controller::updateFootLocking() {
 
     t_footLocking += dt;
      
-     //Logger::consolePrint("left: %d; right, %d; \n", lFootInContact, rFootInContact);
-
-
+    //Logger::consolePrint("left: %d; right, %d; \n", lFootInContact, rFootInContact);
 
     contactHistories[0].push_front(usinglFootLocking);
     contactHistories[0].pop_back();
@@ -577,7 +573,6 @@ void Controller::updateFootLocking() {
     contactHistories[1].pop_back();
 
     playerSkeleton->setState(&footLockingStates[0]);
-
 }
 
 crl::P3D Controller::getPosByName(const char *name){
