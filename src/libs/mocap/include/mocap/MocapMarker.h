@@ -48,9 +48,7 @@ public:
 
     // props
     bool selected = false;
-
-    gui::Model *model= nullptr;
-
+    
 public:
     Quaternion computeRelativeOrientation() {
         // if qp is the quaternion that gives the orientation of the parent, and qc
