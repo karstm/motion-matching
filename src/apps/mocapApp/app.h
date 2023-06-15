@@ -238,7 +238,7 @@ public:
            ImGui::SliderFloat("Synchronization Factor", &controller.syncFactor, 0.0f, 1.0f, "%.2f");
         }
         if(ImGui::CollapsingHeader("Motion Matching", ImGuiTreeNodeFlags_OpenOnArrow)){
-           ImGui::SliderInt("Match after Frames", &controller.motionMatchingRate, 3, 60);
+           ImGui::SliderInt("Match after Frames", &controller.motionMatchingRate, 3, 30);
             if (ImGui::TreeNode("Database Weights")) {
                 ImGui::SliderFloat("Trajectory Position Weight", &trajectoryPositionWeight, 0.0f, 10.0f, "%.2f");
                 ImGui::SliderFloat("Trajectory Facing Weight", &trajectoryFacingWeight, 0.0f, 10.0f, "%.2f");
