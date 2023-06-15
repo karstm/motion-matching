@@ -233,18 +233,12 @@ public:
 
         if(ImGui::CollapsingHeader("Controller", ImGuiTreeNodeFlags_OpenOnArrow))
         {
-
            ImGui::SliderFloat("Max Walk Speed", &controller.walkSpeed, 0.5f, 2.0f, "%.2f"); 
            ImGui::SliderFloat("Max Run Speed", &controller.runSpeed, 2.0f, 7.0f, "%.2f");
            ImGui::SliderFloat("Synchronization Factor", &controller.syncFactor, 0.0f, 1.0f, "%.2f");
-           ImGui::SliderInt("Match after Frames", &controller.motionMatchingRate, 3, 60);
-           ImGui::Checkbox("Inertialization", &controller.useInertialization);
-           ImGui::Checkbox("Foot Locking", &controller.useFootLocking);
-           ImGui::SliderFloat("Unlock Radius", &controller.unlockRadius, 0.05f, 0.5f, "%.05f");
-           ImGui::SliderFloat("Transition time", &controller.transitionTime, 0.1f, 1.0f, "%.2f");
         }
-
-        if (ImGui::CollapsingHeader("Mocap Data", ImGuiTreeNodeFlags_DefaultOpen)) {
+        if(ImGui::CollapsingHeader("Motion Matching", ImGuiTreeNodeFlags_OpenOnArrow)){
+           ImGui::SliderInt("Match after Frames", &controller.motionMatchingRate, 3, 60);
             if (ImGui::TreeNode("Database Weights")) {
                 ImGui::SliderFloat("Trajectory Position Weight", &trajectoryPositionWeight, 0.0f, 10.0f, "%.2f");
                 ImGui::SliderFloat("Trajectory Facing Weight", &trajectoryFacingWeight, 0.0f, 10.0f, "%.2f");
@@ -265,6 +259,16 @@ public:
                 ImGui::Text("(Required for weight changes to be applied)");
                 ImGui::TreePop();
             }
+            ImGui::Checkbox("Inertialization", &controller.useInertialization);
+            ImGui::SliderFloat("Transition time", &controller.transitionTime, 0.1f, 1.0f, "%.2f");
+        }
+
+        if(ImGui::CollapsingHeader("Foot-Locking", ImGuiTreeNodeFlags_OpenOnArrow)){
+           ImGui::Checkbox("Foot Locking", &controller.useFootLocking);
+           ImGui::SliderFloat("Unlock Radius", &controller.unlockRadius, 0.05f, 0.5f, "%.05f");
+        }
+
+        if (ImGui::CollapsingHeader("Mocap Data", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Checkbox("Load Mirrored Data", &loadWithMirror);
             if (ImGui::Button("Import")) {
                 crl::Logger::consolePrint("Loading mocap data...\n");
