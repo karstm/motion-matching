@@ -44,24 +44,7 @@ public:
                                            const mocap::MocapSkeletonState &state, 
                                            double t1, 
                                            double dt) {
-        // root
-        {
-            // position
-            V3D rootPositionMinus2 = V3D(stateMinus2.getRootPosition());
-            V3D rootPositionMinus1 = V3D(stateMinus1.getRootPosition());
-            V3D rootPosition = V3D(state.getRootPosition());
-
-            rootPositionInertializationInfo = computeInertializationInfoVector(rootPositionMinus2, rootPositionMinus1, rootPosition, dt, t1);
-
-            // orientation
-            Quaternion rootOrientationMinus2 = stateMinus2.getRootOrientation();
-            Quaternion rootOrientationMinus1 = stateMinus1.getRootOrientation();
-            Quaternion rootOrinetation = state.getRootOrientation();
-
-            rootOrientationInertializationInfo = computeInertializationInfoQuaternion(rootOrientationMinus2, rootOrientationMinus1, rootOrinetation, dt, t1);
-        }
-
-        // joints
+        // compute inertialization infos for each joint
         for (uint i = 0; i < numMarkers; i++) {
             // position (important because we have non constant relative positions due to the simulation bone)
             V3D jointPositionMinus2 = V3D(stateMinus2.getJointTranslation(i));
@@ -95,25 +78,7 @@ public:
                                         const mocap::MocapSkeletonState &stateMinus1, 
                                         double t, double dt) {
         mocap::MocapSkeletonState inertializedState = state;
-        // root
-        if(false){
-            // position
-            V3D rootPosition = V3D(state.getRootPosition());
-
-            V3D inertializedRootPosition = inertializeVector(rootPositionInertializationInfo, rootPosition, t);
-            inertializedState.setRootPosition(P3D() + inertializedRootPosition);
-            inertializedState.setRootVelocity((inertializedRootPosition - V3D(stateMinus1.getRootPosition())) / dt);
-
-            // orientation
-            Quaternion rootOrientation = state.getRootOrientation();
-            Quaternion rootOrientationMinus1 = stateMinus1.getRootOrientation();
-
-            Quaternion inertializedRootOrientation = inertializeQuaternion(rootOrientationInertializationInfo, rootOrientation, t);
-            inertializedState.setRootOrientation(inertializedRootOrientation);
-            inertializedState.setRootAngularVelocity(mocap::estimateAngularVelocity(rootOrientationMinus1, inertializedRootOrientation, dt));
-        }
-
-        // joints
+        // inertialize each joint
         for (uint i = 0; i < numMarkers; i++) {
             // position
             V3D jointPosition = V3D(state.getJointTranslation(i));
