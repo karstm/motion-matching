@@ -16,6 +16,7 @@
 #include <imgui_widgets/imGuIZMOquat.h>
 #include <imgui_widgets/imgui_add.h>
 #include <imgui_widgets/implot.h>
+#include "crl-basic/gui/controller.h"
 
 #include <thread>
 
@@ -68,6 +69,9 @@ public:
     //--- Screenshot
     virtual bool screenshot(const char *filename) const;
 
+    // // Our Implementations Stuff
+    // Controller *controller;
+
 public:
     //--- Window
     GLFWwindow *window;
@@ -78,6 +82,7 @@ public:
     //--- Interaction
     MouseState mouseState;
     KeyboardState keyboardState;
+    Controller controller;
 
     //--- Framerate
     bool limitFramerate = true;
@@ -113,7 +118,7 @@ public:
     //--- Drawing
     virtual void prepareToDraw();
     virtual void drawShadowCastingObjects(const Shader &shader) {}   // objects that will cast a shadow
-    virtual void drawObjectsWithShadows(const Shader &shader);       // objects that will have a shadow cast on them
+    virtual void drawObjectsWithShadows(const Shader &shader, const Shader &shaderImg);       // objects that will have a shadow cast on them
     virtual void drawObjectsWithoutShadows(const Shader &shader) {}  // objectst that will NOT have shadows cast on them
 
     virtual void draw() override;
@@ -151,12 +156,13 @@ public:
 
     //--- World
     double world_frame_length = 1.0, world_frame_radius = 0.01;
-    bool show_world_frame = true;
+    bool show_world_frame = false;
 
     //--- Shaders
     Shader shadowShader = Shader(CRL_SHADER_FOLDER "/basic_lighting.vert", CRL_SHADER_FOLDER "/basic_shadow_lighting.frag");
     Shader shadowMapRenderer = Shader(CRL_SHADER_FOLDER "/basic_lighting.vert", CRL_SHADER_FOLDER "/render_shadow.frag");
     Shader basicShader = Shader(CRL_SHADER_FOLDER "/basic_lighting.vert", CRL_SHADER_FOLDER "/basic_lighting.frag");
+
 };
 
 }  // namespace gui

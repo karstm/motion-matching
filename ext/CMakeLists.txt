@@ -164,6 +164,12 @@ if (NOT TARGET stl_reader)
 endif ()
 
 # -----------------------------------------------------------------------------
+# annoy
+if (NOT TARGET annoy)
+    add_subdirectory(annoy)
+endif ()
+
+# -----------------------------------------------------------------------------
 # tinyobjloader
 FetchContent_Declare(
         tinyobjloader #

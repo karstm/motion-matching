@@ -123,6 +123,10 @@ void Application::init(const char *title, int width, int height, std::string ico
 
     // set UI scale
     rescaleUI();
+
+    // initialize keyboard state
+    for (int i = 0; i < GLFW_KEY_LAST; i++)
+        keyboardState.insert(std::pair<int, bool>(i, false));
 }
 
 void Application::setCallbacks() {
@@ -281,7 +285,7 @@ void Application::run() {
 
         if (screenIsRecording) {
             char filename[1000];
-            sprintf(filename, "%s_%04d.png", screenshotPath.c_str(), screenShotCounter);
+            snprintf(filename, 1000, "%s_%04d.png", screenshotPath.c_str(), screenShotCounter);
             screenshot(filename);
             screenShotCounter++;
         }
@@ -379,7 +383,7 @@ void Application::drawFPS() {
     ImGui::SetNextWindowSize(ImVec2(pixelRatio * 320, pixelRatio * 80), ImGuiCond_Always);
     ImGui::SetNextWindowCollapsed(true, ImGuiCond_Once);
     char title[100];
-    sprintf(title, "FPS: %.2f###FPS", averageFPS);
+    snprintf(title, 100, "FPS: %.2f###FPS", averageFPS);
     ImGui::Begin(title);
     ImGui::Text("Time spent processing: %.2f%%", 100.0 * averagePercentTimeSpentProcessing);
     ImGui::Checkbox("Limit FPS", &limitFramerate);
@@ -472,10 +476,12 @@ bool Application::keyPressed(int key, int mods) {
         if (!processIsRunning)
             process();
     }
+    keyboardState[key] = true;
     return false;
 }
 
 bool Application::keyReleased(int key, int mods) {
+    keyboardState[key] = false;
     return false;
 }
 
@@ -540,7 +546,7 @@ ShadowApplication::ShadowApplication(const char *title, std::string iconPath) : 
     GLCall(glEnable(GL_DEPTH_TEST));
 }
 
-void ShadowApplication::draw() {
+void ShadowApplication::draw() {    
     //Clear
     GLCall(glClearColor(clearColor[0], clearColor[1], clearColor[2], 1.f));
     GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
@@ -608,13 +614,20 @@ void ShadowApplication::renderPass() {
     // not remain forever shaded dark...
     //basicShader.setVec3("lightPos", camera.position());
 
-    drawObjectsWithShadows(shadowShader);
+    drawObjectsWithShadows(shadowShader, basicShader);
     drawObjectsWithoutShadows(basicShader);
 }
 
-void ShadowApplication::drawObjectsWithShadows(const Shader &shader) {
+void ShadowApplication::drawObjectsWithShadows(const Shader &shader, const Shader &shaderImg) {
     if (showGround)
-        ground.draw(shader, groundIntensity, crl::gui::toV3D(groundColor));
+        ground.draw(shader, shaderImg, groundIntensity, crl::gui::toV3D(groundColor));
+
+        crl::gui::Model mesh_terrain = ground.getTerrain();
+        P3D sBone, lFoot, rFoot;
+        mesh_terrain.hitByRay(controller.getPosByName("SimulationBone"), V3D(0,1,0), sBone);
+        mesh_terrain.hitByRay(controller.getPosByName("LeftToe"), V3D(0,1,0), lFoot);
+        mesh_terrain.hitByRay(controller.getPosByName("RightToe"), V3D(0,1,0), rFoot);
+        controller.posTerrainAdjust(sBone, lFoot, rFoot);
 
     if(show_world_frame){
         crl::gui::drawArrow3d(P3D(0,0,0), world_frame_length * V3D(1,0,0), world_frame_radius, shader, V3D(0.75, 0.25, 0.25), 1.0);
@@ -627,71 +640,75 @@ void ShadowApplication::drawImGui() {
     Application::drawImGui();
 
     ImGui::Begin("Main Menu");
-    if (ImGui::TreeNode("Ground")) {
-        ImGui::Checkbox("Show Ground", &showGround);
-        static int size = ground.getSize();
-        static double thickness = ground.gridThickness;
-        if (ImGui::SliderInt("Ground Size", &size, 1.0, 100.0)) {
-            ground.setSize(size);
-            ground.gridThickness = thickness;
-        }
-        if (ImGui::SliderDouble("Grid Thickness", &thickness, 0.001, 0.1))
-            ground.gridThickness = thickness;
-        ImGui::Checkbox("Show Grid", &ground.showGrid);
-        ImGui::SliderDouble("Ground Intensity", &groundIntensity, 0.0, 10.0);
-        ImGui::ColorPicker3("Ground Color", &groundColor[0]);
+    if(ImGui::CollapsingHeader("Environment Setting", ImGuiTreeNodeFlags_OpenOnArrow)) {
+        if (ImGui::TreeNode("Ground")) {
+            ImGui::Checkbox("Show Ground", &showGround);
+            ImGui::Checkbox("Use Flat Terrain", &ground.flatTerrain);
+            controller.flatTerrain = ground.flatTerrain;
+            static int size = ground.getSize();
+            static double thickness = ground.gridThickness;
+            if (ImGui::SliderInt("Ground Size", &size, 1.0, 100.0)) {
+                ground.setSize(size);
+                ground.gridThickness = thickness;
+            }
+            if (ImGui::SliderDouble("Grid Thickness", &thickness, 0.001, 0.1))
+                ground.gridThickness = thickness;
+            ImGui::Checkbox("Show Grid", &ground.showGrid);
+            ImGui::SliderDouble("Ground Intensity", &groundIntensity, 0.0, 10.0);
+            ImGui::ColorPicker3("Ground Color", &groundColor[0]);
 
-        ImGui::TreePop();
+            ImGui::TreePop();
+        }
+        if (ImGui::TreeNode("World frame")){
+            ImGui::Checkbox("Show world frame", &show_world_frame);
+            ImGui::SliderDouble("World frame length", &world_frame_length, 0.1, 1.0);
+            ImGui::SliderDouble("World frame radius", &world_frame_radius, 0.01, 0.05);
+            ImGui::TreePop();
+        }
+
+        if (ImGui::TreeNode("Light")) {
+            ImGui::SliderFloat("Shadow Bias", &shadowbias, 0.0f, 0.01f, "%.5f");
+            ImGui::SliderFloat("Light Proj Scale", &light.s, 0.0f, 5.0f);
+            ImGui::InputScalarN("Light Location", ImGuiDataType_Double, &light.pos, 3);
+
+            static glm::vec3 lightDir = toGLM(light.pos);
+            lightDir = toGLM(light.pos);
+            if (ImGui::gizmo3D("##Dir1", lightDir))
+                light.pos = toV3D(lightDir);
+            //ImGui::Image((void *)shadowMapFBO.shadowMap, ImVec2(200, 200));
+
+            ImGui::TreePop();
+        }
+
+        if (ImGui::TreeNode("Camera")) {
+            if (ImGui::Button("Front")) {
+                camera.rotAboutUpAxis = 0;
+                camera.rotAboutRightAxis = 0.1;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Left")) {
+                camera.rotAboutUpAxis = PI / 2;
+                camera.rotAboutRightAxis = 0.1;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Right")) {
+                camera.rotAboutUpAxis = -PI / 2;
+                camera.rotAboutRightAxis = 0.1;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Up")) {
+                camera.rotAboutUpAxis = 0;
+                camera.rotAboutRightAxis = PI / 2;
+            }
+
+            ImGui::SliderFloat("Up Axis", &camera.rotAboutUpAxis, -PI, PI);
+            ImGui::SliderFloat("Right Axis", &camera.rotAboutRightAxis, -PI, PI);
+
+            ImGui::TreePop();
+        }
     }
-    if (ImGui::TreeNode("World frame")){
-        ImGui::Checkbox("Show world frame", &show_world_frame);
-        ImGui::SliderDouble("World frame length", &world_frame_length, 0.1, 1.0);
-        ImGui::SliderDouble("World frame radius", &world_frame_radius, 0.01, 0.05);
-        ImGui::TreePop();
-    }
 
-    if (ImGui::TreeNode("Light")) {
-        ImGui::SliderFloat("Shadow Bias", &shadowbias, 0.0f, 0.01f, "%.5f");
-        ImGui::SliderFloat("Light Proj Scale", &light.s, 0.0f, 5.0f);
-        ImGui::InputScalarN("Light Location", ImGuiDataType_Double, &light.pos, 3);
-
-        static glm::vec3 lightDir = toGLM(light.pos);
-        lightDir = toGLM(light.pos);
-        if (ImGui::gizmo3D("##Dir1", lightDir))
-            light.pos = toV3D(lightDir);
-        //ImGui::Image((void *)shadowMapFBO.shadowMap, ImVec2(200, 200));
-
-        ImGui::TreePop();
-    }
-
-    if (ImGui::TreeNode("Camera")) {
-        if (ImGui::Button("Front")) {
-            camera.rotAboutUpAxis = 0;
-            camera.rotAboutRightAxis = 0.1;
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Left")) {
-            camera.rotAboutUpAxis = PI / 2;
-            camera.rotAboutRightAxis = 0.1;
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Right")) {
-            camera.rotAboutUpAxis = -PI / 2;
-            camera.rotAboutRightAxis = 0.1;
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Up")) {
-            camera.rotAboutUpAxis = 0;
-            camera.rotAboutRightAxis = PI / 2;
-        }
-
-        ImGui::SliderFloat("Up Axis", &camera.rotAboutUpAxis, -PI, PI);
-        ImGui::SliderFloat("Right Axis", &camera.rotAboutRightAxis, -PI, PI);
-
-        ImGui::TreePop();
-    }
-
-    if (ImGui::TreeNode("App Settings")) {
+    if (ImGui::CollapsingHeader("App Settings", ImGuiTreeNodeFlags_OpenOnArrow)) {
         if (ImGui::SmallButton("Print To Terminal"))
             printCurrentAppSettings();
         if (ImGui::SmallButton("Save To File"))

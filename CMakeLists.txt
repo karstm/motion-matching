@@ -12,6 +12,13 @@ set(CRL_DATA_FOLDER
         CACHE STRING ""
         )
 
+# mocap data folder path
+set(CRL_MOCAP_DATA_FOLDER
+        "\"${CMAKE_CURRENT_LIST_DIR}/data/mocap\""
+        CACHE STRING ""
+        )
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # -----------------------------------------------------------------------------
 # options
 # -----------------------------------------------------------------------------

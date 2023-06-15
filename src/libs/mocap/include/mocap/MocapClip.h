@@ -3,7 +3,7 @@
 #include "mocap/MocapMarkers.h"
 #include "mocap/MocapSkeleton.h"
 #include "mocap/MocapSkeletonState.h"
-
+#include "crl-basic/utils/mathUtils.h"
 namespace crl::mocap {
 
 /**
@@ -38,8 +38,8 @@ public:
         return model_;
     }
 
-    const StateType &getState(uint frameIdx) const {
-        return motions_[frameIdx];
+    StateType &getState(uint frameIdx) {
+        return motions_.at(frameIdx);
     }
 
     uint getFrameCount() const {
@@ -66,11 +66,19 @@ public:
             model_->draw(shader, alpha);
         }
     }
+
+    void drawState(const gui::Shader &shader, crl::mocap::MocapSkeletonState *state, float alpha = 1.0) {
+        // set skeleton
+        if (model_) {
+            model_->setState(state);
+            model_->draw(shader, alpha);
+        }
+    }
 };
 
 class BVHClip : public MocapClip<MocapSkeleton> {
 public:
-    explicit BVHClip(const std::string &filePath) {
+    explicit BVHClip(const std::filesystem::path &filePath) {
         loadFromFile(filePath);
     }
 
@@ -81,24 +89,24 @@ private:
         if (mocapPath.extension() == ".bvh")
             loadFromBVH(mocapPath);
         else
-            throw std::runtime_error("Not a supported file format: " + std::string(mocapPath.extension()));
+            throw std::runtime_error("Not a supported file format: " + mocapPath.extension().string());
     }
 
     void loadFromBVH(const std::filesystem::path &mocapPath) {
         BvhParser parser;
         Bvh data;
-        if (parser.parse(std::string(mocapPath), &data)) {
-            throw std::runtime_error("Cannot parse bvh file: " + std::string(mocapPath));
+        if (parser.parse(mocapPath.string(), &data)) {
+            throw std::runtime_error("Cannot parse bvh file: " + mocapPath.string());
         }
 
         // load skeleton
-        model_ = new MocapSkeleton(mocapPath.c_str());
+        model_ = new MocapSkeleton(mocapPath.string().c_str());
 
         // load motion
         auto bvhJoints = data.getJoints();
         double dt = data.getFrameTime();
 
-        name_ = std::string(mocapPath.filename());
+        name_ = mocapPath.filename().string();
         frameTimeStep_ = dt;
 
         // save frame into motion
@@ -146,7 +154,7 @@ private:
 
 class C3DClip : public MocapClip<MocapMarkers> {
 public:
-    explicit C3DClip(const std::string &filePath) {
+    explicit C3DClip(const std::filesystem::path &filePath) {
         loadFromFile(filePath);
     }
 
@@ -157,18 +165,18 @@ private:
         if (mocapPath.extension() == ".c3d")
             loadFromC3D(mocapPath);
         else
-            throw std::runtime_error("Not a supported file format: " + std::string(mocapPath.extension()));
+            throw std::runtime_error("Not a supported file format: " + mocapPath.extension().string());
     }
 
     void loadFromC3D(const std::filesystem::path &mocapPath) {
         crl::mocap::C3DFile c3dfile;
-        bool result = c3dfile.load(mocapPath.c_str());
+        bool result = c3dfile.load(mocapPath.string().c_str());
         if (!result) {
-            throw std::runtime_error("Cannot load c3d file: " + std::string(mocapPath));
+            throw std::runtime_error("Cannot load c3d file: " + mocapPath.string());
         }
 
         // props
-        name_ = std::string(mocapPath.filename());
+        name_ = mocapPath.filename().string();
         frameTimeStep_ = 1.0 / c3dfile.header.video_sampling_rate;
 
         // unit
@@ -179,7 +187,7 @@ private:
 
         // markers
         std::vector<std::string> labels = c3dfile.point_label;
-        model_ = new MocapMarkers(mocapPath.c_str());
+        model_ = new MocapMarkers(mocapPath.string().c_str());
         // note. first_frame is usually 1 and last_frame is N frame.
         for (int i = c3dfile.header.first_frame; i <= c3dfile.header.last_frame; i++) {
             motions_.emplace_back(model_);

@@ -1,5 +1,6 @@
 build
 CMakeLists.txt.user
+CMakeSettings.json
 .DS_Store
 data/out
 
@@ -11,8 +12,12 @@ data/out
 cmake-build-*/
 
 # vscode
+.vs
 .vscode
 .devcontainer
 
 # clang
 clang
+
+# remove
+db_gen

@@ -10,6 +10,10 @@
 #include "mocap/PlotUtils.h"
 #include "mocap/TimelineUtils.h"
 
+#include "mocap/Database.h"
+#include "robot/Robot.h"
+#include "crl-basic/gui/footlocking.h"
+
 namespace mocapApp {
 
 class App : public crl::gui::ShadowApplication {
@@ -22,18 +26,28 @@ public:
           feetHeightPlot("Feet Height", "[sec]", "[m]"),
           feetVelocityPlot("Feet Velocity", "[sec]", "[m/s]"),
           feetAccelerationPlot("Feet Acceleration", "[sec]", "[m/s/s]"),
-          swingTimeline(footSteps) {
+          contactsTimeline(footSteps) {
         fileDialog.SetPwd(fs::path(CRL_MOCAP_DATA_FOLDER));
         fileDialog.SetTitle("Mocap Directory");
+
+        fs::path robotPath = fs::path(CRL_MOCAP_DATA_FOLDER).append("../robot/bob/bob.rbs");
+        std::string robotPathStr = robotPath.string();
+        robot = new crl::Robot(robotPathStr.c_str());
+        
     }
 
     ~App() override {}
 
     void process() override {
+        if(!bvhClips.empty()){
+            controller.update(camera, database);
+            robot->setMocapState(controller.getCurrentState());
+        }
+
         if (selectedBvhClipIdx == -1 && selectedC3dClipIdx == -1)
             return;
 
-        if (selectedBvhClipIdx > -1) {
+        if (animationPlayer && selectedBvhClipIdx > -1) {
             auto &clip = bvhClips[selectedBvhClipIdx];
             if (auto *skel = clip->getModel()) {
                 auto state = clip->getState(frameIdx);
@@ -76,7 +90,10 @@ public:
     }
 
     void drawShadowCastingObjects(const crl::gui::Shader &shader) override {
-        if (selectedBvhClipIdx > -1) {
+        robot->draw(shader);
+        if (!animationPlayer && 0 < bvhClips.size()) {
+            controller.drawSkeleton(shader);
+        } else  if (selectedBvhClipIdx > -1) {
             bvhClips[selectedBvhClipIdx]->draw(shader, frameIdx);
         }
         if (selectedC3dClipIdx > -1) {
@@ -93,8 +110,13 @@ public:
     }
 
     void drawObjectsWithoutShadows(const crl::gui::Shader &shader) override {
-        if (selectedBvhClipIdx > -1)
+        robot->draw(shader);
+        if (!animationPlayer && 0 < bvhClips.size()) {
+            controller.drawSkeleton(shader);
+            controller.drawTrajectory(shader, database, drawControllerTrajectory, drawAnimationTrajectory);
+        } else if (selectedBvhClipIdx > -1) {
             bvhClips[selectedBvhClipIdx]->draw(shader, frameIdx);
+        }
         if (selectedC3dClipIdx > -1) {
             c3dClips[selectedC3dClipIdx]->draw(shader, frameIdx);
 
@@ -175,15 +197,80 @@ public:
         feetVelocityPlot.draw(t);
         feetAccelerationPlot.draw(t);
         ImGui::End();
-        swingTimeline.draw(t);
+        contactsTimeline.draw(t);
     }
 
     void drawImGui() override {
         crl::gui::ShadowApplication::drawImGui();
 
+        if(ImGui::SliderFloat("alpha", &robot->alphaSlider, -M_PI,  M_PI, "%.2f"))
+            robot->setMocapState(controller.getCurrentState());
+        if(ImGui::SliderFloat("beta", &robot->betaSlider, -M_PI, M_PI, "%.2f"))
+            robot->setMocapState(controller.getCurrentState());
+        if(ImGui::SliderFloat("gamma", &robot->gammaSlider, -M_PI, M_PI, "%.2f"))
+            robot->setMocapState(controller.getCurrentState());
+
+        if(ImGui::SliderFloat("alpha", &robot->alphaSlider2, -M_PI,  M_PI, "%.2f"))
+            robot->setMocapState(controller.getCurrentState());
+        if(ImGui::SliderFloat("beta", &robot->betaSlider2, -M_PI, M_PI, "%.2f"))
+            robot->setMocapState(controller.getCurrentState());
+        if(ImGui::SliderFloat("gamma", &robot->gammaSlider2, -M_PI, M_PI, "%.2f"))
+            robot->setMocapState(controller.getCurrentState());
+
+
+        
+
+
         ImGui::Begin("Main Menu");
-        ImGui::Checkbox("Follow Character", &followCharacter);
+        if(ImGui::CollapsingHeader("Animation Player", ImGuiTreeNodeFlags_OpenOnArrow)){
+            ImGui::Checkbox("Activate Animation Player", &animationPlayer);
+            ImGui::Checkbox("Follow Character", &followCharacter);
+            if (selectedBvhClipIdx > -1)
+                maxFrameIdx = bvhClips[selectedBvhClipIdx]->getFrameCount();
+            if(ImGui::ArrowButton("Prev Frame", ImGuiDir_Left))
+                frameIdx--;
+            ImGui::SameLine();
+            if(ImGui::ArrowButton("Next Frame", ImGuiDir_Right))
+                frameIdx++;
+            ImGui::SliderInt("Frame", &frameIdx, 0, maxFrameIdx-1, "%d");
+        }
+
+        if(ImGui::CollapsingHeader("Controller", ImGuiTreeNodeFlags_OpenOnArrow))
+        {
+           ImGui::Checkbox("Controller Trajectory", &drawControllerTrajectory);
+           ImGui::Checkbox("Animation Trajectory", &drawAnimationTrajectory);
+           ImGui::SliderFloat("Max Walk Speed", &controller.walkSpeed, 0.5f, 2.0f, "%.2f"); 
+           ImGui::SliderFloat("Max Run Speed", &controller.runSpeed, 2.0f, 7.0f, "%.2f");
+           ImGui::SliderFloat("Synchronization Factor", &controller.syncFactor, 0.0f, 1.0f, "%.2f");
+           ImGui::SliderInt("Match after Frames", &controller.motionMatchingRate, 3, 60);
+           ImGui::Checkbox("Inertialization", &controller.useInertialization);
+           ImGui::Checkbox("Foot Locking", &controller.useFootLocking);
+           ImGui::SliderFloat("Unlock Radius", &controller.unlockRadius, 0.05f, 0.5f, "%.05f");
+           ImGui::SliderFloat("Transition time", &controller.transitionTime, 0.1f, 1.0f, "%.2f");
+        }
+
         if (ImGui::CollapsingHeader("Mocap Data", ImGuiTreeNodeFlags_DefaultOpen)) {
+            if (ImGui::TreeNode("Database Weights")) {
+                ImGui::SliderFloat("Trajectory Position Weight", &trajectoryPositionWeight, 0.0f, 10.0f, "%.2f");
+                ImGui::SliderFloat("Trajectory Facing Weight", &trajectoryFacingWeight, 0.0f, 10.0f, "%.2f");
+                ImGui::SliderFloat("Foot Position Weight", &footPositionWeight, 0.0f, 10.0f, "%.2f");
+                ImGui::SliderFloat("Foot Velocity Weight", &footVelocityWeight, 0.0f, 10.0f, "%.2f");
+                ImGui::SliderFloat("Hip Velocity Weight", &hipVelocityWeight, 0.0f, 10.0f, "%.2f");
+                if (ImGui::Button("Recompute DB")) {
+                    if (!bvhClips.empty()){
+                        database.build(trajectoryPositionWeight, trajectoryFacingWeight,
+                                       footPositionWeight, footVelocityWeight,
+                                       hipVelocityWeight, &bvhClips, targetFramerate);
+                    }
+                    else {
+                        crl::Logger::consolePrint("ERROR: Import mocap data to autocompute features\n");
+                    }
+                }
+                ImGui::SameLine();
+                ImGui::Text("(Required for weight changes to be applied)");
+                ImGui::TreePop();
+            }
+            ImGui::Checkbox("Load Mirrored Data", &loadWithMirror);
             if (ImGui::Button("Import")) {
                 crl::Logger::consolePrint("Loading mocap data...\n");
                 fileDialog.Open();
@@ -240,14 +327,16 @@ public:
             }
         }
 
-        if (ImGui::CollapsingHeader("Post Processing", ImGuiTreeNodeFlags_DefaultOpen)) {
-            if (ImGui::SliderDouble("Foot Height Threshold", &footHeightThreshold, 0.0, 0.2, "%.2f")) {
-                processBVHClip();
-                processC3DClip();
+        if (ImGui::CollapsingHeader("Post Processing", ImGuiTreeNodeFlags_OpenOnArrow)) {
+            if (ImGui::SliderFloat("Foot Height Threshold", &footLocking.footHeightThreshold, 0.0, 0.2, "%.2f")) {
+                footLocking.init(&bvhClips);
+                // processBVHClip();
+                // processC3DClip();
             }
-            if (ImGui::SliderDouble("Foot Velocity Threshold", &footVelocityThreshold, 0.0, 2.0, "%.2f")) {
-                processBVHClip();
-                processC3DClip();
+            if (ImGui::SliderFloat("Foot Velocity Threshold", &footLocking.footSpeedThreshold, 0.0, 2.0, "%.2f")) {
+                footLocking.init(&bvhClips);
+                // processBVHClip();
+                // processC3DClip();
             }
         }
 
@@ -309,14 +398,23 @@ public:
         frameIdx = 0;
 
         crl::Logger::consolePrint("Imported %d clips.\n", cnt);
+
+        
+        database.build(trajectoryPositionWeight, trajectoryFacingWeight,
+                       footPositionWeight, footVelocityWeight,
+                       hipVelocityWeight,
+                       &bvhClips, targetFramerate);
+        footLocking.init(&bvhClips);
+        controller.init(&keyboardState, &bvhClips, &footLocking, CRL_MOCAP_DATA_FOLDER, targetFramerate);
     }
 
 private:
     bool loadSingleMocapFile(const fs::path &path) {
         try {
-            if (path.extension() == ".bvh")
+            if (path.extension() == ".bvh"){
+                if (!loadWithMirror && (path.string().find("mirror")!= std::string::npos)) return true;
                 bvhClips.push_back(std::make_unique<crl::mocap::BVHClip>(path));
-            else if (path.extension() == ".c3d")
+            } else if (path.extension() == ".c3d")
                 c3dClips.push_back(std::make_unique<crl::mocap::C3DClip>(path));
         } catch (...) {
             crl::Logger::consolePrint("Failed to load %s file.\n", path.c_str());
@@ -330,7 +428,7 @@ private:
             return;
 
         footSteps.clear();
-        footMarkerNames = {"LeftHand", "LeftFoot", "RightHand", "RightFoot"};
+        footMarkerNames = {"LeftHand", "LeftToe", "RightHand", "RightToe"};
         linkNames = {};
         virtualLinkNames = {};
 
@@ -413,7 +511,7 @@ private:
         for (const auto &name : footMarkerNames) {
             auto contactInfos = crl::mocap::extractFootContactStateFromBVHClip(  //
                 bvhClips[selectedBvhClipIdx].get(), name, footHeightThreshold, footVelocityThreshold);
-            footSteps[name] = crl::mocap::convertFootSwingSequenceFromFootContactStates(contactInfos);
+            footSteps[name] = crl::mocap::convertFootContactsSequenceFromFootContactStates(contactInfos);
         }
     }
 
@@ -561,11 +659,14 @@ private:
                 }
             }
 
-            footSteps[footMarkerName] = crl::mocap::convertFootSwingSequenceFromFootContactStates(contactYN);
+            footSteps[footMarkerName] = crl::mocap::convertFootContactsSequenceFromFootContactStates(contactYN);
         }
     }
 
 private:
+    Database database;
+    crl::gui::Footlocking footLocking;
+
     ImGui::FileBrowser fileDialog;
     std::vector<std::unique_ptr<crl::mocap::BVHClip>> bvhClips;
     std::vector<std::unique_ptr<crl::mocap::C3DClip>> c3dClips;
@@ -573,6 +674,8 @@ private:
     int selectedC3dClipIdx = -1;
     int selectedMarkerIdx = -1;
     int frameIdx = 0;
+    int maxFrameIdx = 0;
+    bool animationPlayer = false;
 
     // post processing
     std::vector<std::string> footMarkerNames;
@@ -582,17 +685,29 @@ private:
     double footVelocityThreshold = 0.8;
     double footHeightThreshold = 0.055;
 
+    // database processing
+    bool loadWithMirror = true;
+    float trajectoryPositionWeight = 1.5;
+    float trajectoryFacingWeight = 0.8;
+    float footPositionWeight = 1.5;
+    float footVelocityWeight = 2.0;
+    float hipVelocityWeight = 2.0;
+
     // plot and visualization
+    bool drawControllerTrajectory = true;
+    bool drawAnimationTrajectory = false;
     bool followCharacter = true;
     bool showCoordinateFrames = false;
     bool showVirtualLimbs = true;
-    bool showContactState = false;
+    bool showContactState = true;
     crl::mocap::PlotLine2D<crl::P3D> baseHeightPlot;
     crl::mocap::PlotLine2D<crl::dVector> baseSpeedPlot;
     crl::mocap::PlotLine2D<crl::dVector> feetHeightPlot;
     crl::mocap::PlotLine2D<crl::dVector> feetVelocityPlot;
     crl::mocap::PlotLine2D<crl::dVector> feetAccelerationPlot;
-    crl::mocap::Timeline swingTimeline;
+    crl::mocap::Timeline contactsTimeline;
+
+    crl::Robot *robot;
 };
 
 }  // namespace mocapApp

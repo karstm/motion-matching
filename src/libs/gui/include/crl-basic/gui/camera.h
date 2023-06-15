@@ -6,6 +6,7 @@
 #include "crl-basic/gui/glUtils.h"
 #include "crl-basic/gui/guiMath.h"
 #include "crl-basic/gui/inputstate.h"
+#include <backends/imgui_impl_glfw.h>
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
@@ -82,7 +83,24 @@ public:
         if (ms.lButtonPressed && ks[GLFW_KEY_LEFT_ALT] == false)
             processLeftMouseMovement((float)ms.mouseMoveX, (float)ms.mouseMoveY);
         if (ms.rButtonPressed || (ms.lButtonPressed && ks[GLFW_KEY_LEFT_ALT] == true))
-            processRightMouseMovement((float)ms.mouseMoveX, (float)ms.mouseMoveY);
+            return;
+            //processRightMouseMovement((float)ms.mouseMoveX, (float)ms.mouseMoveY);
+    }
+
+    void processRotation(float dt){
+        double verticalRotSpeed = 0.80;
+        double horizontalRotSpeed = 1.20;
+        for(int i = 0; i < GLFW_JOYSTICK_LAST; i++) {
+            if (glfwJoystickIsGamepad(i))
+            {
+                int count;
+                const float *axis = glfwGetJoystickAxes(i, &count);
+                    if(abs(axis[2]) > 0.1)
+                        rotAboutUpAxis = rotAboutUpAxis+ axis[2] * horizontalRotSpeed*dt;
+                    if(abs(axis[5]) > 0.1)
+                        rotAboutRightAxis = std::clamp(rotAboutRightAxis - axis[5] * verticalRotSpeed*dt, 0.10, 1.2);
+            }
+        }
     }
 
     glm::mat4 getProjectionMatrix() {

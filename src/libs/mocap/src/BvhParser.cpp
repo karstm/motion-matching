@@ -172,7 +172,11 @@ int BvhParser::parseJoint(std::ifstream &file, std::shared_ptr<BvhJoint> parent,
             return -1;
         }
 
-        joint->setOffset(x, y, z);
+        if(!parent) // root joint expects 0 offset
+            joint->setOffset(0.0, 0.0, 0.0);
+        else
+            joint->setOffset(x/100.0, y/100.0, z/100.0);
+        // joint->setOffset(x, y, z);
 
 #if VERBOSE
         std::cout << "Offset x: " << x << ", y: " << y << ", z: " << z << std::endl;
@@ -236,7 +240,7 @@ int BvhParser::parseJoint(std::ifstream &file, std::shared_ptr<BvhJoint> parent,
                 }
 
                 // Add end-effector to the previous joint
-                joint->addEndEffector({x, y, z});
+                joint->addEndEffector({x/100.0, y/100.0, z/100.0});
 
 #if VERBOSE
                 std::cout << "Joint name : EndSite" << std::endl;

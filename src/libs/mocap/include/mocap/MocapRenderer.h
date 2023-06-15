@@ -27,7 +27,7 @@ public:
 
 public:
     static void drawMarker(const MocapMarker *joint, const crl::gui::Shader &shader);
-
+    
     static void drawCoordFrame(const MocapMarker *joint, const gui::Shader &shader);
 
     static void drawJointVelocity(const MocapMarker *joint, const gui::Shader &shader);

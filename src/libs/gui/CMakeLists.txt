@@ -26,6 +26,7 @@ list(
         "imgui" #
         "stb_image" #
         "stl_reader" #
+        "annoy" #
         "nlohmann_json::nlohmann_json" #
         "tinyobjloader" #
         "eigen" #
@@ -47,16 +48,20 @@ list(
         PUBLIC "imgui" #
         PUBLIC "stb_image" #
         PUBLIC "stl_reader" #
+        PUBLIC "annoy" #
         PUBLIC "nlohmann_json::nlohmann_json" #
         PUBLIC "tinyobjloader" #
         PUBLIC "eigen" #
         PUBLIC "crl::utils" #
+        PUBLIC "crl::mocap" #
+        PUBLIC "crl::robot" #
 )
 
 # compile definitions
 list(
         APPEND
         CRL_COMPILE_DEFINITIONS #
+        PUBLIC "ANNOYLIB_MULTITHREADED_BUILD" #
         PUBLIC "CRL_DATA_FOLDER=${CRL_DATA_FOLDER}" #
         PUBLIC "CRL_SHADER_FOLDER=${CRL_SHADER_FOLDER}" #
         PUBLIC "CRL_IMGUI_FONT_FOLDER=${CRL_IMGUI_FONT_FOLDER}" #

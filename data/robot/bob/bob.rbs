@@ -6,7 +6,7 @@ RB
 	mass 8.352
 	position 0 0.90 0
 	moi 0.015536 0.035968 0.039424 0 0 0
-	mesh robots/bob/meshes/pelvis.obj
+	mesh robot/bob/meshes/pelvis.obj
 
 	mass	6.4072265625					
 	moi	0.0304092979431152	0.0422351360321045	0.0422351360321045	0	0	0
@@ -29,7 +29,7 @@ RB
 
 RB
 	name lumbar
-	mesh robots/bob/meshes/lowerBack.obj
+	mesh robot/bob/meshes/lowerBack.obj
 	meshTransformation 1 0 0 0	 0 -0.225 0
 	mass	5.6953125					
 	moi	0.0300338745117188	0.0300338745117188	0.04805419921875	0	0	0
@@ -50,7 +50,7 @@ RB
 
 RB
 	name torso
-	mesh robots/bob/meshes/torso.obj
+	mesh robot/bob/meshes/torso.obj
 	meshTransformation 1 0 0 0	 0 -0.45 -0.028125	
 	mass	19.2216796875					
 	moi	0.228069734573364	0.228069734573364	0.364911575317383	0	0	0
@@ -75,7 +75,7 @@ RB
 
 RB
 	name neck
-	mesh robots/bob/meshes/neck.obj
+	mesh robot/bob/meshes/neck.obj
 	meshTransformation 1 0 0 0	 0 -0.675 0	
 	mass	0.35595703125					
 	moi	0.000469279289245605	0.000187711715698242	0.000469279289245605	0	0	0	
@@ -95,7 +95,7 @@ RB
 
 RB
 	name head
-	mesh robots/bob/meshes/head.obj
+	mesh robot/bob/meshes/head.obj
 	meshTransformation 1 0 0 0	 0 -0.7875 -0.028125
 	mass	4.271484375					
 	moi	0.0281567573547363	0.0146415138244629	0.0225254058837891	0	0	0	
@@ -104,14 +104,20 @@ RB
 /End_RB
 
 RB
-	name lScapula_tmp
+	name lScapula_tmp1
+	mass	0.35					
+	moi	0.0003	0.0003	0.0003	0	0	0
+/End_RB
+
+RB
+	name lScapula_tmp2
 	mass	0.35					
 	moi	0.0003	0.0003	0.0003	0	0	0
 /End_RB
 
 RB
 	name lScapula
-	mesh robots/bob/meshes/lScapula.obj
+	mesh robot/bob/meshes/lScapula.obj
 	meshTransformation 1 0 0 0 	-0.084375 -0.5625 0
 	mass	0.35595703125					
 	moi	0.000187711715698242	0.000469279289245605	0.000469279289245605	0	0	0	
@@ -131,7 +137,7 @@ RB
 
 RB
 	name lUpperArm
-	mesh robots/bob/meshes/lUpperArm.obj
+	mesh robot/bob/meshes/lUpperArm.obj
 	meshTransformation 1 0 0 0 	-0.16875 -0.39375 0
 	mass	2.4027099609375					
 	moi	0.02423240929842	0.00285087168216705	0.02423240929842	0	0	0	
@@ -141,14 +147,20 @@ RB
 /End_RB
 
 RB
-	name lLowerArm_tmp
+	name lLowerArm_tmp1
+	mass	0.8009033203125					
+	moi	0.00131984800100327	0.000950290560722351	0.00131984800100327	0	0	0	
+/End_RB
+
+RB
+	name lLowerArm_tmp2
 	mass	0.8009033203125					
 	moi	0.00131984800100327	0.000950290560722351	0.00131984800100327	0	0	0	
 /End_RB
 
 RB
 	name lLowerArm
-	mesh robots/bob/meshes/lLowerArm.obj
+	mesh robot/bob/meshes/lLowerArm.obj
 	meshTransformation 1 0 0 0 	-0.16875 -0.16875 0
 	mass	0.8009033203125					
 	moi	0.00131984800100327	0.000950290560722351	0.00131984800100327	0	0	0	
@@ -156,14 +168,20 @@ RB
 
 
 RB
-	name lHand_tmp
+	name lHand_tmp1
+	mass	0.35					
+	moi	0.0003	0.0003	0.0003	0	0	0
+/End_RB
+
+RB
+	name lHand_tmp2
 	mass	0.35					
 	moi	0.0003	0.0003	0.0003	0	0	0
 /End_RB
 
 RB
 	name lHand
-	mesh robots/bob/meshes/lHand.obj
+	mesh robot/bob/meshes/lHand.obj
 	meshTransformation 1 0 0 0 	-0.16875 0.1125 0
 	mass	0.40045166015625					
 	moi	0.00118786320090294	0.000263969600200653	0.000976687520742416	0	0	0
@@ -175,14 +193,20 @@ RB
 /End_RB
 
 RB
-	name rScapula_tmp
+	name rScapula_tmp1
+	mass	0.35					
+	moi	0.0003	0.0003	0.0003	0	0	0
+/End_RB
+
+RB
+	name rScapula_tmp2
 	mass	0.35					
 	moi	0.0003	0.0003	0.0003	0	0	0
 /End_RB
 
 RB
 	name rScapula
-	mesh robots/bob/meshes/rScapula.obj
+	mesh robot/bob/meshes/rScapula.obj
 	meshTransformation 1 0 0 0 	0.084375 -0.5625 0
 	mass	0.35595703125					
 	moi	0.000187711715698242	0.000469279289245605	0.000469279289245605	0	0	0	
@@ -202,7 +226,7 @@ RB
 
 RB
 	name rUpperArm
-	mesh robots/bob/meshes/rUpperArm.obj
+	mesh robot/bob/meshes/rUpperArm.obj
 	meshTransformation 1 0 0 0 	0.16875 -0.39375 0
 	mass	2.4027099609375					
 	moi	0.02423240929842	0.00285087168216705	0.02423240929842	0	0	0	
@@ -210,30 +234,43 @@ RB
 	collisionSphere 0 -0.16875 0 0.04	
 /End_RB
 
-
 RB
-	name rLowerArm
-	mesh robots/bob/meshes/rLowerArm.obj
-	meshTransformation 1 0 0 0 	0.16875 -0.16875 0
-	mass	0.8009033203125					
-	moi	0.00131984800100327	0.000950290560722351	0.00131984800100327	0	0	0	
-/End_RB
-
-RB
-	name rLowerArm_tmp
+	name rLowerArm_tmp1
 	mass	0.8009033203125					
 	moi	0.00131984800100327	0.000950290560722351	0.00131984800100327	0	0	0
 /End_RB
 
 RB
-	name rHand_tmp
+	name rLowerArm_tmp2
+	mass	0.8009033203125					
+	moi	0.00131984800100327	0.000950290560722351	0.00131984800100327	0	0	0
+/End_RB
+
+RB
+	name rLowerArm
+	mesh robot/bob/meshes/rLowerArm.obj
+	meshTransformation 1 0 0 0 	0.16875 -0.16875 0
+	mass	0.8009033203125					
+	moi	0.00131984800100327	0.000950290560722351	0.00131984800100327	0	0	0	
+/End_RB
+
+
+
+RB
+	name rHand_tmp1
+	mass	0.35					
+	moi	0.0003	0.0003	0.0003	0	0	0
+/End_RB
+
+RB
+	name rHand_tmp2
 	mass	0.35					
 	moi	0.0003	0.0003	0.0003	0	0	0
 /End_RB
 
 RB
 	name rHand
-	mesh robots/bob/meshes/rHand.obj
+	mesh robot/bob/meshes/rHand.obj
 	meshTransformation 1 0 0 0 	0.16875 0.1125 0
 	mass	0.40045166015625					
 	moi	0.00118786320090294	0.000263969600200653	0.000976687520742416	0	0	0
@@ -258,7 +295,7 @@ RB
 
 RB
 	name lUpperLeg
-	mesh robots/bob/meshes/lUpperLeg.obj
+	mesh robot/bob/meshes/lUpperLeg.obj
 	meshTransformation 1 0 0 0 	-0.1125 0.225 0
 	mass	5.6953125					
 	moi	0.102115173339844	0.0120135498046875	0.102115173339844	0	0	0
@@ -269,8 +306,20 @@ RB
 /End_RB
 
 RB
+	name lLowerLeg_tmp1
+	mass	0.35					
+	moi	0.0003	0.0003	0.0003	0	0	0
+/End_RB
+
+RB
+	name lLowerLeg_tmp2
+	mass	0.35					
+	moi	0.0003	0.0003	0.0003	0	0	0
+/End_RB
+
+RB
 	name lLowerLeg
-	mesh robots/bob/meshes/lLowerLeg.obj
+	mesh robot/bob/meshes/lLowerLeg.obj
 	meshTransformation 1 0 0 0 	-0.1125 0.61875 0
 	mass	3.20361328125					
 	moi	0.0559615552425385	0.0038011622428894	0.0559615552425385	0	0	0
@@ -280,14 +329,20 @@ RB
 /End_RB
 
 RB
-	name lFoot_tmp
+	name lFoot_tmp1
+	mass	0.35					
+	moi	0.0003	0.0003	0.0003	0	0	0
+/End_RB
+
+RB
+	name lFoot_tmp2
 	mass	0.35					
 	moi	0.0003	0.0003	0.0003	0	0	0
 /End_RB
 
 RB
 	name lFoot
-	mesh robots/bob/meshes/lFoot.obj
+	mesh robot/bob/meshes/lFoot.obj
 	meshTransformation 1 0 0 0 	-0.1125 0.871875 -0.03
 	mass	0.533935546875					
 	moi	0.00140783786773682	0.00140783786773682	0.000281567573547363 0	0	0	
@@ -304,7 +359,7 @@ RB
 
 RB
 	name lToes
-	mesh robots/bob/meshes/lToes.obj
+	mesh robot/bob/meshes/lToes.obj
 	meshTransformation 1 0 0 0 	-0.1125 0.891875 -0.140625
 	mass	0.13348388671875					
 	moi	0.0000549936667084694	0.0000703918933868408	0.0000549936667084694	0	0	0	
@@ -332,20 +387,30 @@ RB
 
 RB
 	name rUpperLeg
-	mesh robots/bob/meshes/rUpperLeg.obj
+	mesh robot/bob/meshes/rUpperLeg.obj
 	meshTransformation 1 0 0 0 	0.1125 0.225 0
 	mass	5.6953125					
 	moi	0.102115173339844	0.0120135498046875	0.102115173339844	0	0	0	
 	collisionSphere 0 -0.225 0 0.05	
 
 	collisionSphere -0.02 0.225 0 0.05	
+/End_RB
 
+RB
+	name rLowerLeg_tmp1
+	mass	0.35					
+	moi	0.0003	0.0003	0.0003	0	0	0
+/End_RB
 
+RB
+	name rLowerLeg_tmp2
+	mass	0.35					
+	moi	0.0003	0.0003	0.0003	0	0	0
 /End_RB
 
 RB
 	name rLowerLeg
-	mesh robots/bob/meshes/rLowerLeg.obj
+	mesh robot/bob/meshes/rLowerLeg.obj
 	meshTransformation 1 0 0 0 	0.1125 0.61875 0
 	mass	3.20361328125					
 	moi	0.0559615552425385	0.0038011622428894	0.0559615552425385	0	0	0	
@@ -354,14 +419,20 @@ RB
 /End_RB
 
 RB
-	name rFoot_tmp
+	name rFoot_tmp1
+	mass	0.35					
+	moi	0.0003	0.0003	0.0003	0	0	0
+/End_RB
+
+RB
+	name rFoot_tmp2
 	mass	0.35					
 	moi	0.0003	0.0003	0.0003	0	0	0
 /End_RB
 
 RB
 	name rFoot
-	mesh robots/bob/meshes/rFoot.obj
+	mesh robot/bob/meshes/rFoot.obj
 	meshTransformation 1 0 0 0 	0.1125 0.871875 -0.03
 	mass	0.533935546875					
 	moi	0.00140783786773682	0.00140783786773682	0.000281567573547363 0	0	0	
@@ -378,7 +449,7 @@ RB
 
 RB
 	name rToes
-	mesh robots/bob/meshes/rToes.obj
+	mesh robot/bob/meshes/rToes.obj
 	meshTransformation 1 0 0 0 	0.1125 0.891875 -0.140625
 	mass	0.13348388671875					
 	moi	0.0000549936667084694	0.0000703918933868408	0.0000549936667084694	0	0	0
@@ -514,19 +585,29 @@ RBJoint
 /End_Joint
 
 RBJoint
-	jointAxis 0 1 0
-	name lScapula_y
+	jointAxis 1 0 0
+	name lScapula_x
 	parent torso
-	child lScapula_tmp
+	child lScapula_tmp1
 	jointCPos 0 0 0
 	jointPPos 0.028125 0.1125 0.05625
-	jointLimits -0.8 0.2
+	jointLimits -1 1
 /End_Joint
 
 RBJoint
 	jointAxis 0 0 1
 	name lScapula_z
-	parent lScapula_tmp
+	parent lScapula_tmp1
+	child lScapula_tmp2
+	jointCPos 0 0 0
+	jointPPos 0 0 0
+	jointLimits -0.8 0.2
+/End_Joint
+
+RBJoint
+	jointAxis 0 1 0
+	name lScapula_y
+	parent lScapula_tmp2
 	child lScapula
 	jointCPos -0.05625 0 0.084375
 	jointPPos 0 0 0
@@ -535,7 +616,7 @@ RBJoint
 
 
 RBJoint
-	jointAxis 1 0 0
+	jointAxis 0 0 1
 	name lShoulder_1
 	parent lScapula
 	child lUpperArm_tmp1
@@ -545,7 +626,7 @@ RBJoint
 /End_Joint
 
 RBJoint
-	jointAxis 0 0 1
+	jointAxis 0 1 0
 	name lShoulder_2
 	parent lUpperArm_tmp1
 	child lUpperArm_tmp2
@@ -556,8 +637,8 @@ RBJoint
 /End_Joint
 
 RBJoint
-	jointAxis 0 1 0
-	name lShoulder_torsion
+	jointAxis 1 0 0
+	name lShoulder_3
 	parent lUpperArm_tmp2
 	child lUpperArm
 	jointCPos 0 0.16875 0
@@ -569,10 +650,10 @@ RBJoint
 
 RBJoint
 	jointAxis 1 0 0
-	name lElbow_flexion_extension
+	name lElbow_1
 	parent lUpperArm
-	child lLowerArm
-	jointCPos 0 0.05625 0
+	child lLowerArm_tmp1
+	jointCPos 0 0 0
 	jointPPos 0 -0.16875 0
 	jointLimits -2.5 0.0
 	defaultAngle -0.25
@@ -580,50 +661,78 @@ RBJoint
 
 RBJoint
 	jointAxis 0 1 0
-	name lElbow_torsion
-	parent lLowerArm
-	child lLowerArm_tmp
-	jointCPos 0 0.05625
-	jointPPos 0 -0.05625 0
+	name lElbow_2
+	parent lLowerArm_tmp1
+	child lLowerArm_tmp2
+	jointCPos 0 0 0
+	jointPPos 0 0 0
+	jointLimits -1.0 1.6
+/End_Joint
+
+RBJoint
+	jointAxis 0 0 1
+	name lElbow_3
+	parent lLowerArm_tmp2
+	child lLowerArm
+	jointCPos 0 0.084375 0
+	jointPPos 0 0 0
 	jointLimits -1.0 1.6
 /End_Joint
 
 RBJoint
 	jointAxis 1 0 0
 	name lWrist_x
-	parent lLowerArm_tmp
-	child lHand_tmp
+	parent lLowerArm
+	child lHand_tmp1
 	jointCPos 0 0 0
-	jointPPos 0 -0.1125 0
+	jointPPos 0 -0.225 0
 	jointLimits -0.5 0.5
 /End_Joint
 
 RBJoint
 	jointAxis 0 0 1
 	name lWrist_z
-	parent lHand_tmp
+	parent lHand_tmp1
+	child lHand_tmp2
+	jointCPos 0 0 0
+	jointPPos 0 0 0
+	jointLimits -1.0 1.0
+/End_Joint
+
+RBJoint
+	jointAxis 0 1 0
+	name lWrist_y
+	parent lHand_tmp2
 	child lHand
 	jointCPos 0 0.05625 0
 	jointPPos 0 0 0
 	jointLimits -1.0 1.0
-	defaultAngle -0.2
 /End_Joint
 
-
 RBJoint
-	jointAxis 0 1 0
-	name rScapula_y
+	jointAxis 1 0 0
+	name rScapula_x
 	parent torso
-	child rScapula_tmp
+	child rScapula_tmp1
 	jointCPos 0 0 0
 	jointPPos -0.028125 0.1125 0.05625
-	jointLimits -0.2 0.8
+	jointLimits -1 1
 /End_Joint
 
 RBJoint
 	jointAxis 0 0 1
 	name rScapula_z
-	parent rScapula_tmp
+	parent rScapula_tmp1
+	child rScapula_tmp2
+	jointCPos 0 0 0
+	jointPPos 0 0 0
+	jointLimits -0.2 0.8
+/End_Joint
+
+RBJoint
+	jointAxis 0 1 0
+	name rScapula_y
+	parent rScapula_tmp2
 	child rScapula
 	jointCPos 0.05625 0 0.084375
 	jointPPos 0 0 0
@@ -631,7 +740,7 @@ RBJoint
 /End_Joint
 
 RBJoint
-	jointAxis 1 0 0
+	jointAxis 0 0 1
 	name rShoulder_1
 	parent rScapula
 	child rUpperArm_tmp1
@@ -642,7 +751,7 @@ RBJoint
 /End_Joint
 
 RBJoint
-	jointAxis 0 0 1
+	jointAxis 0 1 0
 	name rShoulder_2
 	parent rUpperArm_tmp1
 	child rUpperArm_tmp2
@@ -653,8 +762,8 @@ RBJoint
 /End_Joint
 
 RBJoint
-	jointAxis 0 1 0
-	name rShoulder_torsion
+	jointAxis 1 0 0
+	name rShoulder_3
 	parent rUpperArm_tmp2
 	child rUpperArm
 	jointCPos 0 0.16875 0
@@ -666,10 +775,10 @@ RBJoint
 
 RBJoint
 	jointAxis 1 0 0
-	name rElbow_flexion_extension
+	name rElbow_1
 	parent rUpperArm
-	child rLowerArm
-	jointCPos 0 0.05625 0
+	child rLowerArm_tmp1
+	jointCPos 0 0 0
 	jointPPos 0 -0.16875 0
 	jointLimits -2.5 0
 	defaultAngle -0.25
@@ -677,35 +786,53 @@ RBJoint
 
 RBJoint
 	jointAxis 0 1 0
-	name rElbow_torsion
-	parent rLowerArm
-	child rLowerArm_tmp
-	jointCPos 0 0.05625
-	jointPPos 0 -0.05625 0
+	name rElbow_2
+	parent rLowerArm_tmp1
+	child rLowerArm_tmp2
+	jointCPos 0 0 0
+	jointPPos 0 0 0
+	jointLimits -1.6 1.0
+/End_Joint
+
+RBJoint
+	jointAxis 0 0 1
+	name rElbow_3
+	parent rLowerArm_tmp2
+	child rLowerArm
+	jointCPos 0 0.084375 0
+	jointPPos 0 0 0
 	jointLimits -1.6 1.0
 /End_Joint
 
 RBJoint
 	jointAxis 1 0 0
 	name rWrist_x
-	parent rLowerArm_tmp
-	child rHand_tmp
+	parent rLowerArm
+	child rHand_tmp1
 	jointCPos 0 0 0
-	jointPPos 0 -0.1125 0
+	jointPPos 0 -0.225 0
 	jointLimits -0.5 0.5
 /End_Joint
 
 RBJoint
 	jointAxis 0 0 1
 	name rWrist_z
-	parent rHand_tmp
+	parent rHand_tmp1
+	child rHand_tmp2
+	jointCPos 0 0 0
+	jointPPos 0 0 0
+	jointLimits -1.0 1.0
+/End_Joint
+
+RBJoint
+	jointAxis 0 1 0
+	name rWrist_y
+	parent rHand_tmp2
 	child rHand
 	jointCPos 0 0.05625 0
 	jointPPos 0 0 0
 	jointLimits -1.0 1.0
-	defaultAngle 0.2
 /End_Joint
-
 
 RBJoint
 	jointAxis 1 0 0
@@ -718,7 +845,7 @@ RBJoint
 /End_Joint
 
 RBJoint
-	jointAxis 0 0 1
+	jointAxis 0 1 0
 	name lHip_2
 	parent lUpperLeg_tmp1
 	child lUpperLeg_tmp2
@@ -729,8 +856,8 @@ RBJoint
 /End_Joint
 
 RBJoint
-	jointAxis 0 1 0
-	name lHip_torsion
+	jointAxis 0 0 1
+	name lHip_3
 	parent lUpperLeg_tmp2
 	child lUpperLeg
 	jointCPos 0 0.225 0
@@ -741,20 +868,42 @@ RBJoint
 
 RBJoint
 	jointAxis 1 0 0
-	name lKnee
+	name lKnee_x
 	parent lUpperLeg
-	child lLowerLeg
-	jointCPos 0 0.16875 0
+	child lLowerLeg_tmp1
+	jointCPos 0 0 0
 	jointPPos 0 -0.225 0
 	jointLimits 0 2.0
 	defaultAngle 0.0
 /End_Joint
 
 RBJoint
-	jointAxis 1 0 0
+	jointAxis 0 0 1
+	name lKnee_z
+	parent lLowerLeg_tmp1
+	child lLowerLeg_tmp2
+	jointCPos 0 0 0
+	jointPPos 0 0 0
+	jointLimits 0 2.0
+	defaultAngle 0.0
+/End_Joint
+
+RBJoint
+	jointAxis 0 1 0
+	name lKnee_y
+	parent lLowerLeg_tmp2
+	child lLowerLeg
+	jointCPos 0 0.16875 0
+	jointPPos 0 0 0
+	jointLimits 0 2.0
+	defaultAngle 0.0
+/End_Joint
+
+RBJoint
+	jointAxis 0 1 0
 	name lAnkle_1
 	parent lLowerLeg
-	child lFoot_tmp
+	child lFoot_tmp1
 	jointCPos 0 0 0
 	jointPPos 0 -0.225 0
 	jointLimits -0.5 0.9
@@ -764,7 +913,18 @@ RBJoint
 RBJoint
 	jointAxis 0 0 1
 	name lAnkle_2
-	parent lFoot_tmp
+	parent lFoot_tmp1
+	child lFoot_tmp2
+	jointCPos 0 0 0
+	jointPPos 0 0 0
+	jointLimits -0.5 0.5
+	defaultAngle 0.0
+/End_Joint
+
+RBJoint
+	jointAxis 1 0 0
+	name lAnkle_3
+	parent lFoot_tmp2
 	child lFoot
 	jointCPos 0 0.028125 -0.03
 	jointPPos 0 0 0
@@ -795,7 +955,7 @@ RBJoint
 /End_Joint
 
 RBJoint
-	jointAxis 0 0 1
+	jointAxis 0 1 0
 	name rHip_2
 	parent rUpperLeg_tmp1
 	child rUpperLeg_tmp2
@@ -806,8 +966,8 @@ RBJoint
 /End_Joint
 
 RBJoint
-	jointAxis 0 1 0
-	name rHip_torsion
+	jointAxis 0 0 1
+	name rHip_3
 	parent rUpperLeg_tmp2
 	child rUpperLeg
 	jointCPos 0 0.225 0
@@ -818,20 +978,42 @@ RBJoint
 
 RBJoint
 	jointAxis 1 0 0
-	name rKnee
+	name rKnee_x
 	parent rUpperLeg
-	child rLowerLeg
-	jointCPos 0 0.16875 0
+	child rLowerLeg_tmp1
+	jointCPos 0 0 0
 	jointPPos 0 -0.225 0
 	jointLimits 0 2.0
 	defaultAngle 0.0
 /End_Joint
 
 RBJoint
-	jointAxis 1 0 0
+	jointAxis 0 0 1
+	name rKnee_z
+	parent rLowerLeg_tmp1
+	child rLowerLeg_tmp2
+	jointCPos 0 0 0
+	jointPPos 0 0 0
+	jointLimits 0 2.0
+	defaultAngle 0.0
+/End_Joint
+
+RBJoint
+	jointAxis 0 1 0
+	name rKnee_y
+	parent rLowerLeg_tmp2
+	child rLowerLeg
+	jointCPos 0 0.16875 0
+	jointPPos 0 0 0
+	jointLimits 0 2.0
+	defaultAngle 0.0
+/End_Joint
+
+RBJoint
+	jointAxis 0 1 0
 	name rAnkle_1
 	parent rLowerLeg
-	child rFoot_tmp
+	child rFoot_tmp1
 	jointCPos 0 0 0
 	jointPPos 0 -0.225 0
 	jointLimits -0.5 0.9
@@ -841,7 +1023,18 @@ RBJoint
 RBJoint
 	jointAxis 0 0 1
 	name rAnkle_2
-	parent rFoot_tmp
+	parent rFoot_tmp1
+	child rFoot_tmp2
+	jointCPos 0 0 0
+	jointPPos 0 0 0
+	jointLimits -0.5 0.5
+	defaultAngle 0.0
+/End_Joint
+
+RBJoint
+	jointAxis 1 0 0
+	name rAnkle_3
+	parent rFoot_tmp2
 	child rFoot
 	jointCPos 0 0.028125 -0.03
 	jointPPos 0 0 0
