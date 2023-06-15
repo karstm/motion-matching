@@ -13,7 +13,7 @@ void Controller::init(KeyboardState *keyboardState, std::vector<std::unique_ptr<
 
     // initialize controller
     for (int i = 0; i < 4; i++) {
-        controllerPos.push_back(P3D(0, flatTerrain ? 0 : 0.624483, 0));
+        controllerPos.push_back(P3D(0, unevenTerrain ? 0.624483 : 0, 0));
         controllerRot.push_back(M_PI);
     }
     simulationPos = controllerPos[0];
@@ -168,7 +168,7 @@ void Controller::update(TrackingCamera &camera, Database &database) {
     
     // Update the sim bone y position based on the terrain
     P3D oldPos = motionStates[0].getRootPosition();
-    oldPos.y = flatTerrain ? 0 : sBoneTerrainPos.y;
+    oldPos.y = unevenTerrain ? sBoneTerrainPos.y : 0;
     motionStates[0].setRootPosition(oldPos);
 
     // Finally the state is set for the skeleton
@@ -192,7 +192,6 @@ void Controller::update(TrackingCamera &camera, Database &database) {
 void Controller::drawSkeleton(const Shader &shader)
 {
     playerSkeleton->draw(shader);
-    // clips->at(clipIdx)->drawState(shader, &footLockedStates[0]);
 }
 
 void Controller::drawTrajectory(const Shader &shader, Database &database, bool drawControllerTrajectory, bool drawAnimationTrajectory) {
@@ -226,8 +225,11 @@ void Controller::drawTrajectory(const Shader &shader, Database &database, bool d
     }
 
     // draw trajectory
-    crl::gui::drawSphere(controllerPos[0], 0.05, shader, V3D(1, 0.5, 0), 1.0);
-    crl::gui::drawArrow3d(controllerPos[0], directions[0]*0.75, 0.005, shader, V3D(1, 0, 1), 0.5);
+    if (drawAnimationTrajectory || drawControllerTrajectory)
+    {
+        crl::gui::drawSphere(controllerPos[0], 0.05, shader, V3D(1, 0.5, 0), 1.0);
+        crl::gui::drawArrow3d(controllerPos[0], directions[0]*0.75, 0.005, shader, V3D(1, 0, 1), 0.5);
+    }
     for (int i = 0; i < controllerPos.size() - 1; i++) {
         if(drawControllerTrajectory)
         {
@@ -352,7 +354,7 @@ void Controller::updateControllerTrajectory()
         }
 
         // CHECK Updated
-        controllerPos[t][1] = flatTerrain ? 0 : sBoneTerrainPos[1];
+        controllerPos[t][1] = unevenTerrain ? sBoneTerrainPos[1] : 0;
 
         // rotation
         float expLambdaRotT = exp(-lambdaRot * T);
@@ -382,7 +384,7 @@ void Controller::updateFootLocking() {
     if (lFootInContact && !contactHistories[0].at(0)) {
         crl::mocap::MocapMarker *lFootMarker = playerSkeleton->getMarkerByName(footLocking->lFoot.c_str());
         lFootLockedPos = lFootMarker->state.pos;
-        lFootLockedPos[1] = flatTerrain ? 0 : lFootTerrainPos.y;
+        lFootLockedPos[1] = unevenTerrain ? lFootTerrainPos.y : 0;
     }
 
     float lDist = V3D(lFootLockedPos, orgLFootPos).norm();
@@ -447,7 +449,7 @@ void Controller::updateFootLocking() {
     if (rFootInContact && !contactHistories[1].at(0)) {
         crl::mocap::MocapMarker *rFootMarker = playerSkeleton->getMarkerByName(footLocking->rFoot.c_str());     
         rFootLockedPos = rFootMarker->state.pos;
-        rFootLockedPos[1] = flatTerrain ? 0 : rFootTerrainPos.y;
+        rFootLockedPos[1] = unevenTerrain ? rFootTerrainPos.y : 0;
         //stCurr.get
     }
 

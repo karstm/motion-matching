@@ -70,7 +70,7 @@ public:
     bool useFootLocking = true;
     float unlockRadius = 0.2f;
 
-    bool flatTerrain = false;
+    bool unevenTerrain = false;
  
 private:
     crl::mocap::MocapSkeleton *playerSkeleton = nullptr;

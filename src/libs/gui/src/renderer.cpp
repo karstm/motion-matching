@@ -205,7 +205,7 @@ crl::gui::Model SizableGroundModel::getTerrain() const {
 }
 
 void SizableGroundModel::draw(const Shader &shader, const Shader &shaderImg, const double &intensity, const V3D &groundColor, const V3D &gridColor) {
-    if (flatTerrain){
+    if (!unevenTerrain){
         if (showGrid) {
             ground.draw(shader, groundColor * intensity);
             for (int i = -size; i <= size; i++) {

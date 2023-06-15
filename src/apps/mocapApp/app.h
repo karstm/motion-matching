@@ -90,9 +90,11 @@ public:
     }
 
     void drawShadowCastingObjects(const crl::gui::Shader &shader) override {
-        robot->draw(shader);
         if (!animationPlayer && 0 < bvhClips.size()) {
-            controller.drawSkeleton(shader);
+            if(drawRobot)
+                robot->draw(shader);
+            if(drawSkeleton)
+                controller.drawSkeleton(shader);
         } else  if (selectedBvhClipIdx > -1) {
             bvhClips[selectedBvhClipIdx]->draw(shader, frameIdx);
         }
@@ -110,9 +112,11 @@ public:
     }
 
     void drawObjectsWithoutShadows(const crl::gui::Shader &shader) override {
-        robot->draw(shader);
         if (!animationPlayer && 0 < bvhClips.size()) {
-            controller.drawSkeleton(shader);
+            if(drawRobot)
+                robot->draw(shader);
+            if(drawSkeleton)
+                controller.drawSkeleton(shader); 
             controller.drawTrajectory(shader, database, drawControllerTrajectory, drawAnimationTrajectory);
         } else if (selectedBvhClipIdx > -1) {
             bvhClips[selectedBvhClipIdx]->draw(shader, frameIdx);
@@ -203,27 +207,19 @@ public:
     void drawImGui() override {
         crl::gui::ShadowApplication::drawImGui();
 
-        if(ImGui::SliderFloat("alpha", &robot->alphaSlider, -M_PI,  M_PI, "%.2f"))
-            robot->setMocapState(controller.getCurrentState());
-        if(ImGui::SliderFloat("beta", &robot->betaSlider, -M_PI, M_PI, "%.2f"))
-            robot->setMocapState(controller.getCurrentState());
-        if(ImGui::SliderFloat("gamma", &robot->gammaSlider, -M_PI, M_PI, "%.2f"))
-            robot->setMocapState(controller.getCurrentState());
-
-        if(ImGui::SliderFloat("alpha", &robot->alphaSlider2, -M_PI,  M_PI, "%.2f"))
-            robot->setMocapState(controller.getCurrentState());
-        if(ImGui::SliderFloat("beta", &robot->betaSlider2, -M_PI, M_PI, "%.2f"))
-            robot->setMocapState(controller.getCurrentState());
-        if(ImGui::SliderFloat("gamma", &robot->gammaSlider2, -M_PI, M_PI, "%.2f"))
-            robot->setMocapState(controller.getCurrentState());
-
-
-        
-
-
         ImGui::Begin("Main Menu");
+
+        if(ImGui::CollapsingHeader("Drawing Options", ImGuiTreeNodeFlags_OpenOnArrow)){
+           ImGui::Checkbox("Character Mesh", &drawRobot);
+           ImGui::Checkbox("Skeleton", &drawSkeleton);
+           ImGui::Checkbox("Controller Trajectory", &drawControllerTrajectory);
+           ImGui::Checkbox("Animation Trajectory", &drawAnimationTrajectory);
+        }
+
         if(ImGui::CollapsingHeader("Animation Player", ImGuiTreeNodeFlags_OpenOnArrow)){
             ImGui::Checkbox("Activate Animation Player", &animationPlayer);
+            if(animationPlayer)
+                ground.unevenTerrain = false;
             ImGui::Checkbox("Follow Character", &followCharacter);
             if (selectedBvhClipIdx > -1)
                 maxFrameIdx = bvhClips[selectedBvhClipIdx]->getFrameCount();
@@ -237,8 +233,7 @@ public:
 
         if(ImGui::CollapsingHeader("Controller", ImGuiTreeNodeFlags_OpenOnArrow))
         {
-           ImGui::Checkbox("Controller Trajectory", &drawControllerTrajectory);
-           ImGui::Checkbox("Animation Trajectory", &drawAnimationTrajectory);
+
            ImGui::SliderFloat("Max Walk Speed", &controller.walkSpeed, 0.5f, 2.0f, "%.2f"); 
            ImGui::SliderFloat("Max Run Speed", &controller.runSpeed, 2.0f, 7.0f, "%.2f");
            ImGui::SliderFloat("Synchronization Factor", &controller.syncFactor, 0.0f, 1.0f, "%.2f");
@@ -301,19 +296,19 @@ public:
                 }
                 ImGui::ListBoxFooter();
             }
-            if (ImGui::ListBoxHeader("C3D\nMocap Clips##MocapClips", 10)) {
-                for (int i = 0; i < c3dClips.size(); i++) {
-                    bool isSelected = (selectedC3dClipIdx == (int)i);
-                    if (ImGui::Selectable(c3dClips[i]->getName().c_str(), isSelected)) {
-                        selectedBvhClipIdx = -1;
-                        selectedC3dClipIdx = i;
-                        selectedMarkerIdx = -1;
-                        frameIdx = 0;
-                        processC3DClip();
-                    }
-                }
-                ImGui::ListBoxFooter();
-            }
+            // if (ImGui::ListBoxHeader("C3D\nMocap Clips##MocapClips", 10)) {
+            //     for (int i = 0; i < c3dClips.size(); i++) {
+            //         bool isSelected = (selectedC3dClipIdx == (int)i);
+            //         if (ImGui::Selectable(c3dClips[i]->getName().c_str(), isSelected)) {
+            //             selectedBvhClipIdx = -1;
+            //             selectedC3dClipIdx = i;
+            //             selectedMarkerIdx = -1;
+            //             frameIdx = 0;
+            //             processC3DClip();
+            //         }
+            //     }
+            //     ImGui::ListBoxFooter();
+            // }
             if (selectedC3dClipIdx > -1) {
                 if (ImGui::ListBoxHeader("Mocap\nMarkers##MocapClips", 10)) {
                     for (int i = 0; i < c3dClips[selectedC3dClipIdx]->getModel()->getMarkerCount(); i++) {
@@ -327,27 +322,28 @@ public:
             }
         }
 
-        if (ImGui::CollapsingHeader("Post Processing", ImGuiTreeNodeFlags_OpenOnArrow)) {
-            if (ImGui::SliderFloat("Foot Height Threshold", &footLocking.footHeightThreshold, 0.0, 0.2, "%.2f")) {
-                footLocking.init(&bvhClips);
-                // processBVHClip();
-                // processC3DClip();
-            }
-            if (ImGui::SliderFloat("Foot Velocity Threshold", &footLocking.footSpeedThreshold, 0.0, 2.0, "%.2f")) {
-                footLocking.init(&bvhClips);
-                // processBVHClip();
-                // processC3DClip();
-            }
-        }
+        // if (ImGui::CollapsingHeader("Post Processing", ImGuiTreeNodeFlags_OpenOnArrow)) {
+        //     if (ImGui::SliderFloat("Foot Height Threshold", &footLocking.footHeightThreshold, 0.0, 0.2, "%.2f")) {
+        //         footLocking.init(&bvhClips);
+        //         // processBVHClip();
+        //         // processC3DClip();
+        //     }
+        //     if (ImGui::SliderFloat("Foot Velocity Threshold", &footLocking.footSpeedThreshold, 0.0, 2.0, "%.2f")) {
+        //         footLocking.init(&bvhClips);
+        //         // processBVHClip();
+        //         // processC3DClip();
+        //     }
+        // }
 
-        if (ImGui::CollapsingHeader("Draw")) {
-            ImGui::Checkbox("Show Coordinate Frames", &showCoordinateFrames);
-            ImGui::Checkbox("Show Virtual Limb", &showVirtualLimbs);
-            ImGui::Checkbox("Show Contact State", &showContactState);
-        }
+        // if (ImGui::CollapsingHeader("Draw")) {
+        //     ImGui::Checkbox("Show Coordinate Frames", &showCoordinateFrames);
+        //     ImGui::Checkbox("Show Virtual Limb", &showVirtualLimbs);
+        //     ImGui::Checkbox("Show Contact State", &showContactState);
+        // }
 
         ImGui::End();
-        drawPlots();
+        if(animationPlayer)
+            drawPlots();
     }
 
     bool mouseButtonPressed(int button, int mods) override {
@@ -694,7 +690,9 @@ private:
     float hipVelocityWeight = 2.0;
 
     // plot and visualization
-    bool drawControllerTrajectory = true;
+    bool drawRobot = true;
+    bool drawSkeleton = false;
+    bool drawControllerTrajectory = false;
     bool drawAnimationTrajectory = false;
     bool followCharacter = true;
     bool showCoordinateFrames = false;

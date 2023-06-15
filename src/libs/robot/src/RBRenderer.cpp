@@ -91,7 +91,7 @@ void RBRenderer::drawMeshes(const RB *rb, const gui::Shader &shader) {
             rb->rbProps.meshes[i].model->draw(shader,
                                               rb->rbProps.highlightColor);
         else
-            rb->rbProps.meshes[i].model->draw(shader, rb->rbProps.color);
+            rb->rbProps.meshes[i].model->draw(shader, V3D(234/255.0, 170/255.0, 50/255.0)); //make a golden boi
     }
 }
 

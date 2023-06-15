@@ -77,7 +77,7 @@ private:
 public:
     double gridThickness = 0.025;
     bool showGrid = false;
-    bool flatTerrain = false;
+    bool unevenTerrain = false;
     Model checkerboard = Model(CRL_DATA_FOLDER "/meshes/checkerboard.obj");
     Model checkerboard2 = Model(CRL_DATA_FOLDER "/meshes/checkerboard2.obj");
     Model terrain = Model(CRL_DATA_FOLDER "/meshes/terrain2/terrain.obj");
