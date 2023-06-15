@@ -640,7 +640,7 @@ void ShadowApplication::drawImGui() {
     Application::drawImGui();
 
     ImGui::Begin("Main Menu");
-    if(ImGui::CollapsingHeader("Environment Setting", ImGuiTreeNodeFlags_OpenOnArrow)) {
+    if(ImGui::CollapsingHeader("Terrain Settings", ImGuiTreeNodeFlags_OpenOnArrow)) {
         ImGui::Checkbox("Use uneven Terrain", &ground.unevenTerrain);
         controller.unevenTerrain = ground.unevenTerrain;
     //     if (ImGui::TreeNode("Ground")) {
