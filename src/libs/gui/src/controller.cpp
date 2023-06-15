@@ -13,7 +13,7 @@ void Controller::init(KeyboardState *keyboardState, std::vector<std::unique_ptr<
 
     // initialize controller
     for (int i = 0; i < 4; i++) {
-        controllerPos.push_back(P3D(0, 0, 0));
+        controllerPos.push_back(P3D(0, flatTerrain ? 0 : 0.624483, 0));
         controllerRot.push_back(M_PI);
     }
     simulationPos = controllerPos[0];
@@ -166,6 +166,11 @@ void Controller::update(TrackingCamera &camera, Database &database) {
     if(useInertialization)
         motionStates[0] = InertializationUtils::inertializeState(rootPosInertializationInfo, rootOrientInertializationInfo, jointPositionInertializationInfos, jointOrientInertializationInfos, numMarkers, motionStates[0], motionStates[1], t, dt); // here we use the new dt
     
+    // Update the sim bone y position based on the terrain
+    P3D oldPos = motionStates[0].getRootPosition();
+    oldPos.y = flatTerrain ? 0 : sBoneTerrainPos.y;
+    motionStates[0].setRootPosition(oldPos);
+
     // Finally the state is set for the skeleton
     // If footlocking is not used then we end the state computation here
     // Else we set the inertialized state here to use it for footlocking and IK
@@ -346,6 +351,9 @@ void Controller::updateControllerTrajectory()
             }
         }
 
+        // CHECK Updated
+        controllerPos[t][1] = flatTerrain ? 0 : sBoneTerrainPos[1];
+
         // rotation
         float expLambdaRotT = exp(-lambdaRot * T);
         float j0Rot = MxMUtils::minusPiToPi(rotPrev - rotDesired);
@@ -374,7 +382,7 @@ void Controller::updateFootLocking() {
     if (lFootInContact && !contactHistories[0].at(0)) {
         crl::mocap::MocapMarker *lFootMarker = playerSkeleton->getMarkerByName(footLocking->lFoot.c_str());
         lFootLockedPos = lFootMarker->state.pos;
-        lFootLockedPos[1] = 0;
+        lFootLockedPos[1] = flatTerrain ? 0 : lFootTerrainPos.y;
     }
 
     float lDist = V3D(lFootLockedPos, orgLFootPos).norm();
@@ -439,7 +447,7 @@ void Controller::updateFootLocking() {
     if (rFootInContact && !contactHistories[1].at(0)) {
         crl::mocap::MocapMarker *rFootMarker = playerSkeleton->getMarkerByName(footLocking->rFoot.c_str());     
         rFootLockedPos = rFootMarker->state.pos;
-        rFootLockedPos[1] = 0;
+        rFootLockedPos[1] = flatTerrain ? 0 : rFootTerrainPos.y;
         //stCurr.get
     }
 
@@ -547,6 +555,20 @@ void Controller::updateFootLocking() {
     playerSkeleton->setState(&footLockingStates[0]);
 }
 
+crl::P3D Controller::getPosByName(const char *name){
+    if (playerSkeleton != nullptr) 
+        return playerSkeleton->getMarkerByName(name)->state.pos + P3D(0, -5, 0);
+    else
+        return P3D();
+}
+
+void Controller::posTerrainAdjust(P3D simBonePos, P3D lFootPos, P3D rFootPos){
+    if (playerSkeleton != nullptr){
+        lFootTerrainPos = lFootPos;
+        rFootTerrainPos = rFootPos;
+        sBoneTerrainPos = simBonePos;
+    }
+}
 
 }  // namespace gui
 }  // namespace crl

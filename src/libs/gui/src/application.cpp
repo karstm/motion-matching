@@ -614,13 +614,20 @@ void ShadowApplication::renderPass() {
     // not remain forever shaded dark...
     //basicShader.setVec3("lightPos", camera.position());
 
-    drawObjectsWithShadows(shadowShader);
+    drawObjectsWithShadows(shadowShader, basicShader);
     drawObjectsWithoutShadows(basicShader);
 }
 
-void ShadowApplication::drawObjectsWithShadows(const Shader &shader) {
+void ShadowApplication::drawObjectsWithShadows(const Shader &shader, const Shader &shaderImg) {
     if (showGround)
-        ground.draw(shader, groundIntensity, crl::gui::toV3D(groundColor));
+        ground.draw(shader, shaderImg, groundIntensity, crl::gui::toV3D(groundColor));
+
+        crl::gui::Model mesh_terrain = ground.getTerrain();
+        P3D sBone, lFoot, rFoot;
+        mesh_terrain.hitByRay(controller.getPosByName("SimulationBone"), V3D(0,1,0), sBone);
+        mesh_terrain.hitByRay(controller.getPosByName("LeftToe"), V3D(0,1,0), lFoot);
+        mesh_terrain.hitByRay(controller.getPosByName("RightToe"), V3D(0,1,0), rFoot);
+        controller.posTerrainAdjust(sBone, lFoot, rFoot);
 
     if(show_world_frame){
         crl::gui::drawArrow3d(P3D(0,0,0), world_frame_length * V3D(1,0,0), world_frame_radius, shader, V3D(0.75, 0.25, 0.25), 1.0);
@@ -636,6 +643,8 @@ void ShadowApplication::drawImGui() {
     if(ImGui::CollapsingHeader("Environment Setting", ImGuiTreeNodeFlags_OpenOnArrow)) {
         if (ImGui::TreeNode("Ground")) {
             ImGui::Checkbox("Show Ground", &showGround);
+            ImGui::Checkbox("Use Flat Terrain", &ground.flatTerrain);
+            controller.flatTerrain = ground.flatTerrain;
             static int size = ground.getSize();
             static double thickness = ground.gridThickness;
             if (ImGui::SliderInt("Ground Size", &size, 1.0, 100.0)) {

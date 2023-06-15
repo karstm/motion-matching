@@ -65,7 +65,9 @@ public:
 
     int getSize() const;
 
-    void draw(const Shader &shader, const double &intensity = 1.0, const V3D &groundColor = V3D(0.95, 0.95, 0.95),
+    crl::gui::Model getTerrain() const;
+
+    void draw(const Shader &shader, const Shader &shaderImg, const double &intensity = 1.0, const V3D &groundColor = V3D(0.95, 0.95, 0.95),
               const V3D &gridColor = V3D(0.78431, 0.78431, 0.78431));
 
 private:
@@ -75,8 +77,10 @@ private:
 public:
     double gridThickness = 0.025;
     bool showGrid = false;
+    bool flatTerrain = false;
     Model checkerboard = Model(CRL_DATA_FOLDER "/meshes/checkerboard.obj");
     Model checkerboard2 = Model(CRL_DATA_FOLDER "/meshes/checkerboard2.obj");
+    Model terrain = Model(CRL_DATA_FOLDER "/meshes/terrain2/terrain.obj");
 };
 
 namespace rendering {

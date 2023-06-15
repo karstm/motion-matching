@@ -46,6 +46,10 @@ public:
     void update(TrackingCamera &camera, Database &database);
     void drawSkeleton(const Shader &shader);
     void drawTrajectory(const Shader &shader, Database &database, bool drawControllerTrajectory, bool drawAnimationTrajectory);
+    
+    crl::P3D getPosByName(const char *name);
+    void posTerrainAdjust(P3D simBonePos, P3D lFootPos, P3D rFootPos);
+    
     crl::mocap::MocapSkeletonState* getCurrentState(){
         return &footLockingStates[0];
     }
@@ -59,12 +63,14 @@ private:
 public:
     float walkSpeed = 1.1f;
     float runSpeed = 3.3f;
-    float syncFactor = 0.2f;
+    float syncFactor = 0.5f;
     int motionMatchingRate = 6;
     float transitionTime = 0.4f;
     bool useInertialization = true;
     bool useFootLocking = true;
     float unlockRadius = 0.2f;
+
+    bool flatTerrain = false;
  
 private:
     crl::mocap::MocapSkeleton *playerSkeleton = nullptr;
@@ -124,6 +130,9 @@ private:
     InertializationInfo rootOrientInertializationInfo_footLocking;
     std::vector<InertializationInfo> jointPositionInertializationInfos_footLocking;
     std::vector<InertializationInfo> jointOrientInertializationInfos_footLocking;
+
+    // Terrain adjustment
+    P3D lFootTerrainPos, rFootTerrainPos, sBoneTerrainPos;
 
 };
 

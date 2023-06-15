@@ -10,6 +10,7 @@
 #include "crl-basic/gui/renderer.h"
 #include "crl-basic/utils/geoms.h"
 #include "crl-basic/utils/mathDefs.h"
+#include "crl-basic/gui/mesh.h"
 #include "mocap/MocapMarkerState.h"
 
 namespace crl::mocap {
@@ -47,7 +48,7 @@ public:
 
     // props
     bool selected = false;
-
+    
 public:
     Quaternion computeRelativeOrientation() {
         // if qp is the quaternion that gives the orientation of the parent, and qc
